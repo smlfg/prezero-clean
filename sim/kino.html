@@ -45,9 +45,6 @@
   .laufTag{display:flex;flex-direction:column;gap:2px}
   .laufTag .wert{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
   .laufTag .hilfe{font-size:11.5px;color:var(--muted)}
-  .tempoBlock{display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap}
-  .tempoBlock .miniLabel{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
-  .tempoBlock .hilfe{font-size:11.5px;color:var(--muted)}
   .gruppe{padding:18px 26px;border-bottom:1px solid var(--line)}
   .gruppeKopf{display:flex;align-items:baseline;gap:10px;margin:0 0 14px}
   .gruppeKopf h2{margin:0;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--text)}
@@ -194,14 +191,6 @@
       <span class="wert" id="tagWert"></span>
       <span class="hilfe">Startzustand leer &mdash; der Warmlauf wird im ersten Schritt nachgeholt.</span>
     </div>
-    <div class="tempoBlock" id="tempoFeld">
-      <span class="miniLabel">Tempo <span class="chipSlot" data-herk="tempo"></span></span>
-      <div class="seg" id="tempoSeg">
-        <button data-t="0.2">0,2&times;</button><button data-t="0.25">0,25&times;</button>
-        <button data-t="0.5" class="on">0,5&times;</button><button data-t="1">1&times;</button>
-      </div>
-      <span class="hilfe" id="tempoHilfe"></span>
-    </div>
   </div>
 
   <div class="gruppe">
@@ -251,10 +240,6 @@
   <div class="kinoBar">
     <button class="knopf" id="kinoPlay">&#9654; Start</button>
     <button class="knopf" id="kinoReset">&#8635; Reset</button>
-    <div class="seg" id="kinoTempoSeg">
-      <button data-t="0.2">0,2&times;</button><button data-t="0.25">0,25&times;</button>
-      <button data-t="0.5" class="on">0,5&times;</button><button data-t="1">1&times;</button>
-    </div>
     <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span>
     <span class="konfig" id="kinoKonfig"></span>
     <span class="laufinfo" id="kinoTagWert">Tag 0 / 348</span>
@@ -10756,23 +10741,6 @@ function notiereEreignisse() {
   zeigeEreignisse();
 }
 
-function tempoText(w) {
-  /* Tempo ohne falsche Rundung: 1 -> "1", 0,5 -> "0,5", 0,25 -> "0,25" */
-  const hundert = w * 100;
-  const stellen = hundert % 100 === 0 ? 0 : hundert % 10 === 0 ? 1 : 2;
-  return zahl(w, stellen);
-}
-
-function setzeTempo(wert) {
-  tempo = wert;
-  ["tempoSeg", "kinoTempoSeg"].forEach(id => {
-    const seg = document.getElementById(id);
-    if (!seg) return;
-    seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", parseFloat(x.dataset.t) === wert));
-  });
-  document.getElementById("tempoHilfe").textContent = "Tempo " + tempoText(tempo) + "× · 1 Tag je ~" + zahl(1 / tempo, 1) + " s";
-}
-
 /* Ein fertiger Lauf: jeder Klick auf Start muss ihn erst zuruecksetzen. */
 function istFertig() {
   return eng.tag >= eng.warmlauf + TAGE;
@@ -11198,11 +11166,6 @@ document.getElementById("bFuell").addEventListener("click", () => {
   markiereSchmutzig();
   simSchreibe();
 });
-document.getElementById("tempoSeg").querySelectorAll("button").forEach(b =>
-  b.addEventListener("click", () => {
-    setzeTempo(parseFloat(b.dataset.t));
-    markiereSchmutzig();
-  }));
 document.getElementById("reset").addEventListener("click", () => {
   resetLauf();
 });
@@ -11245,8 +11208,6 @@ document.getElementById("kinoPlay").addEventListener("click", () => {
   markiereSchmutzig();
 });
 document.getElementById("kinoReset").addEventListener("click", resetLauf);
-document.getElementById("kinoTempoSeg").querySelectorAll("button").forEach(b =>
-  b.addEventListener("click", () => { setzeTempo(parseFloat(b.dataset.t)); markiereSchmutzig(); }));
 document.getElementById("navKino").addEventListener("click", () => setzeAnsicht(true));
 document.getElementById("navParameter").addEventListener("click", () => setzeAnsicht(false));
 document.getElementById("navBilanz").addEventListener("click", setzeBilanzAnsicht);
@@ -11364,7 +11325,6 @@ document.getElementById("strHilfe").innerHTML =
 document.querySelectorAll("[data-herk]").forEach(function (el) {
   el.innerHTML = chip(el.dataset.herk);
 });
-setzeTempo(0.5);
 zeigeEreignisse();
 setzeAnsicht(false);
 simSchreibe();

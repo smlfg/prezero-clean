@@ -146,7 +146,7 @@ Regeln für den Export:
 
 - **Oben:** Abstand `s` (2,5–20, Schritt 0,5) · Autos `M` (1–4) · Strategie (`ist`/`fuell`)
   · Schwelle (50–95 %, nur bei `fuell`)
-  · Play/Pause · Tempo · Tag-Anzeige.
+  · Play/Pause · Tag-Anzeige.
 - **Bühne:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
   Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
   die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
@@ -238,7 +238,7 @@ Damit können Dokument und Seite nicht auseinanderlaufen.
 |---|---|---|
 | Kopfzeile: Orte, Kammern | `M` | direkt aus der CSV |
 | Kopfzeile: Ringreihenfolge, „alle Abstände gleich" | `S` | Darstellung |
-| Steuerleiste: Abstand `s`, Autos `M`, Strategie, Schwelle, Lauf, Tempo | `S` | Modellgrößen und Startwerte |
+| Steuerleiste: Abstand `s`, Autos `M`, Strategie, Schwelle, Lauf | `S` | Modellgrößen und Startwerte |
 | Steuerleiste: „Stopps/Tag" | `A` | aus Besuchen und Tagen gerechnet |
 | Bühne: Füllstand der Kammer | `A` | Median aus Folgemessungen, im Lauf fortgeschrieben |
 | Bühne: Ringreihenfolge, Farben, Lage der Orte | `S` | reine Darstellung |
