@@ -37,6 +37,8 @@ TOLERANZ = {
     "auslastung_pct": 0.5,
     "stopps_pro_tag": 0.05,
     "wegeinheiten": 2.0,
+    "produziert_pp_pro_tag": 0.01,
+    "abgeholt_pp_pro_tag": 1.0,
 }
 
 

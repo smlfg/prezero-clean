@@ -135,7 +135,11 @@ var KINO = (function () {
       for (var k2 = 0; k2 < autos.length; k2++) autos[k2].weg = [];
       for (var b = 0; b < bedient.length; b++) autos[b % autos.length].weg.push(bedient[b]);
       if (messfenster) {
-        tagesverlauf.push({ tag: tag - WARMLAUF + 1, ueberlauf: ueberlaufTage, leerungen: leerungen });
+        /* Je Tag auch Bedarf und Abdeckung: die Kalender-Bewertung im Kino liest
+           nur diese Werte, sie aendern keine Kennzahl. */
+        tagesverlauf.push({ tag: tag - WARMLAUF + 1, ueberlauf: ueberlaufTage, leerungen: leerungen,
+                            faellig: faellig.length, bedient: bedient.length,
+                            ueberlaufHeute: ueberlaufHeute.length });
       }
       letzteTage = bedient;
       letzteUeberlauf = ueberlaufHeute;
@@ -156,6 +160,8 @@ var KINO = (function () {
 
     function metrics() {
       var t = Math.max(1, TAGE);
+      /* Gelaufene Messtage: der Warmlauf zaehlt nicht, Tag 0 zeigt 0. */
+      var tg = Math.max(0, tag - WARMLAUF);
       return {
         tag: Math.max(0, tag - WARMLAUF),
         leerungen: leerungen,
@@ -174,10 +180,10 @@ var KINO = (function () {
            produziert = Summe der Kammer-Raten x Messtage, abgeholt = Summe der
            Staende bei der Leerung. Die Differenz bleibt im Container stehen. */
         produziert_pp_pro_tag: +rateSum.toFixed(2),
-        abgeholt_pp_pro_tag: +(abgeholtSumme / t).toFixed(2),
-        produziert_pp: +(rateSum * t).toFixed(1),
+        abgeholt_pp_pro_tag: tg ? +(abgeholtSumme / tg).toFixed(2) : 0,
+        produziert_pp: +(rateSum * tg).toFixed(1),
         abgeholt_pp: +abgeholtSumme.toFixed(1),
-        bilanz_pp: +(rateSum * t - abgeholtSumme).toFixed(1)
+        bilanz_pp: +(rateSum * tg - abgeholtSumme).toFixed(1)
       };
     }
 

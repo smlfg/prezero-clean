@@ -75,7 +75,7 @@ Das Simulations-Kino wird mit `scripts/kino_bauen.py` gebaut und lokal in `sim/k
 
 Simulations-Kino (`sim/kino.html`): Füllrate, Abstand und Autoanzahl in Bewegung.
 Ein minimaler Kalender zeigt die Zeit als Tage, Wochen und Monate — Simulationstage,
-kein Kalenderdatum.
+kein Kalenderdatum — und bewertet jeden gelaufenen Tag: Bedarf gedeckt oder Rückstau.
 Jede sichtbare Zahl trägt einen **Herkunftsmarker** — `M` gemessen, `A` abgeleitet,
 `S` gesetzt. Die Marker stehen in `meta.herkunft` (`scripts/sim_daten.py`), nicht im HTML.
 

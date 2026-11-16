@@ -11,6 +11,22 @@ Klar beschriftet als **Simulation**, nie als Ergebnis oder Ersparnis.
   **Keine Saisonalität:** eine Rate je Kammer für alle Tage (A2, geprüft —
   Monats-Mediane 0,955–1,062, kein Jahresgang, `fakten.py` Abschnitt 10).
 - **Konsument:** ein Auto leert einen Ort auf 0 (Annahme A1).
+- **Die zwei Bilanzgrößen (Producer / Consumer) in Prozentpunkten (Pp).** Beide sind
+  abgeleitet, nicht gemessen, und beide stehen als Karten im Kino:
+  - **produziert** = Σ der Kammer-Raten über alle Kammern mit Rate
+    (1.303 von 1.338; Median 1,52 Pp/Tag je Kammer) → **2.484,25 Pp/Tag**,
+    `meta.produziert_pp_pro_tag`.
+  - **abgeholt** = Σ der gemessenen Stände vor der Leerung (A5) je Tag
+    (1.841,38 Pp/Tag ohne zensierte Überläufe, 2.183,91 Pp/Tag mit `overfull` = 100)
+    → **2.183,91 Pp/Tag**, `meta.abgeholt_pp_pro_tag`; je Stopp **170,10 Pp**
+    (`meta.abgeholt_pp_je_stopp`). Die Zahl ist eine **Untergrenze**, weil `overfull`
+    zensiert ist.
+  - Die Differenz (Daten: rund 300 Pp/Tag) bleibt als Füllstand im Container stehen.
+    Einheit ist bewusst **Pp, keine m³ und keine Tonnen**: absolute Mengen brauchen
+    externe Parameter (`AGENTS.md` §1 und §5) und sind dort parkiert.
+  - Im Lauf zählt die Engine dieselben zwei Größen mit (`produziert_pp`,
+    `abgeholt_pp`, `bilanz_pp`); produziert = Σ Raten × Messtage, abgeholt = Σ der
+    Stände in dem Moment, in dem geleert wird.
 - **Abstand `s`:** derselbe Abstand zwischen allen benachbarten Orten. Standard **5**.
   Es gibt keine Geografie, keine Koordinaten, keine Karte. `s` ist eine reine Zahl.
 - **Tageskapazität:** aus den Daten ergibt sich der Ist-Durchsatz
@@ -71,6 +87,8 @@ Er ist eine reine Startbedingung (kein Datenwert) und wird nicht als Zahl ausgeg
 
 ## 3. Metriken (live, je Lauf)
 
+- **Produziert / Abgeholt** (Pp/Tag, laufend und über den Lauf) — die Bilanz aus
+  Abschnitt 1, plus **Bilanz** = produziert − abgeholt.
 - **Leerungen** (Stopps) — die Kosteneinheit.
 - **Überlauf-Tage** (Ort-Tage mit Füllstand ≥ 100).
 - **Überlauf bei Leerung** (Anteil der Stopps, bei denen ein Container ≥ 100 war).
@@ -97,7 +115,12 @@ Immer **gegen den Ist-Lauf im selben Panel**, nie absolut allein.
     "besuche": 4468,
     "tage": 348,
     "k0_pro_tag": 12.8,
-    "s0": 5.0
+    "s0": 5.0,
+    "produziert_pp_pro_tag": 2484.25,
+    "produziert_kammern": 1303,
+    "produziert_pp_pro_tag_kammer_median": 1.52,
+    "abgeholt_pp_pro_tag": 2183.91,
+    "abgeholt_pp_je_stopp": 170.1
   },
   "orte": [
     {
@@ -131,6 +154,11 @@ Regeln für den Export:
   übrigen bleiben leer. Reine Darstellung (`S`): **kein Kalenderdatum**, keine Wochentage,
   keine Prognose für echte Kalendertage. Die Daten haben nur Tagesauflösung; der Kalender
   zählt Simulationstage und erfindet keine Datumsangabe.
+- **Tagesbewertung (Farbe der Zelle):** `gedeckt` = alle **fälligen Stopps des Tages** wurden
+  bedient; `verpasst` = mindestens ein fälliger Stopp blieb offen (Rückstau, die Kapazität
+  reichte nicht). Bedarf (`fällig`) und Abdeckung (`bedient`) stehen je Tag im
+  `tagesverlauf` der Engine und sind Modellgrößen (`S`). Der Überlauf bewertet den Tag **nicht**
+  mit: er liegt an jedem Tag vor und hat seine eigene Kurve im Verlauf darunter.
 - **Bühne, Ansicht `ringe`:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
   Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
   die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
@@ -221,10 +249,14 @@ Damit können Dokument und Seite nicht auseinanderlaufen.
 | Steuerleiste: „Stopps/Tag" | `A` | aus Besuchen und Tagen gerechnet |
 | Kalender: Tagesraster, Wochenzeilen, Monatsblöcke | `S` | Darstellung; ein Monat = 29 Simulationstage, kein Kalenderdatum |
 | Kalender: gefüllte Tage und hervorgehobener aktueller Tag | `S` | Modellzeit dieses Laufs |
+| Kalender: Tagesbewertung `gedeckt`/`verpasst` | `S` | Modellrechnung: fällige Stopps vs. bediente Stopps des Tages |
 | Bühne: Füllstand der Kammer | `A` | Median aus Folgemessungen, im Lauf fortgeschrieben |
 | Bühne: Ringreihenfolge, Farben, Lage der Orte | `S` | reine Darstellung |
 | Kennzahlenkarten: alle Laufwerte | `S` | Modellrechnung dieses Laufs |
+| Kennzahlenkarten: „Produziert (Producer)" und „Abgeholt (Consumer)" | `S` | Laufwerte aus Raten × Messtage bzw. Σ Stände bei Leerung |
+| Kennzahlenkarten: die Vergleichszahlen zu Producer/Consumer | `A` | `meta.produziert_pp_pro_tag`, `meta.abgeholt_pp_pro_tag`, `meta.abgeholt_pp_je_stopp` |
 | Kennzahlenkarten: Vergleichswerte aus den Daten | `M` bzw. `A` | je nach Größe aus `meta.herkunft` |
+| Kennzahlenkarten: „Differenz produziert − abgeholt" | `S` | Modellrechnung (`bilanz_pp`), steht als Satz in der Consumer-Karte |
 | Verlauf: zwei Panels, Kurven und y-Skalen | `S` | Modellrechnung dieses Laufs |
 | Verlauf oben: gestrichelte Ist-Linie | `M` | gemessene Besuchszahl (`meta.besuche`) als Bezug der Zielzahl |
 | Verlauf unten: **keine** Ist-Linie | `—` | die Daten kennen keinen Überlauf-Tag; eine Linie wäre eine erfundene Annahme |

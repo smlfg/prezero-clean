@@ -72,3 +72,17 @@ def test_6_grosse_abstaende_machen_alles_uebervoll(daten):
     m = run(20, 1, "ist", 80, daten=daten)
     assert m["voll_bei_leerung_pct"] == 100.0
     assert m["stopps_pro_tag"] < run(5, 1, "ist", 80, daten=daten)["stopps_pro_tag"]
+
+
+def test_7_producer_consumer_bilanz(daten):
+    """Produziert (Summe der Raten) und abgeholt (Summe der Staende bei Leerung).
+
+    Der Lauf startet leer, deshalb kann er nie mehr abholen als erzeugt wurde:
+    abgeholt = produziert - Bestand, und der Bestand ist nie negativ.
+    """
+    m = run(5, 1, "ist", 80, daten=daten)
+    assert m["produziert_pp_pro_tag"] == pytest.approx(
+        daten["meta"]["produziert_pp_pro_tag"], abs=0.01)
+    assert m["abgeholt_pp"] <= m["produziert_pp"] + 1.0
+    assert m["abgeholt_pp"] > 0.5 * m["produziert_pp"]
+    assert m["bilanz_pp"] == pytest.approx(m["produziert_pp"] - m["abgeholt_pp"], abs=0.2)

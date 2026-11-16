@@ -103,12 +103,14 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
             faellig_summe += int(faellig.size)
 
         budget += k_ges
+        bedient = 0
         if faellig.size:
             ordnung = sorted(faellig.tolist(), key=lambda i: (-maxfill[i], d["ids"][i]))
             for i in ordnung:
                 if budget < 1.0:
                     break
                 budget -= 1.0
+                bedient += 1
                 if messfenster:
                     # Consumer-Groesse: der Stand, der bei der Leerung abgeholt wird.
                     # overfull ist zensiert und wird wie in der CSV als 100 gezaehlt.
@@ -125,9 +127,15 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
                         ueber_100_bei_leerung += 1
 
         if messfenster:
+            # Je Tag zusaetzlich Bedarf und Abdeckung: das Kino bewertet damit den Tag
+            # (Kalender), keine Kennzahl haengt daran.
+            ueberlauf_heute = int((maxfill >= VOLL).sum())
             tage_verlauf.append({"tag": tag - warmlauf + 1,
-                                 "ueberlauf_tage": int((maxfill >= VOLL).sum()),
-                                 "leerungen": leerungen})
+                                 "ueberlauf_tage": ueberlauf_heute,
+                                 "leerungen": leerungen,
+                                 "faellig": int(faellig.size),
+                                 "bedient": bedient,
+                                 "ueberlauf_heute": ueberlauf_heute})
 
     return {
         "parameter": {"s": s, "m": m, "strategie": strategie, "schwelle": schwelle,

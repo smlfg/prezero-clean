@@ -4,6 +4,9 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 
+# Persönliche Notizen (nicht Teil des Projekts)
+Was ich eingltich will..md
+
 # Rohdaten (können vertraulich sein, nicht veröffentlichen)
 data/*.csv
 data/raw/*.csv

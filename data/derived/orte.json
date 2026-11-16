@@ -1,6 +1,6 @@
 {
  "meta": {
-  "erzeugt": "2026-11-16T19:30:53+01:00",
+  "erzeugt": "2026-11-16T19:31:26+01:00",
   "quelle": "data/raw/glass_fill_levels_anonymized_f.csv",
   "skript": "scripts/sim_daten.py",
   "orte": 449,

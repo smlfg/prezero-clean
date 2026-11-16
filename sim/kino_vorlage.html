@@ -141,6 +141,12 @@
                    color:var(--muted);margin:0}
   .kalenderKopf .tagesliste{margin-top:0;margin-left:auto}
   canvas#kalender{display:block;width:100%;height:74px}
+  .kalenderLegende{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;margin-top:7px;
+                   font-size:11.5px;color:var(--muted)}
+  .kalenderLegende .eintrag{display:inline-flex;align-items:center;gap:6px}
+  .kalenderLegende .punkt{width:9px;height:9px;border-radius:2px;display:inline-block}
+  .kalenderLegende .gedeckt{background:var(--ok)}
+  .kalenderLegende .verpasst{background:var(--bad)}
   .ansichtNav{display:flex;gap:8px;align-items:center;padding:10px 26px;background:var(--bg);border-bottom:1px solid var(--line)}
   .ansichtNav .status{margin-left:auto;color:var(--muted);font-size:12px}
   .ansichtNav button.active{background:var(--accent);color:#07131f;font-weight:600}
@@ -155,6 +161,65 @@
   .ereignis{padding:7px 8px;margin-top:6px;border-left:3px solid var(--accent);background:rgba(88,166,255,.07);font-size:12px;color:var(--text)}
   .ereignis.warn{border-color:var(--warn);background:rgba(210,153,34,.08)}
   .ereignis.bad{border-color:var(--bad);background:rgba(248,81,73,.08)}
+  /* ---- Bilanz: A gegen B (eigener Tab, Stakeholder-Sicht) ---- */
+  .bilanzKopfzeile{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;
+                   padding:12px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .bilanzKopfzeile .lab{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .bilanzKopfzeile .laufinfo{margin-left:auto;font-size:12px;color:var(--muted);text-align:right}
+  .bilanzKopfzeile .laufinfo b{color:var(--text);font-variant-numeric:tabular-nums}
+  .bilanzWahl{display:flex;flex-wrap:wrap;gap:8px}
+  .bilanzWahl button{background:var(--panel);border:1px solid var(--line);color:var(--muted);
+                     border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px}
+  .bilanzWahl button:hover{border-color:var(--accent);color:var(--text)}
+  .bilanzWahl button.on{background:var(--accent);color:#07131f;font-weight:600;border-color:var(--accent)}
+  .bilanzPaar{display:flex;flex-direction:column;gap:4px;padding:12px 26px;
+              border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.6}
+  .bilanzPaar b{color:#c9d1d9;font-weight:600}
+  .bilanzWrap{padding:18px 26px 30px;max-width:1180px}
+  .bilanzKarten{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .bilanzKarte{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+  .bilanzKarte .name{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .bilanzKarte .seite{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+                      padding:3px 0;font-size:12px;color:var(--muted)}
+  .bilanzKarte .seite b{font-size:18px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+  .bilanzKarte .seite.delta{border-top:1px solid var(--line);margin-top:6px;padding-top:8px}
+  .bilanzKarte.gut .seite.delta b{color:var(--ok)}
+  .bilanzKarte.schlecht .seite.delta b{color:var(--bad)}
+  .bilanzKarte.warn .seite.delta b{color:var(--warn)}
+  .bilanzFazit{margin:14px 0 0;padding:13px 15px;border-radius:12px;font-size:14px;line-height:1.55;
+               background:var(--panel);border:1px solid var(--line)}
+  .bilanzFazit.gut{border-color:rgba(63,185,80,.5);background:rgba(63,185,80,.08)}
+  .bilanzFazit.schlecht{border-color:rgba(248,81,73,.5);background:rgba(248,81,73,.08)}
+  .bilanzFazit.warn{border-color:rgba(210,153,34,.5);background:rgba(210,153,34,.08)}
+  .bilanzFazit b{color:#fff;font-weight:600}
+  .bilanzAbschnitt{margin-top:28px}
+  .bilanzAbschnitt h2{font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:0 0 6px}
+  .bilanzAbschnitt .lead{font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.55;max-width:920px}
+  .bilanzParam{margin-bottom:20px}
+  .bilanzParam h3{font-size:13px;margin:0 0 4px;font-weight:600}
+  .bilanzParam .lead{margin:0 0 8px}
+  .bilanzTabelleWrapper{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  table.bilanz{width:100%;border-collapse:collapse;font-size:13px}
+  table.bilanz th,table.bilanz td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.bilanz th:first-child,table.bilanz td:first-child{text-align:left}
+  table.bilanz thead th{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:600}
+  table.bilanz tbody tr:last-child td{border-bottom:0}
+  table.bilanz tbody tr.zeileB{background:rgba(88,166,255,.07)}
+  table.bilanz td b{font-variant-numeric:tabular-nums}
+  table.bilanz .delta{display:block;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted)}
+  table.bilanz .delta.gut{color:var(--ok)}
+  table.bilanz .delta.schlecht{color:var(--bad)}
+  table.bilanz .delta.warn{color:var(--warn)}
+  table.bilanz .status{font-size:11.5px;color:var(--muted)}
+  table.bilanz .status.ja{color:var(--ok);font-weight:600}
+  table.bilanz .status.nein{color:var(--muted)}
+  table.bilanz .status.trap{color:var(--bad)}
+  table.bilanz .marke{font-size:10.5px;color:var(--accent);margin-left:6px}
+  @media (max-width:900px){
+    .bilanzKarten{grid-template-columns:1fr}
+    .bilanzWrap{padding:14px 16px 24px}
+    .bilanzKopfzeile .laufinfo{margin-left:0;width:100%;text-align:left}
+  }
   [hidden]{display:none !important}
   @media (max-width:900px){
     main{grid-template-columns:1fr}
@@ -175,6 +240,7 @@
 <nav class="ansichtNav" aria-label="Ansicht">
   <button class="knopf active" id="navParameter">1 · Parameter</button>
   <button class="knopf" id="navKino">2 · Kino</button>
+  <button class="knopf" id="navBilanz">3 · Bilanz</button>
   <span class="status" id="ansichtStatus">Einstellungen prüfen und Simulation starten</span>
 </nav>
 
@@ -290,12 +356,17 @@
     <span class="laufinfo" id="kinoTagWert">Tag 0 / 348</span>
   </div>
 
-  <section class="kalenderPanel" aria-label="Kalender der Simulation">
+  <section class="kalenderPanel">
     <div class="kalenderKopf">
       <h2>Kalender der Simulation <span class="chipSlot" data-herk="kalender"></span></h2>
       <div class="tagesliste" id="kalenderHerkunft"></div>
     </div>
     <canvas id="kalender"></canvas>
+    <div class="kalenderLegende">
+      <span class="eintrag"><span class="punkt gedeckt"></span>gedeckt — alle fälligen Stopps des Tages bedient</span>
+      <span class="eintrag"><span class="punkt verpasst"></span>verpasst — mindestens ein fälliger Stopp blieb offen (Rückstau)</span>
+      <span class="eintrag">Überlauf zeigt die eigene Kurve im Verlauf, nicht die Zelle</span>
+    </div>
   </section>
 
 <main>
@@ -329,6 +400,30 @@
     </div>
   </div>
 </main>
+</section>
+
+<section id="bilanzAnsicht" hidden>
+  <div class="bilanzKopfzeile">
+    <div>
+      <div class="lab">B wählen &mdash; A bleibt der Ist-Lauf</div>
+      <div class="bilanzWahl" id="bilanzWahl"></div>
+    </div>
+    <button class="knopf" id="bilanzNeu">&#8635; Neu rechnen</button>
+    <span class="laufinfo" id="bilanzTag"></span>
+  </div>
+  <div class="bilanzPaar" id="bilanzPaar">Wird gerechnet &hellip;</div>
+  <div class="bilanzWrap">
+    <div class="bilanzKarten" id="bilanzKarten"></div>
+    <div id="bilanzFazit"></div>
+    <div class="bilanzAbschnitt">
+      <h2>Wie hängt das Delta von den Parametern ab?</h2>
+      <p class="lead">Je Parameter eine Tabelle: es ändert sich nur dieser eine Parameter,
+        die übrigen stehen wie in B. Jede Zeile ist ein vollständiger Lauf derselben Engine.
+        Der Ist-Lauf A steht in der Zeile über jeder Tabelle &mdash; verglichen wird immer gegen A.</p>
+      <div id="bilanzParameter"></div>
+    </div>
+    <div class="herkunft-linie" id="bilanzHerkunft"></div>
+  </div>
 </section>
 
 <footer>
@@ -923,12 +1018,21 @@ const KAL_MONATE = 12;
 const KAL_WOCHE = 7;
 const KAL_FARBE = {
   offen: "#212b38",                     // noch nicht gelaufen
-  lauf: "rgba(88,166,255,.35)",         // gelaufen
-  heute: "#58a6ff",                     // aktueller Simulationstag
+  gedeckt: "#3fb950",                   // alle faelligen Stopps bedient
+  verpasst: "#f85149",                  // mindestens ein faelliger Stopp blieb offen
   text: "#8b98a5"
 };
 
 function kalenderVergessen() { kalender._groesse = null; }
+
+/* Tagesbewertung (Modellwerte, S): Bedarf = faellige Stopps des Tages.
+   gedeckt  = alle faelligen Stopps wurden bedient
+   verpasst = mindestens einer blieb offen (Rueckstau, Kapazitaet reichte nicht)
+   Der Ueberlauf bewertet den Tag nicht mit: er liegt an jedem Tag vor und hat
+   seine eigene Kurve im Verlauf darunter. */
+function kalenderBewertung(p) {
+  return p.bedient < p.faellig ? "verpasst" : "gedeckt";
+}
 
 function zeichneKalender() {
   const ctx = passeCanvasAn(kalender);
@@ -939,6 +1043,11 @@ function zeichneKalender() {
 
   const tage = Math.max(1, TAGE);
   const jetzt = Math.min(tage, Math.max(0, eng.tag - eng.warmlauf));
+  /* Bewertung je Simulationstag aus dem Tagesverlauf der Engine. */
+  const bewertung = new Array(tage + 1);
+  eng.tagesverlauf.forEach(p => {
+    if (p.tag >= 1 && p.tag <= tage) bewertung[p.tag] = kalenderBewertung(p);
+  });
   /* Monatsgrenzen als gerundete Tagindizes: bei 348 Tagen exakt 29 Tage je Monat. */
   const grenze = m => Math.round(m * tage / KAL_MONATE);
 
@@ -961,8 +1070,15 @@ function zeichneKalender() {
       const k = d - von;
       const x = x0 + (k % KAL_WOCHE) * zellBreite;
       const y = labelHoehe + Math.floor(k / KAL_WOCHE) * (zellHoehe + zeilenLuecke);
-      ctx.fillStyle = d === jetzt ? KAL_FARBE.heute : d < jetzt ? KAL_FARBE.lauf : KAL_FARBE.offen;
-      ctx.fillRect(x, y, Math.max(1, zellBreite - 1), zellHoehe);
+      const w = Math.max(1, zellBreite - 1);
+      ctx.fillStyle = d <= jetzt ? (KAL_FARBE[bewertung[d]] || KAL_FARBE.offen) : KAL_FARBE.offen;
+      ctx.fillRect(x, y, w, zellHoehe);
+      /* Der aktuelle Tag behaelt seine Bewertungsfarbe und bekommt einen hellen Rand. */
+      if (d === jetzt) {
+        ctx.strokeStyle = "#e6edf3";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, w - 1), zellHoehe - 1);
+      }
     }
   }
 }
@@ -1126,16 +1242,18 @@ function zeichneKarten() {
     vorherNachherKarte(m),
     /* Producer/Consumer: die zwei Bilanzgroessen des Laufs, beide in Prozentpunkten
        (Pp). Absolute Mengen (m³, Tonnen) stehen nicht in der CSV und bleiben draußen. */
-    { name: "Produziert (Producer)", wert: zahl(m.produziert_pp_pro_tag, 0) + " Pp/Tag", herk: "S",
+    { name: "Produziert (Producer) · Pp/Tag", wert: zahl(m.produziert_pp_pro_tag, 0), herk: "S",
       vergl: chip("produziert_pp_pro_tag") + " aus den Daten: <b>" + zahl(d.produziert_pp_pro_tag, 0) +
         "</b> Pp/Tag = Σ Raten aller <b>" + zahl(d.produziert_kammern) + "</b> Kammern · Median <b>" +
         zahl(d.produziert_pp_pro_tag_kammer_median, 2) + "</b> Pp/Tag je Kammer · im Lauf bisher <b>" +
         zahl(m.produziert_pp) + "</b> Pp", klasse: "" },
-    { name: "Abgeholt (Consumer)", wert: zahl(m.abgeholt_pp_pro_tag, 0) + " Pp/Tag", herk: "S",
+    { name: "Abgeholt (Consumer) · Pp/Tag", wert: zahl(m.abgeholt_pp_pro_tag, 0), herk: "S",
       vergl: chip("abgeholt_pp_pro_tag") + " aus den Daten: <b>" + zahl(d.abgeholt_pp_pro_tag, 0) +
         "</b> Pp/Tag (" + chip("abgeholt_pp_je_stopp") + " <b>" + zahl(d.abgeholt_pp_je_stopp, 0) +
         "</b> Pp je Stopp, overfull als 100 gezählt) · im Lauf bisher <b>" + zahl(m.abgeholt_pp) +
-        "</b> Pp · Differenz produziert − abgeholt: <b>" + zahl(m.bilanz_pp) + "</b> Pp stehen noch im Container",
+        "</b> Pp · Differenz produziert − abgeholt: <b>" + zahl(m.bilanz_pp) + "</b> Pp stehen noch im Container. " +
+        "Der Lauf liegt über den Daten, weil die Raten an exakten 100er-Lesungen inflationieren " +
+        "und die Datenwerte zensiert sind (<code>AGENTS.md</code> §4.3).",
       klasse: "" },
     { name: "Leerungen (Stopps)", wert: zahl(m.leerungen), herk: "S",
       vergl: chip("daten_besuche") + " gemessen: <b>" + zahl(d.besuche) + "</b> Besuche",
@@ -1262,8 +1380,10 @@ function setzeAnsicht(kino) {
   inKino = kino;
   document.getElementById("parameterAnsicht").hidden = kino;
   document.getElementById("kinoAnsicht").hidden = !kino;
+  document.getElementById("bilanzAnsicht").hidden = true;
   document.getElementById("navParameter").classList.toggle("active", !kino);
   document.getElementById("navKino").classList.toggle("active", kino);
+  document.getElementById("navBilanz").classList.remove("active");
   document.getElementById("ansichtStatus").textContent = kino ? "Simulation beobachten und Ereignisse vergleichen" : "Einstellungen prüfen und Simulation starten";
   document.getElementById("kinoKonfig").textContent = konfigurationText();
   if (kino) {
@@ -1276,6 +1396,25 @@ function setzeAnsicht(kino) {
     laufend = false;
     document.getElementById("play").textContent = "▶ Kino starten";
   }
+}
+
+/* Bilanz-Ansicht: eigener Tab. Der Kino-Lauf wird angehalten - im Stand
+   entstehen keine Frames. Gerechnet wird nur hier, in Häppchen (bilanzStart). */
+function setzeBilanzAnsicht() {
+  inKino = false;
+  laufend = false;
+  document.getElementById("parameterAnsicht").hidden = true;
+  document.getElementById("kinoAnsicht").hidden = true;
+  document.getElementById("bilanzAnsicht").hidden = false;
+  document.getElementById("navParameter").classList.remove("active");
+  document.getElementById("navKino").classList.remove("active");
+  document.getElementById("navBilanz").classList.add("active");
+  document.getElementById("ansichtStatus").textContent =
+    "Zwei Szenarien gegenüberstellen — Modellrechnung, keine Messung";
+  document.getElementById("play").textContent = "▶ Kino starten";
+  document.getElementById("kinoPlay").textContent = "▶ Start";
+  bilanzWahlZeichnen();
+  bilanzStart();
 }
 
 function resetLauf() {
@@ -1460,12 +1599,337 @@ document.getElementById("dzDatei").addEventListener("change", function (e) {
   leser.readAsText(f);
 });
 
+/* ---------- Bilanz: A gegen B ----------
+   Eigener Tab für Stakeholder. A ist immer der Ist-Lauf (Abstand s0, 1 Auto,
+   Strategie "ist"). B ist der aktuell eingestellte Lauf oder ein Drehbuch.
+
+   Alle Zahlen entstehen hier aus derselben Engine wie die Bühne (KINO.create) -
+   kein Wert steht im HTML, keine zweite Modelllogik. Die vielen Läufe der
+   Parameter-Tabellen werden in Häppchen per setTimeout gerechnet, damit die
+   Oberfläche bedienbar bleibt. Die Loop-Bremse (requestAnimationFrame in loop())
+   bleibt unberührt: im Stand entstehen weiterhin keine Frames. */
+const bilanzEng = KINO.create(DATEN);
+let bilanzQuelle = null;   /* null = aktueller Lauf, sonst Index in DREHBUCH */
+let bilanzJob = null;
+
+function bilanzIstParams() {
+  return {
+    s: META.s0, m: 1, strategie: "ist",
+    schwelle: parseInt(document.getElementById("schwelle").value, 10)
+  };
+}
+
+/* Drehbuch-Parameter auf die Engine-Namen abbilden (abstand -> s, autos -> m). */
+function bilanzDzParams(d) {
+  const p = d.parameter;
+  return { s: +p.abstand, m: +p.autos, strategie: p.strategie, schwelle: +p.schwelle };
+}
+
+function bilanzBParams() {
+  const d = bilanzQuelle === null ? null : DREHBUCH[bilanzQuelle];
+  return d ? bilanzDzParams(d) : eng.getParams();
+}
+
+function bilanzBName() {
+  const d = bilanzQuelle === null ? null : DREHBUCH[bilanzQuelle];
+  return d ? (d.name || d.datei) : "aktueller Lauf";
+}
+
+function bilanzLauf(p) {
+  bilanzEng.reset(p);
+  return bilanzEng.runToEnd();
+}
+
+/* Delta B − A. ueberlauf_tage ist die ungerundete Quelle; die Quote ist nur
+   über den gleichen Nenner (Orte × Messtage) vergleichbar. */
+function bilanzDelta(a, b) {
+  const dTage = b.ueberlauf_tage - a.ueberlauf_tage;
+  const dLeer = b.leerungen - a.leerungen;
+  const dWege = b.wegeinheiten - a.wegeinheiten;
+  return {
+    dTage: dTage,
+    dUeberPp: 100 * dTage / (bilanzEng.n * Math.max(1, TAGE)),
+    dLeer: dLeer,
+    dLeerPct: a.leerungen ? 100 * dLeer / a.leerungen : 0,
+    dWege: dWege,
+    dWegePct: a.wegeinheiten ? 100 * dWege / a.wegeinheiten : 0,
+    /* Erfolg nur bei weniger Leerungen UND nicht mehr Überlauf. */
+    erfolg: dLeer < 0 && dTage <= 0
+  };
+}
+
+/* Vorzeichenbehaftete Zahl in deutscher Schreibweise. */
+function bilanzVz(v, einheit, n) {
+  if (v === null || !isFinite(v)) return "—";
+  const betrag = Math.abs(v) < 0.005 ? 0 : Math.abs(v);
+  const txt = betrag === 0 ? "0" : zahl(betrag, n === undefined ? 2 : n);
+  return (v > 0.004 ? "+" : v < -0.004 ? "−" : "") + txt + (einheit ? " " + einheit : "");
+}
+
+/* Parameterzeile eines Szenarios mit Herkunftsmarkern. */
+function bilanzParamZeile(p) {
+  const ist = p.strategie === "ist";
+  return "Abstand <b>" + zahl(p.s, 1) + "</b> " + chip("abstand") +
+    " · <b>" + p.m + (p.m === 1 ? " Auto" : " Autos") + "</b> " + chip("autos") +
+    " · <b>" + (ist ? "Ist-Rhythmus" : "nach Füllstand") + "</b> " +
+    chip(ist ? "ist_rhythmus" : "strategie") +
+    (ist ? "" : " · Schwelle <b>" + p.schwelle + " %</b> " + chip("schwelle"));
+}
+
+/* Rasterwerte aus den Reglern der Parameter-Ansicht: dieselben Grenzen und
+   Schritte wie die Steuerung, damit hier keine zweite Skala entsteht. */
+function bilanzRaster(min, max, step, anzahl) {
+  const schritte = Math.max(1, Math.round((max - min) / step));
+  const n = Math.max(2, anzahl);
+  const werte = [];
+  for (let k = 0; k < n; k++) {
+    const idx = Math.round(k * schritte / (n - 1));
+    werte.push(+(min + idx * step).toFixed(4));
+  }
+  return werte;
+}
+
+function bilanzMitBasis(liste, wert) {
+  const out = liste.slice();
+  if (!out.some(v => Math.abs(v - wert) < 1e-9)) out.push(wert);
+  out.sort((x, y) => x - y);
+  return out;
+}
+
+/* Je Parameter eine Tabelle: nur dieser Parameter ändert sich, die übrigen
+   stehen wie in B. Jede Zeile ist ein vollständiger Lauf. */
+function bilanzSweeps(b) {
+  const sEl = document.getElementById("s");
+  const mEl = document.getElementById("m");
+  const wEl = document.getElementById("schwelle");
+  const sMin = +sEl.min, sMax = +sEl.max, sStep = +sEl.step;
+  const mMin = +mEl.min, mMax = +mEl.max, mStep = +mEl.step;
+  const wMin = +wEl.min, wMax = +wEl.max;
+
+  const abstaende = bilanzMitBasis(bilanzRaster(sMin, sMax, sStep, 5).concat([META.s0]), b.s);
+  const autos = bilanzRaster(mMin, mMax, mStep, Math.round((mMax - mMin) / mStep) + 1);
+  const schwellen = [];
+  for (let v = wMin; v < wMax; v += 10) schwellen.push(v);
+  schwellen.push(wMax);
+  /* Die Schwelle wirkt nur bei "nach Füllstand". Steht B auf Ist-Rhythmus, wird
+     diese Tabelle mit "nach Füllstand" gerechnet - und das steht darüber. */
+  const schwelleAktiv = b.strategie === "fuell";
+
+  const zeile = (label, params, istB) => ({ label: label, params: params, istB: !!istB });
+
+  return [
+    {
+      key: "abstand", titel: "Abstand der Orte", chipKey: "abstand",
+      hinweis: "Nur der Abstand ändert sich. Unter dem Ist-Abstand bindet der Bedarf, " +
+        "darüber die Fahrkapazität — deshalb bleiben die Leerungen dort gleich.",
+      rows: abstaende.map(v => zeile(zahl(v, 1),
+        { s: v, m: b.m, strategie: b.strategie, schwelle: b.schwelle },
+        Math.abs(v - b.s) < 1e-9))
+    },
+    {
+      key: "autos", titel: "Autos", chipKey: "autos",
+      hinweis: "Nur die Zahl der Autos ändert sich. Mehr Autos können Rückstau abfahren, " +
+        "wenn der Bedarf die Kapazität übersteigt.",
+      rows: autos.map(v => zeile(String(v),
+        { s: b.s, m: v, strategie: b.strategie, schwelle: b.schwelle }, v === b.m))
+    },
+    {
+      key: "strategie", titel: "Strategie", chipKey: "strategie",
+      hinweis: "Nur die Regel ändert sich: fester Ist-Rhythmus oder Leerung ab Schwelle.",
+      rows: [
+        zeile("Ist-Rhythmus",
+          { s: b.s, m: b.m, strategie: "ist", schwelle: b.schwelle }, b.strategie === "ist"),
+        zeile("nach Füllstand",
+          { s: b.s, m: b.m, strategie: "fuell", schwelle: b.schwelle }, b.strategie === "fuell")
+      ]
+    },
+    {
+      key: "schwelle", titel: "Schwelle", chipKey: "schwelle",
+      hinweis: (schwelleAktiv ? "" : "B steht auf Ist-Rhythmus, dort wirkt die Schwelle nicht; " +
+        "diese Tabelle rechnet deshalb mit „nach Füllstand“.") +
+        " Nur die Schwelle ändert sich — geleert wird, wenn die vollste Kammer sie erreicht.",
+      rows: bilanzMitBasis(schwellen, b.schwelle).map(v => zeile(v + " %",
+        { s: b.s, m: b.m, strategie: "fuell", schwelle: v },
+        schwelleAktiv && v === b.schwelle))
+    }
+  ];
+}
+
+function bilanzWahlZeichnen() {
+  const box = document.getElementById("bilanzWahl");
+  if (!box) return;
+  let html = '<button data-q="-" class="' + (bilanzQuelle === null ? "on" : "") +
+    '">aktueller Lauf</button>';
+  DREHBUCH.forEach((d, i) => {
+    html += '<button data-q="' + i + '" class="' + (bilanzQuelle === i ? "on" : "") + '">' +
+      (d.name || d.datei) + "</button>";
+  });
+  box.innerHTML = html;
+  box.querySelectorAll("button").forEach(btn => btn.addEventListener("click", function () {
+    bilanzQuelle = btn.dataset.q === "-" ? null : parseInt(btn.dataset.q, 10);
+    bilanzWahlZeichnen();
+    bilanzStart();
+  }));
+}
+
+function bilanzStart() {
+  if (bilanzJob && bilanzJob.timer) clearTimeout(bilanzJob.timer);
+  const a = bilanzIstParams();
+  const b = bilanzBParams();
+  const sweeps = bilanzSweeps(b);
+  const liste = [{ key: "A", p: a }, { key: "B", p: b }];
+  sweeps.forEach(sw => sw.rows.forEach((r, i) => liste.push({ key: sw.key + ":" + i, p: r.params })));
+  const job = { a: a, b: b, sweeps: sweeps, liste: liste, i: 0, res: {}, timer: 0 };
+  bilanzJob = job;
+  document.getElementById("bilanzPaar").innerHTML =
+    '<div><b>A · Ist-Lauf</b> — ' + bilanzParamZeile(a) + "</div>" +
+    '<div><b>B · ' + bilanzBName() + "</b> — " + bilanzParamZeile(b) + "</div>";
+  document.getElementById("bilanzKarten").innerHTML = "";
+  document.getElementById("bilanzFazit").innerHTML = "";
+  document.getElementById("bilanzParameter").innerHTML = "";
+  document.getElementById("bilanzHerkunft").innerHTML = "";
+  bilanzSchritt(job);
+}
+
+function bilanzSchritt(job) {
+  if (bilanzJob !== job) return;
+  job.timer = 0;
+  const ende = Date.now() + 20;   /* Zeitbudget je Häppchen: die Seite bleibt bedienbar */
+  while (job.i < job.liste.length && Date.now() < ende) {
+    const j = job.liste[job.i++];
+    job.res[j.key] = bilanzLauf(j.p);
+  }
+  if (job.i < job.liste.length) {
+    document.getElementById("bilanzTag").textContent =
+      "Rechnet … " + job.i + " / " + job.liste.length + " Läufe";
+    job.timer = setTimeout(function () { bilanzSchritt(job); }, 0);
+    return;
+  }
+  bilanzZeichnen(job);
+}
+
+function bilanzFazit(a, b, d) {
+  const leer = d.dLeer === 0 ? "gleich viele Leerungen"
+    : d.dLeer < 0 ? zahl(-d.dLeer) + " Leerungen weniger"
+    : zahl(d.dLeer) + " Leerungen mehr";
+  const ueber = d.dTage === 0 ? "denselben Überlauf"
+    : (d.dTage > 0 ? "mehr Überlauf (" : "weniger Überlauf (") +
+      bilanzVz(d.dUeberPp, "Pp", 2) + ")";
+  const weg = d.dWegePct === 0 ? "gleich viel Weg"
+    : (d.dWegePct < 0 ? zahl(Math.abs(d.dWegePct), 1) + " % weniger Weg"
+      : zahl(d.dWegePct, 1) + " % mehr Weg");
+  const rand = " Der Aufwand: " + weg + " (Wegeinheiten = Abstand × Stopps).";
+  if (d.erfolg) return { klasse: "gut",
+    text: "Die Ersparnis gilt: B fährt <b>" + leer + "</b> als der Ist-Lauf und erzeugt dabei <b>" +
+      ueber + "</b>." + rand };
+  if (d.dLeer < 0) return { klasse: "schlecht",
+    text: "Die Ersparnis gilt nicht: B fährt zwar <b>" + leer + "</b>, erzeugt aber <b>" +
+      ueber + "</b> als der Ist-Lauf. Der Wächter Überlauf schlägt an." + rand };
+  if (d.dLeer === 0) return { klasse: "warn",
+    text: "Kein Unterschied bei der Zielzahl: B fährt <b>gleich viele Leerungen</b> wie der " +
+      "Ist-Lauf, der Überlauf ist " +
+      (d.dTage === 0 ? "ebenfalls gleich" : d.dTage > 0 ? "höher" : "niedriger") +
+      ". Ein Erfolg ist das nicht." + rand };
+  return { klasse: "schlecht",
+    text: "Kein Erfolg: B fährt <b>" + leer + "</b> als der Ist-Lauf. Ein Plan mit mehr " +
+      "Leerungen ist kein Erfolg, unabhängig vom Überlauf." + rand };
+}
+
+/* Eine Parametertabelle: A steht in der Kopfzeile, jede Zeile ist ein Lauf mit
+   genau einer geänderten Größe, die Zellen tragen den Wert und das Delta zu A. */
+function bilanzTabelle(sw, a, res) {
+  const kopf =
+    '<div class="bilanzParam">' +
+    "<h3>" + sw.titel + " " + chip(sw.chipKey) + "</h3>" +
+    '<p class="lead">A · Ist-Lauf: <b>' + zahl(a.leerungen) + "</b> Leerungen · <b>" +
+      zahl(a.ueberlauf_quote_pct, 2) + " %</b> Überlauf · <b>" + zahl(a.wegeinheiten) +
+      "</b> Wegeinheiten. " + sw.hinweis + "</p>" +
+    '<div class="bilanzTabelleWrapper"><table class="bilanz"><thead><tr>' +
+      "<th>Wert</th><th>Leerungen</th><th>Überlaufquote</th><th>Wegeinheiten</th>" +
+      "<th>Erfolg gegen A</th></tr></thead><tbody>";
+  const zeilen = sw.rows.map((r, i) => {
+    const m = res[sw.key + ":" + i];
+    if (!m) return "";
+    const d = bilanzDelta(a, m);
+    const lkl = d.dLeer < 0 ? "gut" : d.dLeer > 0 ? "schlecht" : "";
+    const ukl = d.dTage > 0 ? "schlecht" : d.dTage < 0 ? "gut" : "";
+    const status = d.erfolg
+      ? '<span class="status ja">gilt</span>'
+      : (d.dLeer < 0 && d.dTage > 0
+        ? '<span class="status trap">gilt nicht: Überlauf</span>'
+        : '<span class="status nein">gilt nicht</span>');
+    return '<tr class="' + (r.istB ? "zeileB" : "") + '">' +
+      "<td><b>" + r.label + "</b>" + (r.istB ? '<span class="marke">= B</span>' : "") + "</td>" +
+      "<td><b>" + zahl(m.leerungen) + '</b><span class="delta ' + lkl + '">' +
+        bilanzVz(d.dLeerPct, "%", 1) + "</span></td>" +
+      "<td><b>" + zahl(m.ueberlauf_quote_pct, 2) + ' %</b><span class="delta ' + ukl + '">' +
+        bilanzVz(d.dUeberPp, "Pp", 2) + "</span></td>" +
+      "<td><b>" + zahl(m.wegeinheiten) + '</b><span class="delta">' +
+        bilanzVz(d.dWegePct, "%", 1) + "</span></td>" +
+      "<td>" + status + "</td></tr>";
+  }).join("");
+  return kopf + zeilen + "</tbody></table></div></div>";
+}
+
+function bilanzZeichnen(job) {
+  const a = job.res.A, b = job.res.B;
+  const d = bilanzDelta(a, b);
+
+  document.getElementById("bilanzTag").innerHTML =
+    chip("tage") + " alle Läufe am Messtag <b>" + TAGE + "</b> · " +
+    chip("orte") + " <b>" + zahl(bilanzEng.n) + "</b> Orte";
+
+  const karten = [
+    { titel: "Leerungen (Stopps)", chipKey: "kino_ist_vergleich",
+      a: zahl(a.leerungen), b: zahl(b.leerungen), delta: bilanzVz(d.dLeerPct, "%", 1),
+      klasse: d.erfolg ? "gut" : d.dLeer > 0 ? "schlecht" : d.dLeer === 0 ? "warn" : "schlecht" },
+    { titel: "Überlaufquote", chipKey: "ueberlauf_tage",
+      a: zahl(a.ueberlauf_quote_pct, 2) + " %", b: zahl(b.ueberlauf_quote_pct, 2) + " %",
+      delta: bilanzVz(d.dUeberPp, "Pp", 2),
+      klasse: d.dTage > 0 ? "schlecht" : d.dTage < 0 ? "gut" : "" },
+    { titel: "Wegeinheiten (s × Stopps)", chipKey: "wegeinheiten",
+      a: zahl(a.wegeinheiten), b: zahl(b.wegeinheiten), delta: bilanzVz(d.dWegePct, "%", 1),
+      klasse: "" }
+  ];
+  document.getElementById("bilanzKarten").innerHTML = karten.map(k =>
+    '<div class="bilanzKarte ' + k.klasse + '">' +
+      '<div class="name">' + k.titel + " " + chip(k.chipKey) + "</div>" +
+      '<div class="seite"><span>A · Ist-Lauf</span><b>' + k.a + "</b></div>" +
+      '<div class="seite"><span>B · gewählt</span><b>' + k.b + "</b></div>" +
+      '<div class="seite delta"><span>Δ B − A</span><b>' + k.delta + "</b></div>" +
+    "</div>").join("");
+
+  const f = bilanzFazit(a, b, d);
+  document.getElementById("bilanzFazit").innerHTML =
+    '<div class="bilanzFazit ' + f.klasse + '">' + f.text + "</div>";
+
+  document.getElementById("bilanzParameter").innerHTML =
+    job.sweeps.map(sw => bilanzTabelle(sw, a, job.res)).join("");
+
+  document.getElementById("bilanzHerkunft").innerHTML =
+    "<b>Herkunft:</b> " +
+    chip("kino_ist_vergleich") + " A, B und jede Tabellenzeile sind Modellrechnung " +
+    "derselben Engine — gesetzt, keine Messung. " +
+    chip("abstand") + " Abstand, " + chip("autos") + " Autos, " +
+    chip("strategie") + " Strategie, " + chip("schwelle") + " Schwelle sind gesetzte Modellgrößen. " +
+    chip("daten_besuche") + " gemessen: " + zahl(META.besuche) + " Besuche im Ist-Plan — daran " +
+    "ist A geeicht, trifft es aber nicht exakt. " +
+    chip("wegeinheiten") + " Wegeinheiten = Abstand × Stopps, keine km." +
+    "<br><b>Bewusst nicht enthalten:</b> Euro, Preise, Tonnen, km und eine Geldersparnis. " +
+    "Diese Größen stehen nicht in den Daten (AGENTS.md §1/§5) und werden hier nicht geschätzt. " +
+    "Keine Prognose für echte Kalendertage: alle Zahlen sind Simulations-Messtage.";
+}
+
 /* ---------- Steuerung ---------- */
 function wertSetzen() {
   const s = parseFloat(document.getElementById("s").value);
   const m = parseInt(document.getElementById("m").value, 10);
   const schwelle = parseInt(document.getElementById("schwelle").value, 10);
-  eng.setParams({ s: s, m: m, schwelle: schwelle });
+  /* Die Strategie folgt dem aktiven Knopf. wertSetzen() ist der einzige Weg in die
+     Engine; ohne diese Zeile blieb die Strategie beim Anwenden eines Drehbuchs auf
+     dem alten Wert, während die Knöpfe schon umsprangen. */
+  const strategie = document.getElementById("bFuell").classList.contains("on") ? "fuell" : "ist";
+  eng.setParams({ s: s, m: m, schwelle: schwelle, strategie: strategie });
   eng.reset();
   document.getElementById("sWert").textContent = zahl(s, 1);
   document.getElementById("mWert").textContent = String(m);
@@ -1578,6 +2042,8 @@ document.getElementById("kinoTempoSeg").querySelectorAll("button").forEach(b =>
   b.addEventListener("click", () => { setzeTempo(parseFloat(b.dataset.t)); markiereSchmutzig(); }));
 document.getElementById("navKino").addEventListener("click", () => setzeAnsicht(true));
 document.getElementById("navParameter").addEventListener("click", () => setzeAnsicht(false));
+document.getElementById("navBilanz").addEventListener("click", setzeBilanzAnsicht);
+document.getElementById("bilanzNeu").addEventListener("click", bilanzStart);
 
 /* ---------- Schleife ---------- */
 function loop(ts) {
