@@ -33,7 +33,7 @@ Ist-Basis aus den Daten: 4.468 Besuche, 10,2 % Überlauf-Messungen. Mehr Fahrten
 
 ## Phasen (jede erst nach der vorigen)
 1. **Daten verstehen und visualisieren:** `fakten.py`, Verteilungen, Füllkurven je Container und Farbe. Nur Diagramme, keine App.
-2. **Modell:** Container = Puffer mit Füllrate je ID (und Farbe), Besuch = Leerung auf 0. Annahmen benennen.
+2. **Modell:** Container (`Location_id`) = Puffer mit 1–3 Kammern je Farbe, Kammer (`Location_id`, `material_type`) mit eigener Füllrate, Besuch = Leerung aller Kammern auf 0. Annahmen benennen (A1–A5).
 3. **Bilanztest:** Grenzwerte festlegen und grün bekommen (siehe AGENTS.md).
 4. **Optimieren:** Besuchsabstände je Container so wählen, dass Zielzahl besser wird. Backtest nur auf späteren Daten als dem Training.
 

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulations-Kino — PreZero Glascontainer</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2430; --line:#2a3441;
+    --text:#e6edf3; --muted:#8b98a5; --accent:#58a6ff; --warn:#d29922; --bad:#f85149; --ok:#3fb950;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:18px 26px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+  h1{margin:0;font-size:20px;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  .hinweis{display:inline-block;margin-top:10px;padding:5px 11px;border-radius:999px;
+           background:rgba(210,153,34,.14);border:1px solid rgba(210,153,34,.45);
+           color:#f0c674;font-size:12.5px}
+  .leiste{display:flex;flex-wrap:wrap;gap:18px;align-items:center;
+          padding:14px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .feld{display:flex;flex-direction:column;gap:5px;min-width:150px}
+  .feld label{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+  .feld .wert{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+  .feld .hilfe{font-size:11.5px;color:var(--muted)}
+  input[type=range]{width:180px;accent-color:var(--accent)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{background:transparent;border:0;color:var(--muted);padding:8px 14px;cursor:pointer;font-size:13.5px}
+  .seg button.on{background:var(--accent);color:#07131f;font-weight:600}
+  .knopf{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;
+         padding:9px 16px;cursor:pointer;font-size:13.5px}
+  .knopf:hover{border-color:var(--accent)}
+  main{display:grid;grid-template-columns:1fr 380px;gap:20px;padding:20px 26px 28px;align-items:start}
+  .buehne{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .buehne h2{font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:2px 0 10px}
+  canvas#ring{width:100%;height:auto;display:block;border-radius:8px}
+  .legende{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted)}
+  .legende .skala{width:220px;height:10px;border-radius:5px;
+    background:linear-gradient(90deg,#1B2A41 0%,#2E6E8E 45%,#E9A23B 72%,#D64545 100%)}
+  .legende .punkt{width:12px;height:12px;border-radius:50%;background:#ffd166;display:inline-block}
+  .legende .ueber{width:12px;height:12px;border-radius:3px;background:#ff3b30;display:inline-block}
+  .legende .ring-sw{width:20px;height:6px;border-radius:3px;display:inline-block;vertical-align:middle}
+  .legende .r-weiss{background:#d9e2ec}
+  .legende .r-gruen{background:#2ea043}
+  .legende .r-braun{background:#9c6b3f}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:2px 0 12px}
+  .karte{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:9px;background:var(--panel2)}
+  .karte .oben{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .karte .name{font-size:12.5px;color:var(--muted)}
+  .karte .wert{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+  .karte .vergleich{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .karte .vergleich b{color:#c9d1d9;font-weight:600}
+  .karte.gut .wert{color:var(--ok)} .karte.schlecht .wert{color:var(--bad)} .karte.warn .wert{color:var(--warn)}
+  .tagesliste{font-size:12px;color:var(--muted);margin-top:4px}
+  footer{padding:16px 26px 30px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line)}
+  code{background:#21262d;padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Simulations-Kino — PreZero Glascontainer</h1>
+  <div class="sub">449 Orte ohne Karte · drei Ringe nach Glasfarbe, über die ID ausgerichtet · alle Abstände gleich.</div>
+  <div class="hinweis">Modelliert — keine Messung. Raten und Rhythmus sind aus den Daten abgeleitet, alles andere ist Annahme.</div>
+</header>
+
+<div class="leiste">
+  <div class="feld">
+    <label>Abstand der Orte</label>
+    <input type="range" id="s" min="2.5" max="20" step="0.5" value="5">
+    <div class="wert" id="sWert">5,0</div>
+    <div class="hilfe" id="sHilfe">Abstandseinheiten je Sprung</div>
+  </div>
+  <div class="feld">
+    <label>Autos</label>
+    <input type="range" id="m" min="1" max="4" step="1" value="1">
+    <div class="wert" id="mWert">1</div>
+    <div class="hilfe" id="mHilfe">12,8 Stopps/Tag</div>
+  </div>
+  <div class="feld">
+    <label>Strategie</label>
+    <div class="seg">
+      <button id="bIst" class="on">Ist-Rhythmus</button>
+      <button id="bFuell">nach Füllstand</button>
+    </div>
+    <div class="hilfe" id="strHilfe">Beobachteter Rhythmus, kalibriert</div>
+  </div>
+  <div class="feld" id="feldSchwelle">
+    <label>Schwelle</label>
+    <input type="range" id="schwelle" min="50" max="95" step="1" value="80" disabled>
+    <div class="wert" id="schwelleWert">80 %</div>
+    <div class="hilfe">ab hier wird geleert</div>
+  </div>
+  <div class="feld">
+    <label>Lauf</label>
+    <div class="takt">
+      <button class="knopf" id="play">&#9654; Start</button>
+      <button class="knopf" id="reset">&#8635; Reset</button>
+    </div>
+    <div class="wert" id="tagWert">Tag 0 / 348</div>
+    <div class="hilfe" id="tempoHilfe">Tempo 1&times;</div>
+  </div>
+  <div class="feld">
+    <label>Tempo</label>
+    <div class="seg" id="tempoSeg">
+      <button data-t="0.5">0,5&times;</button><button data-t="1" class="on">1&times;</button>
+      <button data-t="2">2&times;</button><button data-t="4">4&times;</button><button data-t="8">8&times;</button>
+    </div>
+    <div class="hilfe">1 Tag je ~0,45 s</div>
+  </div>
+</div>
+
+<main>
+  <div class="buehne">
+    <h2>B&uuml;hne: 3 Ringe &mdash; Wei&szlig; / Gr&uuml;n / Braun &middot; 449 Orte &uuml;ber die ID ausgerichtet &middot; Farbe = F&uuml;llstand der Kammer</h2>
+    <canvas id="ring"></canvas>
+    <div class="legende">
+      <span class="ring-sw r-weiss"></span><span>Wei&szlig;</span>
+      <span class="ring-sw r-gruen"></span><span>Gr&uuml;n</span>
+      <span class="ring-sw r-braun"></span><span>Braun</span>
+      <span style="margin-left:14px">leer</span><span class="skala"></span><span>voll</span>
+      <span style="margin-left:14px"><span class="ueber"></span> &uuml;ber 100 %</span>
+      <span><span class="punkt"></span> Auto</span>
+      <span id="legText">&mdash;</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Kennzahlen des Laufs</h2>
+    <div id="karten"></div>
+    <h2 style="margin-top:18px">Verlauf</h2>
+    <canvas id="spark" width="348" height="120" style="width:100%;height:120px"></canvas>
+    <div class="tagesliste" id="tagesliste">&mdash;</div>
+  </div>
+</main>
+
+<footer>
+  Gemessen: <code>data/raw/glass_fill_levels_anonymized_f.csv</code> (11.701 Messungen, 449 Orte, 1.338 Kammern).
+  Abgeleitet: Raten, Rhythmus, Kalibrierungsfaktor aus <code>data/derived/orte.json</code>
+  (<code>scripts/sim_daten.py</code>). Modelliert: alles auf dieser Seite.
+  Modell: <code>docs/KINO_VERTRAG.md</code> &middot; Referenz: <code>scripts/sim_referenz.py</code> &middot;
+  Engine: <code>sim/engine.js</code>. Keine Karte, keine Koordinaten, keine km, keine Euro.
+</footer>
+
+<script id="daten" type="application/json">__DATEN__</script>
+<script>
+/*__ENGINE__*/
+"use strict";
+const DATEN = JSON.parse(document.getElementById("daten").textContent);
+const META = DATEN.meta;
+const N = META.orte;
+const TAGE = META.tage;
+const VOLL = 100.0;
+const MAXC = KINO.MAXC;
+
+/* Drei Ringe, außen -> innen. Reihenfolge und Farben sind Darstellung, keine Daten. */
+const FARBEN = [
+  { key: "white", name: "Weiß", glas: "#d9e2ec" },
+  { key: "green", name: "Grün",  glas: "#2ea043" },
+  { key: "brown", name: "Braun", glas: "#9c6b3f" }
+];
+/* Für jeden Ort: Farbe -> Index im Container-Array der Engine (i*MAXC + j). */
+const farbIdx = DATEN.orte.map(o => {
+  const m = {};
+  o.container.forEach((c, j) => { m[c.farbe] = j; });
+  return m;
+});
+
+const eng = KINO.create(DATEN);
+
+/* ---------- Darstellung ---------- */
+const ring = document.getElementById("ring"), rctx = ring.getContext("2d");
+const spark = document.getElementById("spark"), sctx = spark.getContext("2d");
+
+function farbe(f) {
+  const v = Math.max(0, Math.min(100, f));
+  const stops = [[0, 27, 42, 65], [45, 46, 110, 142], [72, 233, 162, 59], [100, 214, 69, 69]];
+  for (let i = 1; i < stops.length; i++) {
+    if (v <= stops[i][0]) {
+      const a = stops[i - 1], b = stops[i];
+      const t = (v - a[0]) / (b[0] - a[0]);
+      return "rgb(" + Math.round(a[1] + t * (b[1] - a[1])) + "," +
+        Math.round(a[2] + t * (b[2] - a[2])) + "," + Math.round(a[3] + t * (b[3] - a[3])) + ")";
+    }
+  }
+  return "rgb(214,69,69)";
+}
+
+function positionAufWeg(a, progress) {
+  if (!a.weg.length) return a.pos;
+  const n = a.weg.length;
+  const p = progress * n;
+  const k = Math.min(n - 1, Math.floor(p));
+  const f = p - k;
+  let diff = a.weg[k] - a.pos;
+  while (diff > N / 2) diff -= N;
+  while (diff < -N / 2) diff += N;
+  return (a.pos + diff * f + N) % N;
+}
+
+function zeichneRing(progress) {
+  const w = ring.clientWidth, h = Math.max(430, Math.min(w, 780));
+  const dpr = window.devicePixelRatio || 1;
+  ring.width = w * dpr; ring.height = h * dpr; ring.style.height = h + "px";
+  rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  rctx.clearRect(0, 0, w, h);
+  const cx = w / 2, cy = h / 2;
+  const seg = (Math.PI * 2) / N;
+  const rAussen = Math.min(w, h) / 2 - 34;
+  const abstand = Math.max(22, Math.min(38, (rAussen - 60) / 2));
+  const radien = FARBEN.map((_, k) => rAussen - k * abstand);
+  const fill = eng.fill;
+
+  /* Autospur ganz außen */
+  const rAuto = rAussen + 16;
+  rctx.beginPath();
+  rctx.setLineDash([2, 6]);
+  rctx.strokeStyle = "rgba(255,209,102,.14)";
+  rctx.lineWidth = 1;
+  rctx.arc(cx, cy, rAuto, 0, Math.PI * 2);
+  rctx.stroke();
+  rctx.setLineDash([]);
+
+  /* Drei Ringe: Grundring in der Glasfarbe, Segment darüber = Füllstand */
+  FARBEN.forEach((ringFarbe, k) => {
+    const R = radien[k];
+    const lw = Math.max(2.2, (2 * Math.PI * R) / N * 0.8);
+    rctx.beginPath();
+    rctx.strokeStyle = ringFarbe.glas;
+    rctx.globalAlpha = 0.35;
+    rctx.lineWidth = lw;
+    rctx.arc(cx, cy, R, 0, Math.PI * 2);
+    rctx.stroke();
+    rctx.globalAlpha = 1;
+
+    for (let i = 0; i < N; i++) {
+      const j = farbIdx[i][ringFarbe.key];
+      if (j === undefined) continue;              // Kammer fehlt -> Lücke
+      const v = fill[i * MAXC + j];
+      const a0 = i * seg - Math.PI / 2;
+      rctx.beginPath();
+      rctx.strokeStyle = farbe(v);
+      rctx.lineWidth = lw * 0.62;
+      rctx.arc(cx, cy, R, a0 + seg * 0.1, a0 + seg * 0.9);
+      rctx.stroke();
+      if (v > VOLL) {
+        rctx.beginPath();
+        rctx.strokeStyle = "#ff3b30";
+        rctx.lineWidth = lw * 0.28;
+        rctx.arc(cx, cy, R + lw * 0.5, a0 + seg * 0.1, a0 + seg * 0.9);
+        rctx.stroke();
+      }
+    }
+  });
+
+  /* Radialer Blitz bei Leerung: über alle drei Ringe, verblasst im Tagesverlauf */
+  const blitz = (1 - progress) * 0.5;
+  if (blitz > 0) {
+    rctx.strokeStyle = "rgba(255,209,102," + blitz.toFixed(3) + ")";
+    rctx.lineWidth = 2;
+    eng.letzteTage.forEach(i => {
+      const ang = i * seg - Math.PI / 2;
+      const c = Math.cos(ang), s = Math.sin(ang);
+      rctx.beginPath();
+      rctx.moveTo(cx + radien[2] * c, cy + radien[2] * s);
+      rctx.lineTo(cx + rAuto * c, cy + rAuto * s);
+      rctx.stroke();
+    });
+  }
+
+  /* Ringbeschriftung oben: dunkler Grund, Name in der Glasfarbe */
+  rctx.textAlign = "center";
+  FARBEN.forEach((ringFarbe, k) => {
+    const y = cy - radien[k] + 4;
+    rctx.fillStyle = "rgba(13,17,23,0.88)";
+    rctx.fillRect(cx - 24, y - 11, 48, 15);
+    rctx.fillStyle = ringFarbe.glas;
+    rctx.font = "12px -apple-system, sans-serif";
+    rctx.fillText(ringFarbe.name, cx, y);
+  });
+
+  /* Autos auf der Außenspur */
+  eng.autos.forEach(a => {
+    const p = positionAufWeg(a, progress);
+    a.pos = p;
+    const ang = p * seg - Math.PI / 2;
+    const x = cx + rAuto * Math.cos(ang), y = cy + rAuto * Math.sin(ang);
+    rctx.beginPath();
+    rctx.fillStyle = "rgba(255,209,102,.22)";
+    rctx.arc(x, y, 13, 0, Math.PI * 2);
+    rctx.fill();
+    rctx.beginPath();
+    rctx.fillStyle = "#ffd166";
+    rctx.arc(x, y, 6.5, 0, Math.PI * 2);
+    rctx.fill();
+  });
+
+  rctx.fillStyle = "#8b98a5";
+  rctx.font = "12px -apple-system, sans-serif";
+  rctx.fillText("449 Orte · Zuordnung über ID", cx, cy - 4);
+  rctx.font = "11px -apple-system, sans-serif";
+  rctx.fillText("Simulation — keine Messung", cx, cy + 14);
+}
+
+function zeichneSpark() {
+  const w = spark.width, h = spark.height;
+  sctx.clearRect(0, 0, w, h);
+  const verlauf = eng.tagesverlauf;
+  if (!verlauf.length) return;
+  const n = verlauf.length;
+  const maxL = Math.max(1, verlauf[n - 1].leerungen);
+  const maxU = Math.max(1, verlauf[n - 1].ueberlauf);
+  sctx.strokeStyle = "#2a3441"; sctx.lineWidth = 1;
+  for (let g = 1; g < 4; g++) {
+    const y = (h / 4) * g;
+    sctx.beginPath(); sctx.moveTo(0, y); sctx.lineTo(w, y); sctx.stroke();
+  }
+  sctx.beginPath();
+  verlauf.forEach((p, i) => {
+    const x = (i / Math.max(1, n - 1)) * w;
+    const y = h - (p.leerungen / maxL) * (h - 6) - 3;
+    i ? sctx.lineTo(x, y) : sctx.moveTo(x, y);
+  });
+  sctx.strokeStyle = "#58a6ff"; sctx.lineWidth = 1.6; sctx.stroke();
+  sctx.beginPath();
+  verlauf.forEach((p, i) => {
+    const x = (i / Math.max(1, n - 1)) * w;
+    const y = h - (p.ueberlauf / maxU) * (h - 6) - 3;
+    i ? sctx.lineTo(x, y) : sctx.moveTo(x, y);
+  });
+  sctx.strokeStyle = "#f85149"; sctx.lineWidth = 1.6; sctx.stroke();
+  sctx.fillStyle = "#8b98a5"; sctx.font = "10px sans-serif";
+  sctx.fillText("Leerungen (blau) / Überlauf-Tage (rot)", 4, 11);
+}
+
+function zahl(v, n) {
+  return Number(v).toLocaleString("de-DE", { minimumFractionDigits: n || 0, maximumFractionDigits: n || 0 });
+}
+
+function zeichneKarten() {
+  const m = eng.metrics();
+  const d = META;
+  const karten = [
+    { name: "Leerungen (Stopps)", wert: zahl(m.leerungen), vergl: "gemessen: <b>" + zahl(d.besuche) + "</b> Besuche",
+      klasse: m.leerungen <= d.besuche ? "gut" : "warn" },
+    { name: "Stopps pro Tag", wert: zahl(m.stopps_pro_tag, 1),
+      vergl: "Soll: <b>" + zahl(m.soll_stopps_pro_tag, 1) + "</b> · gemessen: <b>" + zahl(d.k0_pro_tag, 1) + "</b>", klasse: "" },
+    { name: "voll oder übervoll bei Leerung", wert: zahl(m.voll_bei_leerung_pct, 1) + " %",
+      vergl: "gemessen: <b>" + zahl(d.daten_voll_bei_leerung_pct, 1) + " %</b>", klasse: "" },
+    { name: "davon über 100 %", wert: zahl(m.ueber_100_bei_leerung_pct, 1) + " %",
+      vergl: "gemessen (overfull): <b>" + zahl(d.daten_overfull_bei_leerung_pct, 1) + " %</b>", klasse: "" },
+    { name: "Überlauf-Tage (Ort-Tage)", wert: zahl(m.ueberlauf_tage),
+      vergl: "modelliert — kein Messwert", klasse: m.ueberlauf_quote_pct > 10 ? "schlecht" : "" },
+    { name: "mittlere vollste Kammer", wert: zahl(m.mittel_max_bei_leerung_pct, 1) + " %",
+      vergl: "gemessen: <b>" + zahl(d.daten_mittel_max_bei_leerung_pct, 1) + " %</b>", klasse: "" },
+    { name: "Ø Füllstand aller Kammern", wert: zahl(m.fuell_mittel, 1) + " %",
+      vergl: "modelliert (ohne übervolle Kammern)", klasse: "" },
+    { name: "Auslastung der Autos", wert: zahl(m.auslastung_pct, 1) + " %",
+      vergl: "bediente / fällige Stopps", klasse: m.auslastung_pct < 50 ? "schlecht" : "" },
+    { name: "Wegeinheiten", wert: zahl(m.wegeinheiten),
+      vergl: "Abstand × Stopps — <b>keine km</b>", klasse: "" }
+  ];
+  document.getElementById("karten").innerHTML = karten.map(k =>
+    '<div class="karte ' + k.klasse + '"><div class="oben"><span class="name">' + k.name + "</span>" +
+    '<span class="wert">' + k.wert + '</span></div><div class="vergleich">' + k.vergl + "</div></div>").join("");
+  document.getElementById("tagesliste").textContent =
+    "Letzter Tag: " + eng.letzteTage.length + " Orte geleert · Kalibrierungsfaktor " +
+    zahl(META.kalibrierungsfaktor, 4) + " (abgeleitet: damit der Ist-Rhythmus genau " +
+    zahl(META.besuche) + " Besuche verlangt)";
+  document.getElementById("legText").textContent =
+    "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE + " · " +
+    (eng.getParams().strategie === "ist" ? "Ist-Rhythmus" : "Schwelle " + eng.getParams().schwelle + " %");
+}
+
+/* ---------- Steuerung ---------- */
+function wertSetzen() {
+  const s = parseFloat(document.getElementById("s").value);
+  const m = parseInt(document.getElementById("m").value, 10);
+  const schwelle = parseInt(document.getElementById("schwelle").value, 10);
+  eng.setParams({ s: s, m: m, schwelle: schwelle });
+  eng.reset();
+  document.getElementById("sWert").textContent = zahl(s, 1);
+  document.getElementById("mWert").textContent = String(m);
+  document.getElementById("schwelleWert").textContent = schwelle + " %";
+  const soll = (m * 12.8 * 5.0 / s);
+  document.getElementById("sHilfe").textContent = "Soll: " + zahl(soll, 1) + " Stopps/Tag";
+  document.getElementById("mHilfe").textContent = zahl(soll, 1) + " Stopps/Tag";
+  zeichneKarten(); zeichneSpark();
+}
+
+["s", "m", "schwelle"].forEach(id =>
+  document.getElementById(id).addEventListener("input", wertSetzen));
+
+document.getElementById("bIst").addEventListener("click", () => {
+  eng.setParams({ strategie: "ist" }); eng.reset();
+  document.getElementById("bIst").classList.add("on");
+  document.getElementById("bFuell").classList.remove("on");
+  document.getElementById("schwelle").disabled = true;
+  document.getElementById("strHilfe").textContent = "Beobachteter Rhythmus, kalibriert";
+  zeichneKarten();
+});
+document.getElementById("bFuell").addEventListener("click", () => {
+  eng.setParams({ strategie: "fuell" }); eng.reset();
+  document.getElementById("bFuell").classList.add("on");
+  document.getElementById("bIst").classList.remove("on");
+  document.getElementById("schwelle").disabled = false;
+  document.getElementById("strHilfe").textContent = "Leerung, wenn die vollste Kammer die Schwelle erreicht";
+  zeichneKarten();
+});
+document.getElementById("tempoSeg").querySelectorAll("button").forEach(b =>
+  b.addEventListener("click", () => {
+    document.getElementById("tempoSeg").querySelectorAll("button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    tempo = parseFloat(b.dataset.t);
+    document.getElementById("tempoHilfe").textContent = "Tempo " + zahl(tempo, 1) + "×";
+  }));
+document.getElementById("reset").addEventListener("click", () => { eng.reset(); zeichneKarten(); zeichneSpark(); });
+
+let laufend = false;
+document.getElementById("play").addEventListener("click", () => {
+  laufend = !laufend;
+  document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Start";
+});
+
+/* ---------- Schleife ---------- */
+let last = 0, tageTimer = 0, progress = 0, tempo = 1;
+function loop(ts) {
+  if (!last) last = ts;
+  const dt = ts - last; last = ts;
+  if (laufend) {
+    const dauer = 450 / tempo;
+    tageTimer += dt;
+    while (tageTimer >= dauer) {
+      tageTimer -= dauer;
+      if (eng.tag < eng.warmlauf + TAGE) { eng.stepDay(); progress = 0; }
+      else { laufend = false; document.getElementById("play").textContent = "▶ Start"; }
+    }
+    progress = Math.min(1, tageTimer / dauer);
+  }
+  zeichneRing(progress);
+  document.getElementById("tagWert").textContent = "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE;
+  zeichneKarten();
+  zeichneSpark();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- Testbarkeit ---------- */
+window.simSet = function (p) { eng.setParams(p); eng.reset(); return true; };
+window.simFinish = function () { const m = eng.runToEnd(); zeichneKarten(); zeichneSpark(); return m; };
+window.simMetrics = function () { return eng.metrics(); };
+window.simReady = true;
+
+wertSetzen();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

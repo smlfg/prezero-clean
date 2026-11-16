@@ -1,3 +1,5 @@
+/Users/samuelfleig/Projects/prezero-clean/scripts/fakten.py:41: Pandas4Warning: Series.dt.dayofweek is deprecated and will be removed in a future version. Use Series.dt.day_of_week instead.
+  print("Wochentage Messungen (0=Mo):", d.date.dt.dayofweek.value_counts().sort_index().to_dict())
 
 == 1 Form
 Spalten: ['Location_id', 'material_type', 'date', 'fill_level_perc'] | Typen: {'Location_id': 'str', 'material_type': 'str', 'date': 'datetime64[us]', 'fill_level_perc': 'str'}
@@ -56,8 +58,83 @@ klasse
 Erste Messung je Container+Farbe hat keinen Vorgänger: 1338
 
 == 6 Bilanz-Probe (Rate * Abstand = gemessener Stand?)
-Zeilen für Probe: 9206 | mittlerer Fehler (Prozentpunkte, in-sample): 14.4 | Median: 9.9
+Zeilen für Probe: 9206 | mittlerer Fehler (Prozentpunkte, in-sample): 14.4 | Median: 9.9 | P90: 36.3
 Anteil Fehler <= 10 Pp: 53.2% | <= 20 Pp: 74.6%
 Rate %/Tag je Container+Farbe: P10 0.43 Median 1.52 P90 3.89
 Tage bis 100% bei Median-Rate (Median über Container+Farbe): 65.9
-Lesehinweis: kein Schwellenwert festgelegt; der Bilanztest-Grenzwert ist offene Frage an den Stakeholder.
+Folgemessungen gesamt (abstand > 0): 10363 | davon numerisch: 9206 | davon overfull (zensiert >=100%): 1157 | overfull bei Erstmessung: 35
+Container+Farbe mit Rate: 1304 (unzensiert: 1303 + nur overfull-Untergrenze: 1 | ohne Folgemessung: 34 )
+Fehler inkl. zensiert (n=10363, Pp): Mittel: 13.9 | Median: 8.9 | P90: 36.4 | <= 10 Pp: 55.1% | <= 20 Pp: 75.2%
+Messungen mit abstand_loc != abstand_farbe (fehlende Farbmessung beim Vorbesuch): 2348
+Bilanz mit Standort-Abstand (streng A1): mittlerer Fehler 13.9 Pp | Median: 9.7 | <= 10 Pp: 53.7%
+Out-of-Sample (Training <= 2026-04-09, Test > 2026-04-09, n=5239): mittlerer Fehler 20.4 Pp | Median: 15.1 | P90: 48.1 | <= 10 Pp: 38.7%
+Out-of-Sample inkl. zensiert (n=5948): mittlerer Fehler 19.8 Pp | Median: 14.3 | P90: 48.7 | <= 10 Pp: 41.4%
+Überlauf-Quote auf Folgemessungen (n=10363): Daten 11.2% | Modell >=100%: 19.9% | Modell >100%: 18.3% | Modell >110%: 13.7%
+Bilanztest-Grenzwerte (AGENTS.md §4): In-Sample Median <= 10.0 Pp, P90 <= 37.0 Pp, Mittel <= 15.0 Pp | Backtest Median <= 16.0 Pp, P90 <= 50.0 Pp.
+
+== 7 Container-Cluster nach Rhythmus (Tag <=1d, Woche 2-7d, Monat 8-30d, Quartal 31-90d, >Quartal >90d)
+7.1 Ist-Cluster (nach Median-Besuchsabstand je Location_id):
+                  container  besuche  med_abstand  ueberlauf_besuche  mittel_max_fuell  ueberlauf_quote
+Tag (<=1d)                0        0          NaN                  0               NaN            0.000
+Woche (2-7d)              1       12          7.0                  2            94.545            0.167
+Monat (8-30d)           198     2847         23.0                584            79.448            0.205
+Quartal (31-90d)        225     1552         42.5                200            74.763            0.129
+>Quartal (>90d)          18       50        121.5                  0            79.815            0.000
+Nur 1 Besuch              7        7          NaN                  2            74.000            0.286
+
+7.2 Bedarfs-Cluster (schnellste Farbe je Location_id, A1+A2):
+                  bedarf_bis_80  bedarf_bis_100
+Tag (<=1d)                    0               0
+Woche (2-7d)                  1               0
+Monat (8-30d)               191             143
+Quartal (31-90d)            216             244
+>Quartal (>90d)              34              55
+Nur 1 Besuch                  7               7
+
+7.3 Kreuztabelle Ist-Cluster vs. Bedarf bis 80%:
+                  Woche (2-7d)  Monat (8-30d)  Quartal (31-90d)  >Quartal (>90d)  Nur 1 Besuch  All
+Ist \ Bedarf_80                                                                                    
+Woche (2-7d)                 1              0                 0                0             0    1
+Monat (8-30d)                0            175                22                1             0  198
+Quartal (31-90d)             0             16               192               17             0  225
+>Quartal (>90d)              0              0                 2               16             0   18
+Nur 1 Besuch                 0              0                 0                0             7    7
+All                          1            191               216               34             7  449
+
+7.4 Abweichungs-Gruppen (40 zu oft vs. 18 zu spaet gegen 80%-Bedarf):
+                            container  besuche_ist  ueberlauf_besuche  med_abstand_ist  tage_bis_80_med  mittel_max_fuell  rechn_gesparte_besuche  ueberlauf_quote
+status_80                                                                                                                                                         
+Nur 1 Besuch                        7            7                  2              NaN              NaN            74.000                     0.0            0.286
+Passend (Ist == Bedarf_80)        384         4026                722             33.0           33.262            78.045                    -4.0            0.179
+Zu oft (Ist < Bedarf_80)           40          272                 33             30.0           62.133            64.413                    94.0            0.121
+Zu spaet (Ist > Bedarf_80)         18          163                 31             34.0           27.703            85.429                   -30.0            0.190
+
+== 8 Auswahleffekt-Prüfung (Zwischen Standorten vs. innerhalb desselben Standorts)
+8.1 Zwischen Standorten (Simpson-Paradoxon über die Abstandsklassen aus Abschnitt 5):
+           n  mittel_fuell_num  ueberlauf  rate_dieser_messung_med  standort_dauer_rate_med  standort_typ_abstand_med
+klasse                                                                                                               
+<=7      291             45.90       0.01                     7.14                     4.00                     16.00
+8-14    1305             55.22       0.05                     5.00                     4.00                     18.00
+15-30   4273             63.35       0.11                     3.33                     2.99                     23.00
+31-60   3212             63.93       0.13                     1.75                     1.79                     35.00
+>60     1282             60.86       0.17                     0.77                     1.00                     49.25
+
+8.2 Container, die mindestens einmal bei <=7 Tagen geleert wurden (im Kurz-Intervall vs. sonst):
+                                               n  abstand_med  mittel_fuell_num  ueberlauf  rate_med
+gruppe                                                                                              
+Andere Messungen derselben Container (>7d)  1957         20.0             69.18       0.17      3.75
+Messung bei <=7d (n=291)                     291          7.0             45.90       0.01      7.14
+
+8.3 Innerhalb desselben Standorts (relativer Abstand abstand / med_abstand_id):
+                         n  abstand_med  mittel_fuell_num  med_fuell_num  ueberlauf  rate_med  faktor_zu_standort_rate_med
+rel_klasse                                                                                                                
+<0.5x (viel frueher)   627         11.0             38.72           30.0       0.03      3.33                         1.40
+0.5-0.8x (frueher)    2143         17.0             51.20           50.0       0.02      2.73                         1.13
+0.8-1.2x (normal)     4487         27.0             64.99           70.0       0.08      2.44                         1.00
+1.2-1.5x (spaeter)    1299         34.0             73.16           80.0       0.22      2.38                         0.91
+>1.5x (viel spaeter)  1807         55.0             69.15           80.0       0.27      1.37                         0.66
+
+== 9 Leerung: Messwert liegt VOR der Leerung, danach Start bei 0
+Paare mit numerischem Vorgaengerstand: 8328 | Stand niedriger als beim Vorgaenger: 40.7% | Median-Abfall: 0.0 Pp
+A1/A4 (Start 0 nach Besuch): Median-Fehler 9.5 Pp | Mittel 14.2 Pp | <= 10 Pp: 54.0%
+ohne Leerung (Wachstum ab Vorgaengerstand): Median-Fehler 24.4 Pp | Mittel 28.3 Pp | <= 10 Pp: 31.4%
