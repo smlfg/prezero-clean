@@ -121,11 +121,18 @@ Regeln für den Export:
 - **Bühne, Ansicht `ringe`:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
   Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
   die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
-  bleibt an diesem Winkel eine Lücke. Der Grundring zeigt die Glasfarbe, das Segment darüber
-  den Füllstand (leer → voll → übervoll, roter Rand ab 100 %).
+  bleibt an diesem Winkel eine Lücke. Jedes Farbband hat eine **Tiefe** — sie nimmt den
+  Raum, der bisher leer zwischen den Ringen lag. Das **Grundband** in der Glasfarbe zeigt,
+  wo eine Kammer existiert; darüber liegt der **Keil** der Kammer mit **fester Grundlinie**:
+  er beginnt am Innenrand des Bandes und ist `Füllstand/100 · Bandtiefe` lang. Eine leere
+  Kammer hat keinen Keil, nur das Grundband; eine fehlende Kammer bleibt eine Lücke. Über
+  100 % ist die Länge gedeckelt — den Überlauf trägt allein der rote Rand am Außenrand des
+  Bandes. Damit kodiert die **Länge** den Füllstand (in Graustufen lesbar), die Farbe
+  zusätzlich (leer → voll → übervoll). Bandtiefe, Grundband und Keil sind Darstellung (`S`).
 - **Bühne, Ansicht `container`:** ein Ort = ein Container mit drei radial gestapelten Kammern
   (außen Weiß, Mitte Grün, innen Braun), verbunden durch eine feine Linie. Winkel und
-  Füllstandskodierung sind identisch zu `ringe`; fehlt eine Kammer, bleibt sie leer. Damit
+  Füllstandskodierung sind identisch zu `ringe` (Grundband + Keil, nur mit kleinerer
+  Bandtiefe); fehlt eine Kammer, bleibt sie leer. Damit
   wird sichtbar, dass die Farben zusammen **einen** Container bilden (Rahmen bleibt stehen,
   Kammern werden einzeln geleert) — wie beim realen Mehrkammer-Depotcontainer.
 - **Beide Ansichten:** Autos auf einer dünnen Spur außerhalb der Bühne; beim Leeren ein

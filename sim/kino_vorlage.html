@@ -113,7 +113,7 @@
   canvas#ring{width:100%;height:auto;display:block;border-radius:8px}
   .legende{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted)}
   .legende .skala{width:220px;height:10px;border-radius:5px;
-    background:linear-gradient(90deg,#1B2A41 0%,#2E6E8E 45%,#E9A23B 72%,#D64545 100%)}
+    background:linear-gradient(90deg,#3A4A63 0%,#2E6E8E 45%,#E9A23B 72%,#D64545 100%)}
   .legende .punkt{width:12px;height:12px;border-radius:50%;background:#ffd166;display:inline-block}
   .legende .ueber{width:12px;height:12px;border-radius:3px;background:#ff3b30;display:inline-block}
   .legende .ring-sw{width:20px;height:6px;border-radius:3px;display:inline-block;vertical-align:middle}
@@ -290,6 +290,7 @@
       <span class="ring-sw r-gruen"></span><span>Gr&uuml;n</span>
       <span class="ring-sw r-braun"></span><span>Braun</span>
       <span style="margin-left:14px">leer</span><span class="skala"></span><span>voll</span>
+      <span style="margin-left:14px">Keil-L&auml;nge = F&uuml;llstand</span>
       <span style="margin-left:14px"><span class="ueber"></span> &uuml;ber 100 %</span>
       <span><span class="punkt"></span> Auto</span>
       <span id="legText">&mdash;</span>
@@ -413,7 +414,10 @@ function markiereSchmutzig() {
 
 function farbe(f) {
   const v = Math.max(0, Math.min(100, f));
-  const stops = [[0, 27, 42, 65], [45, 46, 110, 142], [72, 233, 162, 59], [100, 214, 69, 69]];
+  /* Unteres Ende bewusst heller als der Seitenhintergrund (#0d1117): seit die
+     Laenge den Fuellstand traegt, waere ein fast leerer Keil sonst unsichtbar.
+     Die Skala in der Legende (.legende .skala) fuehrt dieselben Stuetzstellen. */
+  const stops = [[0, 58, 74, 99], [45, 46, 110, 142], [72, 233, 162, 59], [100, 214, 69, 69]];
   for (let i = 1; i < stops.length; i++) {
     if (v <= stops[i][0]) {
       const a = stops[i - 1], b = stops[i];
@@ -568,6 +572,60 @@ function zeichneRing(progress) {
   zeichneAutoUndText(progress, b, b.rAuto);
 }
 
+/* ---------- Kammer-Darstellung: Grundband + Keil mit fester Grundlinie ----------
+   Darstellung (S), keine Daten. Jedes Farbband hat eine Tiefe; der Keil einer Kammer
+   startet am Innenrand des Bandes und ist `Füllstand/100 * Tiefe` lang. Die Laenge
+   traegt damit den Fuellstand, nicht die Flaeche: eine leere Kammer bleibt als blasses
+   Grundband stehen (so viel Platz ist noch da), eine fehlende Kammer bleibt eine Luecke
+   (441 IDs mit drei Farben, 7 mit zwei, 1 mit einer). Ueber 100 % ist die Laenge
+   gedeckelt - den Ueberlauf traegt allein der rote Rand aussen am Band. */
+
+/* Grundband eines Farbrings: ein Pfad fuer alle vorhandenen Kammern, ein stroke().
+   Buendeln lohnt hier, weil alle Segmente dieselbe Farbe und Breite tragen. */
+function zeichneGrundband(ctx, cx, cy, R, tiefe, seg, key, glas, b0, b1) {
+  ctx.beginPath();
+  for (let i = 0; i < N; i++) {
+    if (farbIdx[i][key] === undefined) continue;     // Kammer fehlt -> Luecke
+    const a = i * seg - Math.PI / 2;
+    ctx.moveTo(cx + R * Math.cos(a + seg * b0), cy + R * Math.sin(a + seg * b0));
+    ctx.arc(cx, cy, R, a + seg * b0, a + seg * b1);
+  }
+  ctx.globalAlpha = 0.16;
+  ctx.strokeStyle = glas;
+  ctx.lineWidth = tiefe;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+/* Keil einer Kammer, feste Grundlinie am Innenrand. Gibt true zurueck, wenn der
+   Fuellstand ueber 100 % liegt: dann deckelt die Laenge, der rote Rand traegt den Rest. */
+function zeichneKeil(ctx, cx, cy, rInnen, tiefe, breite, ang, v) {
+  const laenge = (Math.max(0, Math.min(v, VOLL)) / VOLL) * tiefe;
+  if (laenge < 0.5) return false;                    // leere Kammer -> kein Keil
+  const c = Math.cos(ang), s = Math.sin(ang);
+  ctx.beginPath();
+  ctx.strokeStyle = farbe(v);
+  ctx.lineWidth = breite;
+  ctx.moveTo(cx + rInnen * c, cy + rInnen * s);
+  ctx.lineTo(cx + (rInnen + laenge) * c, cy + (rInnen + laenge) * s);
+  ctx.stroke();
+  return v > VOLL;
+}
+
+/* Roter Rand am Aussenrand des Bandes fuer uebervolle Kammern. */
+function zeichneUeberrand(ctx, cx, cy, R, winkel) {
+  if (!winkel.length) return;
+  ctx.beginPath();
+  for (let i = 0; i < winkel.length; i++) {
+    const a0 = winkel[i][0], a1 = winkel[i][1];
+    ctx.moveTo(cx + R * Math.cos(a0), cy + R * Math.sin(a0));
+    ctx.arc(cx, cy, R, a0, a1);
+  }
+  ctx.strokeStyle = "#ff3b30";
+  ctx.lineWidth = 2.2;
+  ctx.stroke();
+}
+
 /* Statischer Teil der Ringansicht: alles, was nur von den Fuellstaenden abhaengt. */
 function zeichneRingStatisch(b) {
   const ctx = buehneBildCtx;
@@ -576,6 +634,9 @@ function zeichneRingStatisch(b) {
   const w = b.w, h = b.h, cx = b.cx, cy = b.cy, seg = b.seg;
   const rAussen = b.rAussen;
   const abstand = Math.max(22, Math.min(38, (rAussen - 60) / 2));
+  /* Bandtiefe = Ringabstand minus Spalt. Die Tiefe nimmt genau den Raum, der
+     bisher leer zwischen den Ringen lag - ohne sie haette der Keil keine Skala. */
+  const tiefe = Math.max(12, abstand - 12);
   const radien = FARBEN.map((_, k) => rAussen - k * abstand);
   const fill = eng.fill;
 
@@ -588,20 +649,14 @@ function zeichneRingStatisch(b) {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  /* Drei Ringe: Grundring in der Glasfarbe, Segment darüber = Füllstand.
-     Jedes Segment hat seinen eigenen Füllstand und damit seine eigene Farbe,
-     also je Segment ein stroke(). Messung: das ist schneller als das Bündeln
-     nach Farbe (siehe Kommentar bei zeichneRing). */
+  /* Drei Ringe, aussen -> innen Weiss, Gruen, Braun. Je Ring: erst das Grundband
+     (nur wo die Kammer existiert), dann der Keil je Kammer, dann der Ueberlaufrand. */
   FARBEN.forEach((ringFarbe, k) => {
     const R = radien[k];
-    const lw = Math.max(2.2, (2 * Math.PI * R) / N * 0.8);
-    ctx.beginPath();
-    ctx.strokeStyle = ringFarbe.glas;
-    ctx.globalAlpha = 0.35;
-    ctx.lineWidth = lw;
-    ctx.arc(cx, cy, R, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
+    const rInnen = R - tiefe / 2;
+    const breite = Math.max(1.8, (2 * Math.PI * R) / N * 0.72);
+
+    zeichneGrundband(ctx, cx, cy, R, tiefe, seg, ringFarbe.key, ringFarbe.glas, 0.1, 0.9);
 
     const ueberGruppen = [];
     for (let i = 0; i < N; i++) {
@@ -609,31 +664,19 @@ function zeichneRingStatisch(b) {
       if (j === undefined) continue;
       const v = fill[i * MAXC + j];
       const a0 = i * seg - Math.PI / 2;
-      ctx.beginPath();
-      ctx.strokeStyle = farbe(v);
-      ctx.lineWidth = lw * 0.62;
-      ctx.arc(cx, cy, R, a0 + seg * 0.1, a0 + seg * 0.9);
-      ctx.stroke();
-      if (v > VOLL) ueberGruppen.push([a0 + seg * 0.1, a0 + seg * 0.9]);
-    }
-    /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Segments */
-    if (ueberGruppen.length) {
-      ctx.beginPath();
-      for (let i = 0; i < ueberGruppen.length; i++) {
-        const a0 = ueberGruppen[i][0], a1 = ueberGruppen[i][1];
-        ctx.moveTo(cx + (R + lw * 0.5) * Math.cos(a0), cy + (R + lw * 0.5) * Math.sin(a0));
-        ctx.arc(cx, cy, R + lw * 0.5, a0, a1);
+      const ang = a0 + seg * 0.5;
+      if (zeichneKeil(ctx, cx, cy, rInnen, tiefe, breite, ang, v)) {
+        ueberGruppen.push([a0 + seg * 0.1, a0 + seg * 0.9]);
       }
-      ctx.strokeStyle = "#ff3b30";
-      ctx.lineWidth = lw * 0.28;
-      ctx.stroke();
     }
-  });
+    /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Bandes.
+       Er liegt bewusst ausserhalb des Bandes: oberhalb von 100 % ist die Keil-Laenge
+       gedeckelt, also ist dieser Rand der einzige Unterschied zu einer vollen Kammer. */
+    zeichneUeberrand(ctx, cx, cy, R + tiefe / 2 + 1.2, ueberGruppen);
 
-  /* Ringbeschriftung oben: dunkler Grund, Name in der Glasfarbe */
-  ctx.textAlign = "center";
-  FARBEN.forEach((ringFarbe, k) => {
-    const y = cy - radien[k] + 4;
+    /* Ringbeschriftung oben: dunkler Grund, Name in der Glasfarbe */
+    const y = cy - R + 4;
+    ctx.textAlign = "center";
     ctx.fillStyle = "rgba(13,17,23,0.88)";
     ctx.fillRect(cx - 24, y - 11, 48, 15);
     ctx.fillStyle = ringFarbe.glas;
@@ -664,10 +707,10 @@ function zeichneContainerStatisch(b) {
   const cx = b.cx, cy = b.cy, seg = b.seg;
   const rAussen = b.rAussen;
   const rAuto = b.rAuto;
-  const kammerAbstand = 9;                       // kompakt: ein Container, nicht drei Ringe
+  const kammerAbstand = 22;                      // kompakt: ein Container, nicht drei Ringe
+  const tiefe = kammerAbstand - 5;               // Bandtiefe je Kammer, gleiche Kodierung wie oben
   const radien = [rAussen, rAussen - kammerAbstand, rAussen - 2 * kammerAbstand];
   const fill = eng.fill;
-  const lw = Math.max(2.4, (2 * Math.PI * rAussen) / N * 0.78);
 
   ctx.beginPath();
   ctx.setLineDash([2, 6]);
@@ -685,42 +728,33 @@ function zeichneContainerStatisch(b) {
   for (let i = 0; i < N; i++) {
     const ang = i * seg - Math.PI / 2;
     const c = Math.cos(ang), s = Math.sin(ang);
-    ctx.moveTo(cx + (radien[2] - 5) * c, cy + (radien[2] - 5) * s);
-    ctx.lineTo(cx + (radien[0] + 5) * c, cy + (radien[0] + 5) * s);
+    ctx.moveTo(cx + (radien[2] - tiefe / 2 - 2) * c, cy + (radien[2] - tiefe / 2 - 2) * s);
+    ctx.lineTo(cx + (radien[0] + tiefe / 2 + 2) * c, cy + (radien[0] + tiefe / 2 + 2) * s);
   }
   ctx.strokeStyle = "rgba(139,152,165,.30)";
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  const ueberGruppen = [];
-  for (let i = 0; i < N; i++) {
-    const ang = i * seg - Math.PI / 2;
-    const s0 = ang + seg * 0.12, s1 = ang + seg * 0.88;
-    FARBEN.forEach((ringFarbe, k) => {
+  FARBEN.forEach((ringFarbe, k) => {
+    const R = radien[k];
+    const rInnen = R - tiefe / 2;
+    const breite = Math.max(2, (2 * Math.PI * R) / N * 0.72);
+
+    zeichneGrundband(ctx, cx, cy, R, tiefe, seg, ringFarbe.key, ringFarbe.glas, 0.12, 0.88);
+
+    const ueberGruppen = [];
+    for (let i = 0; i < N; i++) {
       const j = farbIdx[i][ringFarbe.key];
-      if (j === undefined) return;                // Kammer fehlt -> Lücke
+      if (j === undefined) continue;              // Kammer fehlt -> Lücke
       const v = fill[i * MAXC + j];
-      ctx.beginPath();
-      ctx.strokeStyle = farbe(v);
-      ctx.lineWidth = lw;
-      ctx.arc(cx, cy, radien[k], s0, s1);
-      ctx.stroke();
-      if (v > VOLL) ueberGruppen.push([k, s0, s1]);
-    });
-  }
-  /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Segments */
-  if (ueberGruppen.length) {
-    ctx.beginPath();
-    for (let i = 0; i < ueberGruppen.length; i++) {
-      const k = ueberGruppen[i][0], a0 = ueberGruppen[i][1], a1 = ueberGruppen[i][2];
-      const R = radien[k] + lw * 0.55;
-      ctx.moveTo(cx + R * Math.cos(a0), cy + R * Math.sin(a0));
-      ctx.arc(cx, cy, R, a0, a1);
+      const a0 = i * seg - Math.PI / 2;
+      if (zeichneKeil(ctx, cx, cy, rInnen, tiefe, breite, a0 + seg * 0.5, v)) {
+        ueberGruppen.push([a0 + seg * 0.12, a0 + seg * 0.88]);
+      }
     }
-    ctx.strokeStyle = "#ff3b30";
-    ctx.lineWidth = lw * 0.35;
-    ctx.stroke();
-  }
+    /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Bandes */
+    zeichneUeberrand(ctx, cx, cy, R + tiefe / 2 + 1.2, ueberGruppen);
+  });
 
   ctx.textAlign = "center";
   const y = cy - radien[0] + 4;
@@ -914,7 +948,7 @@ function zeichneLegende() {
 function zeichneBuehneHerkunft() {
   document.getElementById("buehneHerkunft").innerHTML =
     chipText("rate", "Füllstand je Kammer: Median aus Folgemessungen") +
-    " &nbsp;·&nbsp; " + chipText("ring_reihenfolge", "Ringreihenfolge, Farben und Lage der Orte: reine Darstellung") +
+    " &nbsp;·&nbsp; " + chipText("ring_reihenfolge", "Ringreihenfolge, Bandtiefe, Keil-Länge, Farben und Lage der Orte: reine Darstellung") +
     " &nbsp;·&nbsp; " + chipText("s0", "Abstand " + zahl(META.s0, 1) + " ist der Ausgangswert des Ist-Laufs");
 }
 
@@ -925,9 +959,9 @@ function zeichneBuehneTitel() {
     "Bühne: " +
     (ansicht === "ringe"
       ? "3 Ringe — Weiß / Grün / Braun · " + chip("orte") + " " + n +
-        " Orte über die ID ausgerichtet · Farbe = Füllstand der Kammer"
+        " Orte über die ID ausgerichtet · Keil-Länge = Füllstand der Kammer"
       : "Container — " + chip("orte") + " " + n +
-        " Orte, je ein Container mit bis zu drei Kammern · Farbe = Füllstand der Kammer") +
+        " Orte, je ein Container mit bis zu drei Kammern · Keil-Länge = Füllstand der Kammer") +
     " " + chip("ring_reihenfolge");
 }
 
