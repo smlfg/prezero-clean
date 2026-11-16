@@ -39,10 +39,17 @@ var KINO = (function () {
       periode[i] = (o.gap === null || o.gap === undefined) ? TAGE : o.gap * FAKTOR;
     }
 
+    /* Producer-Groesse des Laufs: Summe aller Kammer-Raten (%/Tag).
+       Sie ist eine Ableitung aus der CSV (je Kammer p/Abstand), keine Annahme. */
+    var rateSum = 0;
+    for (var ri = 0; ri < N; ri++) {
+      for (var rj = 0; rj < anz[ri]; rj++) rateSum += rate[ri * MAXC + rj];
+    }
+
     var P = { s: 5.0, m: 1, strategie: "ist", schwelle: 80 };
     var fill, naechste, budget, tag, leerungen, ueberlaufTage, vollBeiLeerung,
         ueber100, maxSumme, faelligSumme, fuellSumme, fuellZaehler, tagesverlauf,
-        autos, letzteTage, letzteUeberlauf, maxfill, warmupPending;
+        autos, letzteTage, letzteUeberlauf, maxfill, warmupPending, abgeholtSumme;
 
     function reset(p) {
       if (p) {
@@ -56,6 +63,7 @@ var KINO = (function () {
       naechste = new Float64Array(N);
       budget = 0; tag = 0; leerungen = 0; ueberlaufTage = 0; vollBeiLeerung = 0;
       ueber100 = 0; maxSumme = 0; faelligSumme = 0; fuellSumme = 0; fuellZaehler = 0;
+      abgeholtSumme = 0;
       tagesverlauf = []; letzteTage = []; letzteUeberlauf = [];
       for (var i = 0; i < N; i++) naechste[i] = i * periode[i] / N;
       autos = [];
@@ -108,7 +116,12 @@ var KINO = (function () {
           if (budget < 1) break;
           budget -= 1;
           i = faellig[q];
-          for (j = 0; j < anz[i]; j++) fill[i * MAXC + j] = 0;
+          for (j = 0; j < anz[i]; j++) {
+            /* Consumer-Groesse: der Stand, der bei der Leerung abgeholt wird.
+               overfull ist zensiert und wird wie in der CSV als 100 gezaehlt. */
+            if (messfenster) abgeholtSumme += Math.min(VOLL, fill[i * MAXC + j]);
+            fill[i * MAXC + j] = 0;
+          }
           if (P.strategie === "ist") naechste[i] = tag + periode[i];
           if (messfenster) {
             leerungen++;
@@ -156,7 +169,15 @@ var KINO = (function () {
         auslastung_pct: faelligSumme ? +(100 * leerungen / faelligSumme).toFixed(2) : 0,
         stopps_pro_tag: +(leerungen / t).toFixed(3),
         soll_stopps_pro_tag: +(P.m * K0 * S0 / P.s).toFixed(3),
-        kalibrierungsfaktor: FAKTOR
+        kalibrierungsfaktor: FAKTOR,
+        /* Producer/Consumer dieses Laufs in Prozentpunkten (Pp).
+           produziert = Summe der Kammer-Raten x Messtage, abgeholt = Summe der
+           Staende bei der Leerung. Die Differenz bleibt im Container stehen. */
+        produziert_pp_pro_tag: +rateSum.toFixed(2),
+        abgeholt_pp_pro_tag: +(abgeholtSumme / t).toFixed(2),
+        produziert_pp: +(rateSum * t).toFixed(1),
+        abgeholt_pp: +abgeholtSumme.toFixed(1),
+        bilanz_pp: +(rateSum * t - abgeholtSumme).toFixed(1)
       };
     }
 

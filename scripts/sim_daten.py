@@ -81,6 +81,13 @@ HERKUNFT_META = {
     "k0_pro_tag": "A",
     "kalibrierungsfaktor": "A",
     "s0": "S",
+    # Producer/Consumer: Summen aus den Kammer-Raten und den Messwerten vor der
+    # Leerung — gerechnet, nicht gesetzt, aber auch keine Einzelmessung.
+    "produziert_pp_pro_tag": "A",
+    "produziert_kammern": "A",
+    "produziert_pp_pro_tag_kammer_median": "A",
+    "abgeholt_pp_pro_tag": "A",
+    "abgeholt_pp_je_stopp": "A",
 }
 
 # Herkunft der Groessen, die nicht im meta-Block stehen, aber im Kino sichtbar sind.
@@ -99,6 +106,10 @@ HERKUNFT_SONSTIGE = {
     "ist_rhythmus": "A",
     "schwelle": "S",
     "ring_reihenfolge": "S",
+    "kalender": "S",
+    # Vorher/Nachher-Karte: beide Werte sind Modellrechnung gegen den Ist-Lauf.
+    "kino_delta_ueberlauf": "S",
+    "kino_ist_vergleich": "S",
     "lkw_objekt": "R",
     "lkw_volumen_m3": "R",
     "container_volumen_m3": "R",
@@ -142,6 +153,34 @@ def besuchs_stats(d):
         "overfull_pct": round(100 * float(v.any_over.mean()), 2),
         "mittel_max_pct": round(float(v.max_cap.mean()), 2),
         "ueberfull_messungen_pct": round(100 * float(x["over"].mean()), 2),
+    }
+
+
+def producer_consumer(d, med):
+    """Producer (erzeugt) und Consumer (abgeholt) in Prozentpunkten (Pp).
+
+    Beides sind Ableitungen aus der CSV, keine Annahme:
+    - produziert: Summe der Kammer-Raten (Median p/Abstand, A2 + A4) ueber alle
+      Kammern mit Rate. Einheit Pp/Tag.
+    - abgeholt: Summe der gemessenen Staende vor der Leerung (A5) je Tag. `overfull`
+      ist zensiert und wird wie in `besuchs_stats` als 100 % gezaehlt; die Zahl ist
+      deshalb eine Untergrenze.
+    Die Differenz bleibt als Füllstand im Container stehen. Absolute Mengen (m³, t)
+    stehen nicht in der CSV und sind hier bewusst nicht enthalten.
+    """
+    tage = int((d.date.max() - d.date.min()).days)
+    r = med.dropna()
+    x = d.copy()
+    over = x.fill_level_perc.eq("overfull")
+    p_cap = pd.to_numeric(x.fill_level_perc.where(~over), errors="coerce").fillna(100.0)
+    summe_abgeholt = float(p_cap.sum())
+    return {
+        "produziert_pp_pro_tag": round(float(r.sum()), 2),
+        "produziert_kammern": int(len(r)),
+        "produziert_pp_pro_tag_kammer_median": round(float(r.median()), 2),
+        "abgeholt_pp_pro_tag": round(summe_abgeholt / tage, 2),
+        "abgeholt_pp_je_stopp": round(summe_abgeholt / int(d[["Location_id", "date"]]
+                                                           .drop_duplicates().shape[0]), 2),
     }
 
 
@@ -196,6 +235,7 @@ def baue(d):
     tage = int((d.date.max() - d.date.min()).days)
     besuche = int(d[["Location_id", "date"]].drop_duplicates().shape[0])
     b = besuchs_stats(d)
+    pc = producer_consumer(d, med)
     meta = {
         "erzeugt": datetime.now().astimezone().isoformat(timespec="seconds"),
         "quelle": "data/raw/glass_fill_levels_anonymized_f.csv",
@@ -215,6 +255,13 @@ def baue(d):
         "daten_overfull_bei_leerung_pct": b["overfull_pct"],
         "daten_mittel_max_bei_leerung_pct": b["mittel_max_pct"],
         "daten_ueberlauf_messungen_pct": b["ueberfull_messungen_pct"],
+        # Producer/Consumer in Prozentpunkten (Pp), abgeleitet aus der CSV.
+        # Absolute Mengen (m³, t) brauchen externe Parameter und stehen hier nicht.
+        "produziert_pp_pro_tag": pc["produziert_pp_pro_tag"],
+        "produziert_kammern": pc["produziert_kammern"],
+        "produziert_pp_pro_tag_kammer_median": pc["produziert_pp_pro_tag_kammer_median"],
+        "abgeholt_pp_pro_tag": pc["abgeholt_pp_pro_tag"],
+        "abgeholt_pp_je_stopp": pc["abgeholt_pp_je_stopp"],
         # Kalibrierung: der Ist-Rhythmus soll genau die beobachteten Besuche verlangen
         "kalibrierungsfaktor": kalibrierungsfaktor(gaps, besuche, tage),
         "warmlauf_tage": WARMLAUF,

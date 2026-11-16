@@ -79,7 +79,11 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
     faellig_summe = 0
     fuell_summe = 0.0
     fuell_zaehler = 0
+    abgeholt_summe = 0.0
     tage_verlauf = []
+
+    # Producer-Groesse: Summe aller Kammer-Raten (%/Tag), abgeleitet aus der CSV.
+    rate_summe = float(rate[gueltig].sum())
 
     for tag in range(warmlauf + tage):
         fill += rate
@@ -105,6 +109,10 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
                 if budget < 1.0:
                     break
                 budget -= 1.0
+                if messfenster:
+                    # Consumer-Groesse: der Stand, der bei der Leerung abgeholt wird.
+                    # overfull ist zensiert und wird wie in der CSV als 100 gezaehlt.
+                    abgeholt_summe += float(np.minimum(fill[i], VOLL).sum())
                 fill[i, :] = 0.0
                 if strategie == "ist":
                     naechste[i] = tag + periode[i]
@@ -138,6 +146,13 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
         "faellig_summe": faellig_summe,
         "soll_stopps_pro_tag": round(k_ges, 3),
         "kalibrierungsfaktor": round(d["faktor"], 4),
+        # Producer/Consumer in Prozentpunkten (Pp): produziert = Summe der Kammer-Raten
+        # x Messtage, abgeholt = Summe der Staende bei der Leerung.
+        "produziert_pp_pro_tag": round(rate_summe, 2),
+        "abgeholt_pp_pro_tag": round(abgeholt_summe / tage, 2),
+        "produziert_pp": round(rate_summe * tage, 1),
+        "abgeholt_pp": round(abgeholt_summe, 1),
+        "bilanz_pp": round(rate_summe * tage - abgeholt_summe, 1),
         "tagesverlauf": tage_verlauf,
     }
 

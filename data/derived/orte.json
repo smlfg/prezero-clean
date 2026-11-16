@@ -1,6 +1,6 @@
 {
  "meta": {
-  "erzeugt": "2026-11-16T16:24:15+01:00",
+  "erzeugt": "2026-11-16T19:30:53+01:00",
   "quelle": "data/raw/glass_fill_levels_anonymized_f.csv",
   "skript": "scripts/sim_daten.py",
   "orte": 449,
@@ -16,6 +16,11 @@
   "daten_overfull_bei_leerung_pct": 17.64,
   "daten_mittel_max_bei_leerung_pct": 82.48,
   "daten_ueberlauf_messungen_pct": 10.19,
+  "produziert_pp_pro_tag": 2484.25,
+  "produziert_kammern": 1303,
+  "produziert_pp_pro_tag_kammer_median": 1.52,
+  "abgeholt_pp_pro_tag": 2183.91,
+  "abgeholt_pp_je_stopp": 170.1,
   "kalibrierungsfaktor": 1.1565,
   "warmlauf_tage": 90,
   "herkunft": {
@@ -54,14 +59,19 @@
     "daten_ueberlauf_messungen_pct": "M",
     "k0_pro_tag": "A",
     "kalibrierungsfaktor": "A",
-    "s0": "S"
+    "s0": "S",
+    "produziert_pp_pro_tag": "A",
+    "produziert_kammern": "A",
+    "produziert_pp_pro_tag_kammer_median": "A",
+    "abgeholt_pp_pro_tag": "A",
+    "abgeholt_pp_je_stopp": "A"
    },
    "sonstige": {
     "rate": "A",
     "gap": "A",
     "container_ohne_rate": "M",
     "warmlauf_tage": "S",
-    "stopps_pro_tag_soll": "A",
+    "stopps_pro_tag_soll": "S",
     "wegeinheiten": "S",
     "auslastung_pct": "S",
     "ueberlauf_tage": "S",
@@ -69,6 +79,9 @@
     "ist_rhythmus": "A",
     "schwelle": "S",
     "ring_reihenfolge": "S",
+    "kalender": "S",
+    "kino_delta_ueberlauf": "S",
+    "kino_ist_vergleich": "S",
     "lkw_objekt": "R",
     "lkw_volumen_m3": "R",
     "container_volumen_m3": "R"

@@ -133,6 +133,14 @@
   .spark{display:block;width:100%;margin-top:8px}
   #sparkLeer{height:104px}
   #sparkUeber{height:88px}
+  /* ---- Kalender der Simulation: Tag, Woche, Monat (nur Darstellung) ---- */
+  .kalenderPanel{margin:14px 26px 0;padding:10px 16px 8px;background:var(--panel);
+                 border:1px solid var(--line);border-radius:14px}
+  .kalenderKopf{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:6px}
+  .kalenderKopf h2{font-size:13px;text-transform:uppercase;letter-spacing:.7px;
+                   color:var(--muted);margin:0}
+  .kalenderKopf .tagesliste{margin-top:0;margin-left:auto}
+  canvas#kalender{display:block;width:100%;height:74px}
   .ansichtNav{display:flex;gap:8px;align-items:center;padding:10px 26px;background:var(--bg);border-bottom:1px solid var(--line)}
   .ansichtNav .status{margin-left:auto;color:var(--muted);font-size:12px}
   .ansichtNav button.active{background:var(--accent);color:#07131f;font-weight:600}
@@ -151,6 +159,7 @@
   @media (max-width:900px){
     main{grid-template-columns:1fr}
     .kinoBar .laufinfo{margin-left:0;width:100%}
+    .kalenderPanel{margin:12px 16px 0}
   }
   footer{padding:16px 26px 30px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line)}
   code{background:#21262d;padding:1px 5px;border-radius:4px;font-size:12px}
@@ -281,6 +290,14 @@
     <span class="laufinfo" id="kinoTagWert">Tag 0 / 348</span>
   </div>
 
+  <section class="kalenderPanel" aria-label="Kalender der Simulation">
+    <div class="kalenderKopf">
+      <h2>Kalender der Simulation <span class="chipSlot" data-herk="kalender"></span></h2>
+      <div class="tagesliste" id="kalenderHerkunft"></div>
+    </div>
+    <canvas id="kalender"></canvas>
+  </section>
+
 <main>
   <div class="buehne">
     <h2 id="buehneTitel"></h2>
@@ -377,6 +394,7 @@ function chipText(key, text) {
 const ring = document.getElementById("ring"), rctx = ring.getContext("2d");
 const sparkLeer = document.getElementById("sparkLeer");
 const sparkUeber = document.getElementById("sparkUeber");
+const kalender = document.getElementById("kalender");
 
 /* ---------- Render-Zustand ----------
    Der Loop laeuft nur, wenn sich wirklich etwas aendert. Ohne diese Bremse zeichnet
@@ -517,7 +535,9 @@ function buehneBasis() {
 window.addEventListener("resize", function () {
   buehneCache = null;
   sparkGroesseVergessen();
+  kalenderVergessen();
   schmutzig = true;
+  domSchmutzig = true;   // Kurven und Kalender haengen an der Pixelgroesse, nicht nur am Tag
   fordertFrameAn();
 });
 
@@ -894,6 +914,68 @@ function zeichneSparkPanel(cv, o) {
   }
 }
 
+/* ---------- Kalender: Tag, Woche, Monat ----------
+   Die Zeit der Daten hat nur Tagesauflösung und keinen echten Kalendertag. Der
+   Kalender zeigt deshalb ausschließlich Simulationstage: eine Zelle = ein Tag,
+   eine Zeile = 7 Tage (Woche), ein Block = ein Zwölftel des Messfensters (Monat).
+   Das ist Darstellung (S) — kein Datum, keine Wochentage, keine Prognose. */
+const KAL_MONATE = 12;
+const KAL_WOCHE = 7;
+const KAL_FARBE = {
+  offen: "#212b38",                     // noch nicht gelaufen
+  lauf: "rgba(88,166,255,.35)",         // gelaufen
+  heute: "#58a6ff",                     // aktueller Simulationstag
+  text: "#8b98a5"
+};
+
+function kalenderVergessen() { kalender._groesse = null; }
+
+function zeichneKalender() {
+  const ctx = passeCanvasAn(kalender);
+  if (!ctx) return;
+  const b = kalender._groesse.b, h = kalender._groesse.h;
+  ctx.clearRect(0, 0, b, h);
+  ctx.textBaseline = "alphabetic";
+
+  const tage = Math.max(1, TAGE);
+  const jetzt = Math.min(tage, Math.max(0, eng.tag - eng.warmlauf));
+  /* Monatsgrenzen als gerundete Tagindizes: bei 348 Tagen exakt 29 Tage je Monat. */
+  const grenze = m => Math.round(m * tage / KAL_MONATE);
+
+  const lueckeMonat = Math.max(4, Math.min(12, b * 0.012));
+  const zellBreite = Math.max(2, (b - lueckeMonat * (KAL_MONATE - 1)) / (KAL_MONATE * KAL_WOCHE));
+  const labelHoehe = zellBreite >= 4 ? 13 : 0;
+  const zeilenLuecke = 2;
+  const zellHoehe = Math.max(3, Math.min(11, (h - labelHoehe - 4 * zeilenLuecke) / 5));
+
+  ctx.font = "9px -apple-system, sans-serif";
+  for (let m = 0; m < KAL_MONATE; m++) {
+    const von = grenze(m) + 1, bis = grenze(m + 1);
+    const x0 = m * (KAL_WOCHE * zellBreite + lueckeMonat);
+    if (labelHoehe) {
+      ctx.fillStyle = KAL_FARBE.text;
+      ctx.textAlign = "left";
+      ctx.fillText("M" + (m + 1), x0, 9);
+    }
+    for (let d = von; d <= bis; d++) {
+      const k = d - von;
+      const x = x0 + (k % KAL_WOCHE) * zellBreite;
+      const y = labelHoehe + Math.floor(k / KAL_WOCHE) * (zellHoehe + zeilenLuecke);
+      ctx.fillStyle = d === jetzt ? KAL_FARBE.heute : d < jetzt ? KAL_FARBE.lauf : KAL_FARBE.offen;
+      ctx.fillRect(x, y, Math.max(1, zellBreite - 1), zellHoehe);
+    }
+  }
+}
+
+function zeichneKalenderHerkunft() {
+  const jeMonat = tage => Math.round(tage / KAL_MONATE);
+  document.getElementById("kalenderHerkunft").innerHTML =
+    chipText("kalender", "Zelle = 1 Simulationstag · Zeile = 7 Tage (Woche) · Block = ein Zwölftel der " +
+      zahl(TAGE) + " Tage") +
+    " &nbsp;·&nbsp; Monat = " + zahl(jeMonat(TAGE)) + " Simulationstage " + chip("kalender") +
+    " &nbsp;·&nbsp; kein Kalenderdatum, keine Prognose";
+}
+
 function zeichneSpark() {
   const verlauf = eng.tagesverlauf;
   const tage = Math.max(1, TAGE);
@@ -915,6 +997,7 @@ function zeichneSpark() {
     istWert: null, istText: "",     // die Daten kennen keinen Überlauf-Tag
     xAchse: true, tage: tage
   });
+  zeichneKalender();
 }
 
 function zahl(v, n) {
@@ -991,12 +1074,69 @@ function zeichneFussHerkunft() {
     "<br><b>Modell:</b> <code>docs/KINO_VERTRAG.md</code>";
 }
 
+/* Zeitgleicher Ist-Lauf mit derselben Engine wie die Bühne (keine zweite Modelllogik).
+   Nur beim Zeichnen nachholen; keine Timer oder zusätzlichen Frames. */
+const istVergleich = KINO.create(DATEN);
+istVergleich.reset({ s: META.s0, m: 1, strategie: "ist" });
+
+function vorherNachherKarte(m) {
+  /* Reset mit denselben Parametern wie oben: ohne Argument nimmt reset() die
+     Engine-Standardwerte (s = 5.0) und wuerde bei abweichendem s0 ein falsches
+     Budget rechnen. */
+  if (istVergleich.metrics().tag > m.tag) istVergleich.reset({ s: META.s0, m: 1, strategie: "ist" });
+  while (istVergleich.metrics().tag < m.tag) istVergleich.stepDay();
+  const ist = istVergleich.metrics();
+  const bereit = ist.leerungen > 0;
+  const deltaLeerungen = bereit ? 100 * (m.leerungen - ist.leerungen) / ist.leerungen : null;
+  // Gleicher Nenner wie ueberlauf_quote_pct in der Engine, vor Rundung vergleichen.
+  const deltaUeberlauf = 100 * (m.ueberlauf_tage - ist.ueberlauf_tage) /
+    (eng.n * Math.max(1, TAGE));
+  const mehrUeberlauf = deltaUeberlauf > 0;
+  const erfolg = bereit && deltaLeerungen < 0 && !mehrUeberlauf;
+  const differenz = (v, einheit) => (v > 0 ? "+" : v < 0 ? "−" : "") +
+    (v !== 0 && Math.abs(v) < 0.01 ? "< 0,01" : zahl(Math.abs(v), 2)) + " " + einheit;
+  const status = mehrUeberlauf ? "Ersparnis gilt nicht: Überlauf höher als im Ist-Lauf." :
+    !bereit ? "Noch kein Vergleich: im Ist-Lauf wurde noch nicht geleert." :
+    erfolg ? "Ersparnis gilt: weniger Leerungen bei höchstens gleichem Überlauf." :
+    deltaLeerungen > 0 ? "Keine Ersparnis: mehr Leerungen als im Ist-Lauf." :
+    "Keine Ersparnis: gleich viele Leerungen wie im Ist-Lauf.";
+  return {
+    name: "Vorher / Nachher · Δ Leerungen", herk: "S",
+    wert: bereit ? differenz(deltaLeerungen, "%") : "—",
+    klasse: mehrUeberlauf ? "schlecht" : erfolg ? "gut" : bereit && deltaLeerungen > 0 ? "warn" : "",
+    vergl: chip("kino_delta_ueberlauf") + " Δ Überlauf: <b>" + differenz(deltaUeberlauf, "Pp") +
+      "</b><br><b>" + status + "</b><br>" +
+      chip("kino_ist_vergleich") + " Ist-Lauf: s=" + zahl(META.s0) +
+      ", M=" + zahl(istVergleich.getParams().m) + ", Strategie ist · gleicher Messtag " + zahl(m.tag) +
+      "<br>" + chip("kino_ist_vergleich") + " Leerungen Ist → aktuell: <b>" +
+      zahl(ist.leerungen) + " → " + zahl(m.leerungen) + "</b><br>" +
+      chip("kino_ist_vergleich") + " Überlaufquote Ist → aktuell: <b>" +
+      zahl(ist.ueberlauf_quote_pct, 2) + " % → " + zahl(m.ueberlauf_quote_pct, 2) +
+      " %</b><br>Überlauf: Ort-Tage bezogen auf das gesamte Messfenster. " +
+      "Δ = aktuell − Ist; negative Leerungsdifferenz bedeutet Ersparnis. Simulation, kein CSV-Vergleich."
+  };
+}
+
 function zeichneKarten() {
   const m = eng.metrics();
   const d = META;
   /* Jede Karte traegt einen Marker: die Zahl selbst ist Modellrechnung (S),
      die Vergleichszeile nennt die Herkunft des Vergleichswerts. */
   const karten = [
+    vorherNachherKarte(m),
+    /* Producer/Consumer: die zwei Bilanzgroessen des Laufs, beide in Prozentpunkten
+       (Pp). Absolute Mengen (m³, Tonnen) stehen nicht in der CSV und bleiben draußen. */
+    { name: "Produziert (Producer)", wert: zahl(m.produziert_pp_pro_tag, 0) + " Pp/Tag", herk: "S",
+      vergl: chip("produziert_pp_pro_tag") + " aus den Daten: <b>" + zahl(d.produziert_pp_pro_tag, 0) +
+        "</b> Pp/Tag = Σ Raten aller <b>" + zahl(d.produziert_kammern) + "</b> Kammern · Median <b>" +
+        zahl(d.produziert_pp_pro_tag_kammer_median, 2) + "</b> Pp/Tag je Kammer · im Lauf bisher <b>" +
+        zahl(m.produziert_pp) + "</b> Pp", klasse: "" },
+    { name: "Abgeholt (Consumer)", wert: zahl(m.abgeholt_pp_pro_tag, 0) + " Pp/Tag", herk: "S",
+      vergl: chip("abgeholt_pp_pro_tag") + " aus den Daten: <b>" + zahl(d.abgeholt_pp_pro_tag, 0) +
+        "</b> Pp/Tag (" + chip("abgeholt_pp_je_stopp") + " <b>" + zahl(d.abgeholt_pp_je_stopp, 0) +
+        "</b> Pp je Stopp, overfull als 100 gezählt) · im Lauf bisher <b>" + zahl(m.abgeholt_pp) +
+        "</b> Pp · Differenz produziert − abgeholt: <b>" + zahl(m.bilanz_pp) + "</b> Pp stehen noch im Container",
+      klasse: "" },
     { name: "Leerungen (Stopps)", wert: zahl(m.leerungen), herk: "S",
       vergl: chip("daten_besuche") + " gemessen: <b>" + zahl(d.besuche) + "</b> Besuche",
       klasse: m.leerungen <= d.besuche ? "gut" : "warn" },
@@ -1097,6 +1237,27 @@ function setzeTempo(wert) {
   document.getElementById("tempoHilfe").textContent = "Tempo " + tempoText(tempo) + "× · 1 Tag je ~" + zahl(1 / tempo, 1) + " s";
 }
 
+/* Ein fertiger Lauf: jeder Klick auf Start muss ihn erst zuruecksetzen. */
+function istFertig() {
+  return eng.tag >= eng.warmlauf + TAGE;
+}
+
+/* Beim Oeffnen der Kino-Ansicht einmal durchrechnen, damit Kennzahlen und Verlauf
+   gefuellt sind. Das ist derselbe Lauf wie ▶ Kino starten, nur ohne Animation.
+   Ein bereits laufender oder fertiger Lauf bleibt unangetastet. */
+function starteVorschau() {
+  if (eng.tag > 0) return;
+  eng.runToEnd();
+  progress = 1;
+  buehneVergessen();
+  const tagText = "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE;
+  document.getElementById("tagWert").textContent = tagText;
+  document.getElementById("kinoTagWert").textContent = tagText;
+  zeichneKarten();
+  zeichneSpark();
+  simSchreibe();
+}
+
 function setzeAnsicht(kino) {
   inKino = kino;
   document.getElementById("parameterAnsicht").hidden = kino;
@@ -1108,6 +1269,8 @@ function setzeAnsicht(kino) {
   if (kino) {
     zeichneBuehneTitel();
     sparkGroesseVergessen();   // Panels waren versteckt, jetzt ist das Layout messbar
+    kalenderVergessen();
+    starteVorschau();          // nie auf ein leeres Bild schauen
     markiereSchmutzig();
   } else {
     laufend = false;
@@ -1377,12 +1540,18 @@ let laufend = false;
 document.getElementById("play").addEventListener("click", () => {
   if (!inKino) {
     setzeAnsicht(true);
+    resetLauf();               // Vorschau verwerfen: es soll von Tag 0 laufen
     laufend = true;
     document.getElementById("kinoPlay").textContent = "❚❚ Pause";
     markiereSchmutzig();
     return;
   }
-  laufend = !laufend;
+  if (istFertig()) {
+    resetLauf();               // fertiger Lauf: Start heisst von vorn
+    laufend = true;
+  } else {
+    laufend = !laufend;
+  }
   document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Kino starten";
   document.getElementById("kinoPlay").textContent = laufend ? "❚❚ Pause" : "▶ Start";
   if (!laufend) {
@@ -1393,7 +1562,12 @@ document.getElementById("play").addEventListener("click", () => {
 });
 
 document.getElementById("kinoPlay").addEventListener("click", () => {
-  laufend = !laufend;
+  if (istFertig()) {
+    resetLauf();               // fertiger Lauf: Start heisst von vorn
+    laufend = true;
+  } else {
+    laufend = !laufend;
+  }
   document.getElementById("kinoPlay").textContent = laufend ? "❚❚ Pause" : "▶ Start";
   document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Kino starten";
   if (!laufend) blitzRest = BLITZ_DAUER;
@@ -1513,6 +1687,7 @@ document.getElementById("strHilfe").innerHTML =
   chip("ist_rhythmus") + " Beobachteter Rhythmus, kalibriert";
 document.getElementById("ansichtHilfe").innerHTML =
   chip("ring_reihenfolge") + " Farben getrennt";
+zeichneKalenderHerkunft();
 /* Herkunftsmarker der Steuerleiste aus meta.herkunft setzen.
    Vertrag 7.1: kein Chip steht von Hand im HTML. Unbekannte Groesse fällt auf S. */
 document.querySelectorAll("[data-herk]").forEach(function (el) {

@@ -47,7 +47,7 @@ Klar beschriftet als **Simulation**, nie als Ergebnis oder Ersparnis.
 | `fuell` | Ein Ort ist fällig, wenn sein höchster Container-Füllstand ≥ `schwelle` ist. Autos bedienen die vollsten zuerst. |
 
 **Kalibrierung des Ist-Rhythmus.** Die Median-Abstände je Ort ergeben als feste Periode
-`Σ 1/p_i` = **16,1** Fälligkeiten pro Tag — mehr als die beobachteten **12,83** Besuche pro Tag,
+`Σ 1/gap_i` = **14,85** Fälligkeiten pro Tag — mehr als die beobachteten **12,84** Besuche pro Tag,
 weil `1/gap` konvex ist und die kurzen Abstände überwiegen. Deshalb wird **ein einziger
 Faktor** angewendet:
 
@@ -58,6 +58,13 @@ p_i    = gap_i * FAKTOR          (Orte mit nur einem Besuch: p_i = 348 Tage)
 
 Damit verlangt der Ist-Rhythmus von sich aus genau die beobachteten 4.468 Besuche in 348 Tagen.
 Der Faktor ist eine Eigenschaft der Daten, keine frei gewählte Zahl. Er wird im UI angezeigt.
+
+**Die Abstände streuen stark** (`data/derived/orte.json`, erzeugt von `scripts/sim_daten.py`):
+442 von 449 Orten haben einen Abstand, Minimum **7**, Median **33**, Maximum **172** Tage.
+Der Faktor 14,85 / 12,84 = 1,157 ist deshalb vor allem eine **Korrektur der Streuung**
+(Jensen: `E[1/gap] > 1/E[gap]`), nicht eine Eigenschaft eines Fahrzeugs. Folge für
+Abschnitt 1: `K0` ist ein **Durchsatz aus einer streuenden Abstandsverteilung** und
+damit keine gemessene Kapazität — die Kapazitätsaussage ist gesetzt, nicht gemessen.
 
 **Startversatz.** Der erste Fälligkeitstermin des Ortes `i` liegt bei `i * p_i / n`.
 Er ist eine reine Startbedingung (kein Datenwert) und wird nicht als Zahl ausgegeben.
@@ -118,6 +125,12 @@ Regeln für den Export:
 - **Oben:** Abstand `s` (2,5–20, Schritt 0,5) · Autos `M` (1–4) · Strategie (`ist`/`fuell`)
   · **Ansicht (`ringe`/`container`, Standard `ringe`)** · Schwelle (50–95 %, nur bei `fuell`)
   · Play/Pause · Tempo · Tag-Anzeige.
+- **Kalender (unter der Steuerleiste):** die Simulationstage als Raster — **eine Zelle = ein
+  Tag**, eine Zeile = 7 Tage (Woche), ein Block = ein Zwölftel des Messfensters (bei 348 Tagen
+  **29 Tage** je Monat). Gelaufene Tage sind gefüllt, der aktuelle Tag ist hervorgehoben, die
+  übrigen bleiben leer. Reine Darstellung (`S`): **kein Kalenderdatum**, keine Wochentage,
+  keine Prognose für echte Kalendertage. Die Daten haben nur Tagesauflösung; der Kalender
+  zählt Simulationstage und erfindet keine Datumsangabe.
 - **Bühne, Ansicht `ringe`:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
   Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
   die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
@@ -206,6 +219,8 @@ Damit können Dokument und Seite nicht auseinanderlaufen.
 | Kopfzeile: Ringreihenfolge, „alle Abstände gleich" | `S` | Darstellung |
 | Steuerleiste: Abstand `s`, Autos `M`, Strategie, Schwelle, Lauf, Tempo | `S` | Modellgrößen und Startwerte |
 | Steuerleiste: „Stopps/Tag" | `A` | aus Besuchen und Tagen gerechnet |
+| Kalender: Tagesraster, Wochenzeilen, Monatsblöcke | `S` | Darstellung; ein Monat = 29 Simulationstage, kein Kalenderdatum |
+| Kalender: gefüllte Tage und hervorgehobener aktueller Tag | `S` | Modellzeit dieses Laufs |
 | Bühne: Füllstand der Kammer | `A` | Median aus Folgemessungen, im Lauf fortgeschrieben |
 | Bühne: Ringreihenfolge, Farben, Lage der Orte | `S` | reine Darstellung |
 | Kennzahlenkarten: alle Laufwerte | `S` | Modellrechnung dieses Laufs |
