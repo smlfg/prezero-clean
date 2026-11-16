@@ -142,40 +142,54 @@ Regeln für den Export:
 - `gap` = Median der Besuchsabstände des Ortes, `null` bei nur einem Besuch.
 - Keine Zahl von Hand. Alles aus der CSV.
 
-## 5. UI (das Kino)
+## 5. UI (drei Ansichten, in dieser Reihenfolge)
 
-- **Oben:** Abstand `s` (2,5–20, Schritt 0,5) · Autos `M` (1–4) · Strategie (`ist`/`fuell`)
-  · Schwelle (50–95 %, nur bei `fuell`)
-  · Play/Pause · Tag-Anzeige.
-- **Bühne:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
-  Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
-  die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
-  bleibt an diesem Winkel eine Lücke. Jedes Farbband hat eine **Tiefe** — sie nimmt den
-  Raum, der bisher leer zwischen den Ringen lag. Das **Grundband** in der Glasfarbe zeigt,
-  wo eine Kammer existiert; darüber liegt der **Keil** der Kammer mit **fester Grundlinie**:
-  er beginnt am Innenrand des Bandes und ist `Füllstand/100 · Bandtiefe` lang. Eine leere
-  Kammer hat keinen Keil, nur das Grundband; eine fehlende Kammer bleibt eine Lücke. Über
-  100 % ist die Länge gedeckelt — den Überlauf trägt allein der rote Rand am Außenrand des
-  Bandes. Damit kodiert die **Länge** den Füllstand (in Graustufen lesbar), die Farbe
-  zusätzlich (leer → voll → übervoll). Bandtiefe, Grundband und Keil sind Darstellung (`S`).
-- **Autos:** auf einer dünnen Spur außerhalb der Bühne; beim Leeren ein
-  kurzer radialer Blitz an der besuchten ID. Ringreihenfolge, Farben und Kammerabstand
-  sind Darstellung (`S`), keine Daten; die Simulation selbst bleibt unverändert.
-- **Unten:** die Kennzahlen live, plus Verlauf als **zwei Panels** mit gemeinsamer
-  x-Achse „Tag“ (nur sie ist beschriftet) und je eigener y-Skala. Getrennt, weil zwei
-  Einheiten in einem Bild einen Vergleich vortäuschen, den es nicht gibt.
-- **Fußzeile:** „Simulation — keine Messung. Raten und Rhythmus aus den Daten, alles andere Annahme."
-- **Tab „Bilanz" (eigene Ansicht, nach dem Kino):** stellt zwei Szenarien gegenüber.
+Der Einstieg ist die Antwort, nicht die Regler. Die Seite öffnet auf **1 · Ergebnis**;
+der Kopf nennt die Frage in einem Satz.
+
+- **Kopf:** Titel, Datenzeile (`kopfSub`), die Frage („Ein Container ist ein Puffer: Er
+  füllt sich, ein LKW-Besuch leert ihn. Die Frage ist, wie viele Leerungen sich sparen
+  lassen, ohne dass mehr überläuft.") und der Hinweis „Modelliert — keine Messung."
+- **1 · Ergebnis (Bilanz):** stellt zwei Szenarien gegenüber.
   **A** ist immer der Ist-Lauf (`s = s0`, `M = 1`, `ist`), **B** ist der aktuell eingestellte
   Lauf. Drei Größen, immer beide Seiten und das Delta: **Leerungen**
   (Zielzahl), **Überlaufquote** (Wächter), **Wegeinheiten = s × Stopps** (Aufwand). Ein
   Delta ist nur dann als Erfolg markiert, wenn die Leerungen sinken **und** die
   Überlaufquote nicht steigt; sonst steht im Klartext, dass die Ersparnis nicht gilt.
+  Steht B noch auf den Ist-Werten, sagt der Satz das und verweist auf „Einstellen".
   Darunter je Parameter (`abstand`, `autos`, `strategie`, `schwelle`) eine Tabelle: eine
   Zeile = ein vollständiger Lauf mit genau diesem einen geänderten Parameter, die übrigen
   wie in B, A als Kopfzeile. Alle Läufe derselben Engine und alle bis zum selben Messtag
   (`TAGE`). Die Läufe werden in Häppchen gerechnet; die Loop-Bremse bleibt unangetastet
   (keine zusätzlichen Frames). Euro, Preise, Tonnen und km fehlen bewusst.
+- **2 · Verlauf (Kino):** Bühne, Kennzahlen und Verlauf.
+  - **Steuerleiste:** Play/Pause, Reset, Konfiguration, Tag-Anzeige.
+  - **Bühne:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
+    Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
+    die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
+    bleibt an diesem Winkel eine Lücke. Jedes Farbband hat eine **Tiefe** — sie nimmt den
+    Raum, der bisher leer zwischen den Ringen lag. Das **Grundband** in der Glasfarbe zeigt,
+    wo eine Kammer existiert; darüber liegt der **Keil** der Kammer mit **fester Grundlinie**:
+    er beginnt am Innenrand des Bandes und ist `Füllstand/100 · Bandtiefe` lang. Eine leere
+    Kammer hat keinen Keil, nur das Grundband; eine fehlende Kammer bleibt eine Lücke. Über
+    100 % ist die Länge gedeckelt — den Überlauf trägt allein der rote Rand am Außenrand des
+    Bandes. Damit kodiert die **Länge** den Füllstand (in Graustufen lesbar), die Farbe
+    zusätzlich (leer → voll → übervoll). Bandtiefe, Grundband und Keil sind Darstellung (`S`).
+  - **Autos:** auf einer dünnen Spur außerhalb der Bühne; beim Leeren ein
+    kurzer radialer Blitz an der besuchten ID. Ringreihenfolge, Farben und Kammerabstand
+    sind Darstellung (`S`), keine Daten; die Simulation selbst bleibt unverändert.
+  - **Kennzahlen des Laufs (acht Karten):** Δ Leerungen gegen den Ist-Lauf (mit dem
+    Erfolgssatz), Produziert, Abgeholt, Leerungen, voll/übervoll bei Leerung, davon über
+    100 %, Überlauf-Tage, Wegeinheiten. Jede Karte trägt ihren Marker; wo ein Messwert
+    existiert, steht er als Vergleich darunter. Karten ohne Messbezug und ohne Zielzahl
+    sind bewusst nicht enthalten (Auslastung, mittlerer Füllstand, Kapazität/Tag).
+  - **Verlauf:** zwei Panels mit gemeinsamer x-Achse „Tag" (nur sie ist beschriftet) und je
+    eigener y-Skala. Getrennt, weil zwei Einheiten in einem Bild einen Vergleich vortäuschen,
+    den es nicht gibt.
+- **3 · Einstellen (Parameter):** Abstand `s` (2,5–20, Schritt 0,5) · Autos `M` (1–4) ·
+  Strategie (`ist`/`fuell`) · Schwelle (50–95 %, nur bei `fuell`); darunter die
+  Herkunftslegende.
+- **Fußzeile:** „Simulation — keine Messung. Raten und Rhythmus aus den Daten, alles andere Annahme."
 
 Verboten: Karte, Koordinaten, km, Euro, Tonnen, Prognose für echte Kalendertage.
 Der Ist-Lauf ist immer daneben sichtbar; ohne Vergleich keine Zahl.

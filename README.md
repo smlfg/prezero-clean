@@ -71,16 +71,18 @@ Quelle/Unsicherheit und festgehaltenes Ergebnis: `docs/externe_parameter.md` (V-
 
 Das Simulations-Kino wird mit `scripts/kino_bauen.py` gebaut und lokal in `sim/kino.html` geöffnet.
 
-## Kino
+## Simulation
 
-Simulations-Kino (`sim/kino.html`): Füllrate, Abstand und Autoanzahl in Bewegung.
-Ein minimaler Kalender zeigt die Zeit als Tage, Wochen und Monate — Simulationstage,
-kein Kalenderdatum — und bewertet jeden gelaufenen Tag aus Stakeholder-Sicht:
-Glas abgeholt oder Bestand gewachsen (in Prozentpunkten, nicht in Stopps).
-Mit der Maus auf einem Tag: Stopps, Wegeinheiten, abgeholtes Glas (Pp) und ob das Soll
-erfüllt ist.
+`sim/kino.html` ist die Seite für den Stakeholder. Sie öffnet auf **1 · Ergebnis**:
+Ersparnis an Leerungen gegenüber dem Ist-Lauf, mit der Überlaufquote als Wächter
+und den Wegeinheiten als Aufwand, dazu je Parameter eine Tabelle. **2 · Verlauf**
+zeigt die Simulation in Bewegung (Bühne, acht Kennzahlen, zwei Kurvenpanels),
+**3 · Einstellen** die vier Hebel: Abstand, Autos, Strategie, Schwelle.
+
 Jede sichtbare Zahl trägt einen **Herkunftsmarker** — `M` gemessen, `A` abgeleitet,
 `S` gesetzt. Die Marker stehen in `meta.herkunft` (`scripts/sim_daten.py`), nicht im HTML.
+Bewusst nicht enthalten: Kalender, Szenario-Dateien, LKW-Katalog, Temporegler —
+sie beantworten keine Frage des Stakeholders.
 
 ```bash
 python scripts/sim_daten.py    # Daten + Herkunftstags

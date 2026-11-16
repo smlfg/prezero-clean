@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Simulations-Kino — PreZero Glascontainer</title>
+<title>Glascontainer — Simulation (PreZero)</title>
 <style>
   :root{
     --bg:#0d1117; --panel:#161b22; --panel2:#1c2430; --line:#2a3441;
@@ -15,6 +15,8 @@
   header{padding:18px 26px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
   h1{margin:0;font-size:20px;letter-spacing:.2px}
   .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  .frage{max-width:760px;margin-top:10px;font-size:14px;line-height:1.55;color:var(--text)}
+  .frage b{color:#fff;font-weight:600}
   .hinweis{display:inline-block;margin-top:10px;padding:5px 11px;border-radius:999px;
            background:rgba(210,153,34,.14);border:1px solid rgba(210,153,34,.45);
            color:#f0c674;font-size:12.5px}
@@ -166,21 +168,23 @@
 </head>
 <body>
 <header>
-  <h1>Simulations-Kino — PreZero Glascontainer</h1>
+  <h1>Glascontainer — Simulation</h1>
   <div class="sub" id="kopfSub"></div>
+  <div class="frage">Ein Container ist ein Puffer: Er füllt sich, ein LKW-Besuch leert ihn.
+    Die Frage ist, wie viele Leerungen sich sparen lassen, <b>ohne</b> dass mehr überläuft.</div>
   <div class="hinweis">Modelliert — keine Messung. Raten und Rhythmus sind aus den Daten abgeleitet, alles andere ist Annahme.</div>
 </header>
 
 <nav class="ansichtNav" aria-label="Ansicht">
-  <button class="knopf active" id="navParameter">1 · Parameter</button>
-  <button class="knopf" id="navKino">2 · Kino</button>
-  <button class="knopf" id="navBilanz">3 · Bilanz</button>
-  <span class="status" id="ansichtStatus">Einstellungen prüfen und Simulation starten</span>
+  <button class="knopf active" id="navBilanz">1 · Ergebnis</button>
+  <button class="knopf" id="navKino">2 · Verlauf</button>
+  <button class="knopf" id="navParameter">3 · Einstellen</button>
+  <span class="status" id="ansichtStatus">Ersparnis gegen den Ist-Lauf</span>
 </nav>
 
 <section id="parameterAnsicht">
   <div class="laufLeiste">
-    <button class="knopf prim" id="play">&#9654; Kino starten</button>
+    <button class="knopf prim" id="play">&#9654; Simulation starten</button>
     <button class="knopf" id="reset">&#8635; Reset</button>
     <div class="laufTag">
       <span class="wert" id="tagWert"></span>
@@ -990,7 +994,7 @@ function istFertig() {
 }
 
 /* Beim Oeffnen der Kino-Ansicht einmal durchrechnen, damit Kennzahlen und Verlauf
-   gefuellt sind. Das ist derselbe Lauf wie ▶ Kino starten, nur ohne Animation.
+   gefuellt sind. Das ist derselbe Lauf wie ▶ Simulation starten, nur ohne Animation.
    Ein bereits laufender oder fertiger Lauf bleibt unangetastet. */
 function starteVorschau() {
   if (eng.tag > 0) return;
@@ -1022,7 +1026,7 @@ function setzeAnsicht(kino) {
     markiereSchmutzig();
   } else {
     laufend = false;
-    document.getElementById("play").textContent = "▶ Kino starten";
+    document.getElementById("play").textContent = "▶ Simulation starten";
   }
 }
 
@@ -1039,7 +1043,7 @@ function setzeBilanzAnsicht() {
   document.getElementById("navBilanz").classList.add("active");
   document.getElementById("ansichtStatus").textContent =
     "Zwei Szenarien gegenüberstellen — Modellrechnung, keine Messung";
-  document.getElementById("play").textContent = "▶ Kino starten";
+  document.getElementById("play").textContent = "▶ Simulation starten";
   document.getElementById("kinoPlay").textContent = "▶ Start";
   bilanzStart();
 }
@@ -1049,7 +1053,7 @@ function resetLauf() {
   eng.reset();
   progress = 0;
   tageTimer = 0;
-  document.getElementById("play").textContent = inKino ? "▶ Kino starten" : "▶ Kino starten";
+  document.getElementById("play").textContent = inKino ? "▶ Simulation starten" : "▶ Simulation starten";
   document.getElementById("kinoPlay").textContent = "▶ Start";
   zeichneKarten(); zeichneSpark();
   document.getElementById("kinoKonfig").textContent = konfigurationText();
@@ -1261,7 +1265,13 @@ function bilanzFazit(a, b, d) {
     text: "Kein Unterschied bei der Zielzahl: B fährt <b>gleich viele Leerungen</b> wie der " +
       "Ist-Lauf, der Überlauf ist " +
       (d.dTage === 0 ? "ebenfalls gleich" : d.dTage > 0 ? "höher" : "niedriger") +
-      ". Ein Erfolg ist das nicht." + rand };
+      ". Ein Erfolg ist das nicht." + rand +
+      /* Einstieg: B steht beim ersten Aufruf auf den Ist-Werten. Ohne diesen Satz
+         liest der Besucher "kein Erfolg", ohne den Hebel angefasst zu haben. */
+      (d.dTage === 0 && d.dWege === 0
+        ? " <b>B entspricht noch dem Ist-Lauf</b> — ändere den Abstand unter „Einstellen“, "
+          + "um eine Ersparnis zu sehen."
+        : "") };
   return { klasse: "schlecht",
     text: "Kein Erfolg: B fährt <b>" + leer + "</b> als der Ist-Lauf. Ein Plan mit mehr " +
       "Leerungen ist kein Erfolg, unabhängig vom Überlauf." + rand };
@@ -1427,7 +1437,7 @@ document.getElementById("play").addEventListener("click", () => {
   } else {
     laufend = !laufend;
   }
-  document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Kino starten";
+  document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Simulation starten";
   document.getElementById("kinoPlay").textContent = laufend ? "❚❚ Pause" : "▶ Start";
   if (!laufend) {
     /* Beim Pausieren laeuft der Blitz noch aus - so lange zeichnen wir weiter. */
@@ -1444,7 +1454,7 @@ document.getElementById("kinoPlay").addEventListener("click", () => {
     laufend = !laufend;
   }
   document.getElementById("kinoPlay").textContent = laufend ? "❚❚ Pause" : "▶ Start";
-  document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Kino starten";
+  document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Simulation starten";
   if (!laufend) blitzRest = BLITZ_DAUER;
   markiereSchmutzig();
 });
@@ -1473,7 +1483,7 @@ function loop(ts) {
         neuerTag = true;
       } else {
         laufend = false;
-        document.getElementById("play").textContent = "▶ Kino starten";
+        document.getElementById("play").textContent = "▶ Simulation starten";
         document.getElementById("kinoPlay").textContent = "▶ Start";
       }
     }
@@ -1566,6 +1576,7 @@ document.querySelectorAll("[data-herk]").forEach(function (el) {
   el.innerHTML = chip(el.dataset.herk);
 });
 setzeAnsicht(false);
+setzeBilanzAnsicht();   // Einstieg: die Antwort, nicht die Regler
 simSchreibe();
 fordertFrameAn();
 </script>
