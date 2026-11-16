@@ -106,6 +106,10 @@ var KINO = (function () {
       }
       budget += P.m * K0 * S0 / P.s;
       var bedient = [];
+      /* Tageswerte fuer den Kalender-Hover: abgeholter Fuellstand (Pp) und
+         Wegeinheiten dieses Tages. Sie summieren sich ueber den Lauf zu
+         abgeholtSumme bzw. P.s * leerungen und aendern keine Kennzahl. */
+      var abgeholtHeute = 0;
       if (faellig.length) {
         faellig.sort(function (a, b) {
           var d = maxfill[b] - maxfill[a];
@@ -119,7 +123,10 @@ var KINO = (function () {
           for (j = 0; j < anz[i]; j++) {
             /* Consumer-Groesse: der Stand, der bei der Leerung abgeholt wird.
                overfull ist zensiert und wird wie in der CSV als 100 gezaehlt. */
-            if (messfenster) abgeholtSumme += Math.min(VOLL, fill[i * MAXC + j]);
+            if (messfenster) {
+              abgeholtSumme += Math.min(VOLL, fill[i * MAXC + j]);
+              abgeholtHeute += Math.min(VOLL, fill[i * MAXC + j]);
+            }
             fill[i * MAXC + j] = 0;
           }
           if (P.strategie === "ist") naechste[i] = tag + periode[i];
@@ -139,7 +146,9 @@ var KINO = (function () {
            nur diese Werte, sie aendern keine Kennzahl. */
         tagesverlauf.push({ tag: tag - WARMLAUF + 1, ueberlauf: ueberlaufTage, leerungen: leerungen,
                             faellig: faellig.length, bedient: bedient.length,
-                            ueberlaufHeute: ueberlaufHeute.length });
+                            ueberlaufHeute: ueberlaufHeute.length,
+                            abgeholt: +abgeholtHeute.toFixed(2),
+                            wegeinheiten: +(P.s * bedient.length).toFixed(1) });
       }
       letzteTage = bedient;
       letzteUeberlauf = ueberlaufHeute;

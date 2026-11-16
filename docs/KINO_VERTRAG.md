@@ -98,6 +98,10 @@ Er ist eine reine Startbedingung (kein Datenwert) und wird nicht als Zahl ausgeg
 - **Kapazität/Tag** = `M · K(s)` — Obergrenze, kein Ziel. **Bedarf/Tag** = fällige
   Stopps pro Tag. Gelesen wird `min(Kapazität, Bedarf)`: liegt der Bedarf darunter,
   ist `s` wirkungslos.
+- **Je Tag** (für den Kalender-Hover) stehen im `tagesverlauf` zusätzlich `bedient`,
+  `faellig`, `abgeholt` (Σ Füllstand der geleerten Kammern, Pp) und `wegeinheiten`
+  (`s × Stopps` des Tages). Sie summieren sich über den Lauf zu `leerungen`,
+  `abgeholt_pp` und `wegeinheiten` und ändern keine Kennzahl.
 
 Immer **gegen den Ist-Lauf im selben Panel**, nie absolut allein.
 
@@ -154,11 +158,19 @@ Regeln für den Export:
   übrigen bleiben leer. Reine Darstellung (`S`): **kein Kalenderdatum**, keine Wochentage,
   keine Prognose für echte Kalendertage. Die Daten haben nur Tagesauflösung; der Kalender
   zählt Simulationstage und erfindet keine Datumsangabe.
-- **Tagesbewertung (Farbe der Zelle):** `gedeckt` = alle **fälligen Stopps des Tages** wurden
-  bedient; `verpasst` = mindestens ein fälliger Stopp blieb offen (Rückstau, die Kapazität
-  reichte nicht). Bedarf (`fällig`) und Abdeckung (`bedient`) stehen je Tag im
-  `tagesverlauf` der Engine und sind Modellgrößen (`S`). Der Überlauf bewertet den Tag **nicht**
-  mit: er liegt an jedem Tag vor und hat seine eigene Kurve im Verlauf darunter.
+- **Tagesbewertung (Farbe der Zelle), Stakeholder-Sicht:** `abgeholt` = der Consumer (LKW) hat an
+  diesem Tag **mindestens so viel Glas abgeholt, wie der Producer erzeugt hat** (der Bestand ist
+  nicht gewachsen); `steht noch` = weniger abgeholt als erzeugt. Einheit sind **Prozentpunkte
+  (Pp)** je Tag: `abgeholt` steht im `tagesverlauf` der Engine, `erzeugt` ist
+  `meta.produziert_pp_pro_tag`. **Stopps tragen diese Aussage nicht:** ein Stopp ist ein Ort mit
+  1–3 Kammern (A1), und fällig ist ein Ort, sobald **eine** Kammer es ist — ob braun und grün
+  noch halb leer sind, sieht die Stoppzahl nicht. Die Zelle antwortet damit auf die eine Frage
+  des Stakeholders: *Konnten wir das Glas abproduzieren — ja oder nein?*
+- **Hover je Tag:** Zeigt Simulationstag, Stopps (`bedient` / `fällig`), Wegeinheiten
+  (`s × Stopps` des Tages), Glas (`Σ Füllstand bei Leerung`, Pp) und ob das **Soll erfüllt**
+  ist. Soll erfüllt = alle fälligen Stopps des Tages bedient — dieselbe Regel wie die
+  Zellfarbe `gedeckt`. Tage, die noch nicht gelaufen sind, haben keinen Tipp. Der Tipp
+  ist Darstellung (`S`), seine Werte sind Modellrechnungen des Laufs (`S`).
 - **Bühne, Ansicht `ringe`:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
   Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
   die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
@@ -183,6 +195,17 @@ Regeln für den Export:
   x-Achse „Tag“ (nur sie ist beschriftet) und je eigener y-Skala. Getrennt, weil zwei
   Einheiten in einem Bild einen Vergleich vortäuschen, den es nicht gibt.
 - **Fußzeile:** „Simulation — keine Messung. Raten und Rhythmus aus den Daten, alles andere Annahme."
+- **Tab „Bilanz" (eigene Ansicht, nach dem Kino):** stellt zwei Szenarien gegenüber.
+  **A** ist immer der Ist-Lauf (`s = s0`, `M = 1`, `ist`), **B** ist der aktuell eingestellte
+  Lauf oder ein Drehbuch. Drei Größen, immer beide Seiten und das Delta: **Leerungen**
+  (Zielzahl), **Überlaufquote** (Wächter), **Wegeinheiten = s × Stopps** (Aufwand). Ein
+  Delta ist nur dann als Erfolg markiert, wenn die Leerungen sinken **und** die
+  Überlaufquote nicht steigt; sonst steht im Klartext, dass die Ersparnis nicht gilt.
+  Darunter je Parameter (`abstand`, `autos`, `strategie`, `schwelle`) eine Tabelle: eine
+  Zeile = ein vollständiger Lauf mit genau diesem einen geänderten Parameter, die übrigen
+  wie in B, A als Kopfzeile. Alle Läufe derselben Engine und alle bis zum selben Messtag
+  (`TAGE`). Die Läufe werden in Häppchen gerechnet; die Loop-Bremse bleibt unangetastet
+  (keine zusätzlichen Frames). Euro, Preise, Tonnen und km fehlen bewusst.
 
 Verboten: Karte, Koordinaten, km, Euro, Tonnen, Prognose für echte Kalendertage.
 Der Ist-Lauf ist immer daneben sichtbar; ohne Vergleich keine Zahl.
@@ -249,7 +272,8 @@ Damit können Dokument und Seite nicht auseinanderlaufen.
 | Steuerleiste: „Stopps/Tag" | `A` | aus Besuchen und Tagen gerechnet |
 | Kalender: Tagesraster, Wochenzeilen, Monatsblöcke | `S` | Darstellung; ein Monat = 29 Simulationstage, kein Kalenderdatum |
 | Kalender: gefüllte Tage und hervorgehobener aktueller Tag | `S` | Modellzeit dieses Laufs |
-| Kalender: Tagesbewertung `gedeckt`/`verpasst` | `S` | Modellrechnung: fällige Stopps vs. bediente Stopps des Tages |
+| Kalender: Tagesbewertung `abgeholt`/`steht noch` | `S` | abgeholtes Glas (Pp, Modell) gegen erzeugtes Glas (`A`, `meta.produziert_pp_pro_tag`) |
+| Kalender: Hover-Tooltip je Tag (Stopps, Wegeinheiten, Glas, Soll) | `S` | Modellwerte des Laufs; ein Chip im Kopf des Tipps, wie bei den Kennzahlenkarten ein Chip je Karte |
 | Bühne: Füllstand der Kammer | `A` | Median aus Folgemessungen, im Lauf fortgeschrieben |
 | Bühne: Ringreihenfolge, Farben, Lage der Orte | `S` | reine Darstellung |
 | Kennzahlenkarten: alle Laufwerte | `S` | Modellrechnung dieses Laufs |
@@ -261,6 +285,9 @@ Damit können Dokument und Seite nicht auseinanderlaufen.
 | Verlauf oben: gestrichelte Ist-Linie | `M` | gemessene Besuchszahl (`meta.besuche`) als Bezug der Zielzahl |
 | Verlauf unten: **keine** Ist-Linie | `—` | die Daten kennen keinen Überlauf-Tag; eine Linie wäre eine erfundene Annahme |
 | Verlauf: x-Achsbeschriftung, Raster, Skalenwahl | `S` | Darstellung; die y-Achse bleibt unbeschriftet |
+| Bilanz: Werte von A, B und alle Tabellenzeilen | `S` | Modellrechnung derselben Engine (`runToEnd`), gleicher Messtag |
+| Bilanz: Parameter, Raster der Parameter-Tabellen | `S` | gesetzte Modellgrößen; Raster aus den Reglern der Parameter-Ansicht |
+| Bilanz: „gemessen: 4.468 Besuche" als Bezug des Ist-Plans | `M` | `meta.besuche` aus der CSV |
 | Fußzeile: Messungen, Orte, Kammern, Besuche, Tage | `M` | direkt aus der CSV |
 
 ### 7.3 Regeln

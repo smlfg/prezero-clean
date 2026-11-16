@@ -107,6 +107,11 @@ HERKUNFT_SONSTIGE = {
     "schwelle": "S",
     "ring_reihenfolge": "S",
     "kalender": "S",
+    # Hover je Kalendertag: Modellwerte des Laufs, keine Messung.
+    "tages_stopps": "S",
+    "tages_wegeinheiten": "S",
+    "tages_glas_pp": "S",
+    "tages_soll": "S",
     # Vorher/Nachher-Karte: beide Werte sind Modellrechnung gegen den Ist-Lauf.
     "kino_delta_ueberlauf": "S",
     "kino_ist_vergleich": "S",

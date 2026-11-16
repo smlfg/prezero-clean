@@ -1,6 +1,6 @@
 {
  "meta": {
-  "erzeugt": "2026-11-16T19:31:26+01:00",
+  "erzeugt": "2026-11-16T19:53:59+01:00",
   "quelle": "data/raw/glass_fill_levels_anonymized_f.csv",
   "skript": "scripts/sim_daten.py",
   "orte": 449,
@@ -80,6 +80,10 @@
     "schwelle": "S",
     "ring_reihenfolge": "S",
     "kalender": "S",
+    "tages_stopps": "S",
+    "tages_wegeinheiten": "S",
+    "tages_glas_pp": "S",
+    "tages_soll": "S",
     "kino_delta_ueberlauf": "S",
     "kino_ist_vergleich": "S",
     "lkw_objekt": "R",

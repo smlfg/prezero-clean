@@ -104,6 +104,7 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
 
         budget += k_ges
         bedient = 0
+        abgeholt_heute = 0.0
         if faellig.size:
             ordnung = sorted(faellig.tolist(), key=lambda i: (-maxfill[i], d["ids"][i]))
             for i in ordnung:
@@ -114,7 +115,9 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
                 if messfenster:
                     # Consumer-Groesse: der Stand, der bei der Leerung abgeholt wird.
                     # overfull ist zensiert und wird wie in der CSV als 100 gezaehlt.
-                    abgeholt_summe += float(np.minimum(fill[i], VOLL).sum())
+                    stand = float(np.minimum(fill[i], VOLL).sum())
+                    abgeholt_summe += stand
+                    abgeholt_heute += stand
                 fill[i, :] = 0.0
                 if strategie == "ist":
                     naechste[i] = tag + periode[i]
@@ -135,7 +138,10 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
                                  "leerungen": leerungen,
                                  "faellig": int(faellig.size),
                                  "bedient": bedient,
-                                 "ueberlauf_heute": ueberlauf_heute})
+                                 "ueberlauf_heute": ueberlauf_heute,
+                                 # Tageswerte fuer den Kalender-Hover (Pp, Wegeinheiten).
+                                 "abgeholt": round(abgeholt_heute, 2),
+                                 "wegeinheiten": round(s * bedient, 1)})
 
     return {
         "parameter": {"s": s, "m": m, "strategie": strategie, "schwelle": schwelle,
