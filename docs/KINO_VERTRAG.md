@@ -98,15 +98,21 @@ Regeln für den Export:
 ## 5. UI (das Kino)
 
 - **Oben:** Abstand `s` (2,5–20, Schritt 0,5) · Autos `M` (1–4) · Strategie (`ist`/`fuell`)
-  · Schwelle (50–95 %, nur bei `fuell`) · Play/Pause · Tempo · Tag-Anzeige.
-- **Bühne:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448), Braun (442)**.
-  Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`; die Kammern
-  einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe, bleibt an
-  diesem Winkel eine Lücke. Der Grundring zeigt die Glasfarbe, das Segment darüber den
-  Füllstand (leer → voll → übervoll, roter Rand ab 100 %). Autos fahren auf einer dünnen
-  Spur außerhalb des äußersten Rings; beim Leeren ein kurzer radialer Blitz über alle
-  drei Ringe an der besuchten ID. Die Ringfarben und die Reihenfolge sind Darstellung,
-  keine Daten; die Simulation selbst bleibt unverändert.
+  · **Ansicht (`ringe`/`container`, Standard `ringe`)** · Schwelle (50–95 %, nur bei `fuell`)
+  · Play/Pause · Tempo · Tag-Anzeige.
+- **Bühne, Ansicht `ringe`:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
+  Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
+  die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
+  bleibt an diesem Winkel eine Lücke. Der Grundring zeigt die Glasfarbe, das Segment darüber
+  den Füllstand (leer → voll → übervoll, roter Rand ab 100 %).
+- **Bühne, Ansicht `container`:** ein Ort = ein Container mit drei radial gestapelten Kammern
+  (außen Weiß, Mitte Grün, innen Braun), verbunden durch eine feine Linie. Winkel und
+  Füllstandskodierung sind identisch zu `ringe`; fehlt eine Kammer, bleibt sie leer. Damit
+  wird sichtbar, dass die Farben zusammen **einen** Container bilden (Rahmen bleibt stehen,
+  Kammern werden einzeln geleert) — wie beim realen Mehrkammer-Depotcontainer.
+- **Beide Ansichten:** Autos auf einer dünnen Spur außerhalb der Bühne; beim Leeren ein
+  kurzer radialer Blitz an der besuchten ID. Ringreihenfolge, Farben, Kammerabstand und
+  Ansicht sind Darstellung (`S`), keine Daten; die Simulation selbst bleibt unverändert.
 - **Unten:** die sechs Metriken live, plus Sparkline „Überlauf-Tage pro Tag".
 - **Fußzeile:** „Simulation — keine Messung. Raten und Rhythmus aus den Daten, alles andere Annahme."
 
