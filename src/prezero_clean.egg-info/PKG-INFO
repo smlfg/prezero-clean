@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: prezero-clean
+Version: 0.1.0
+Summary: Sauberer Neustart: Analyse der Glascontainer-Fuellstandsdaten (PreZero-Challenge)
+Requires-Python: >=3.11
+Requires-Dist: pandas>=2.0
+Requires-Dist: numpy>=1.24
+Requires-Dist: matplotlib>=3.7
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: ruff>=0.4; extra == "dev"
