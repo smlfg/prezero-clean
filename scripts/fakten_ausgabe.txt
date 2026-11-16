@@ -1,0 +1,63 @@
+
+== 1 Form
+Spalten: ['Location_id', 'material_type', 'date', 'fill_level_perc'] | Typen: {'Location_id': 'str', 'material_type': 'str', 'date': 'datetime64[us]', 'fill_level_perc': 'str'}
+Zeilen: 11701 | fehlende Werte: 0 | exakte Duplikate: 0
+Zeitraum: 2025-10-17 bis 2026-09-30 | Tage: 348
+Zeitstempel hat Uhrzeit: False (nur Datum, keine Uhrzeit)
+
+== 2 Füllstand: Werte
+fill_level_perc
+0              2
+10           450
+100         1953
+20          1090
+30          1091
+40          1019
+50           855
+60          1097
+70           870
+80          1114
+90           968
+overfull    1192
+Numerisch > 100: 0 | Zeile 'overfull' (Text): 1192 = 10.2%
+Genau 100: 1953 = 16.7% | Genau 0: 2
+Stufen numerisch: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+== 3 Container-IDs und Glasarten
+Container-IDs: 449 | Container+Farbe: 1338
+Messungen je Farbe:
+material_type
+white    4432
+green    4169
+brown    3100
+Überlauf-Anteil je Farbe:
+material_type
+brown     3.4%
+green     8.6%
+white    16.5%
+Farben pro ID (Anzahl IDs): {1: 1, 2: 7, 3: 441}
+Doppelte (ID,Farbe,Datum): 0
+
+== 4 Besuche (ID+Datum = ein LKW-Besuch, Annahme)
+Besuche: 4468 | Farben je Besuch (Anzahl Besuche): {1: 296, 2: 1111, 3: 3061}
+Messungen je ID: Median 24.0 min 1 max 97
+Besuche je ID: Median 9.0 min 1 max 37
+Abstand zwischen Besuchen (Tage): min 1.0 P10 12.0 Median 26.0 P90 56.0 max 222.0
+Wochentage Messungen (0=Mo): {0: 1959, 1: 2315, 2: 2563, 3: 2222, 4: 2177, 5: 444, 6: 21}
+
+== 5 Füllstand nach Abstand zum letzten Besuch (Container+Farbe)
+           n  mittel_fuell  ueberlauf
+klasse                               
+<=7      291        45.903      0.010
+8-14    1305        55.218      0.053
+15-30   4273        63.347      0.106
+31-60   3212        63.933      0.131
+>60     1282        60.861      0.166
+Erste Messung je Container+Farbe hat keinen Vorgänger: 1338
+
+== 6 Bilanz-Probe (Rate * Abstand = gemessener Stand?)
+Zeilen für Probe: 9206 | mittlerer Fehler (Prozentpunkte, in-sample): 14.4 | Median: 9.9
+Anteil Fehler <= 10 Pp: 53.2% | <= 20 Pp: 74.6%
+Rate %/Tag je Container+Farbe: P10 0.43 Median 1.52 P90 3.89
+Tage bis 100% bei Median-Rate (Median über Container+Farbe): 65.9
+Lesehinweis: kein Schwellenwert festgelegt; der Bilanztest-Grenzwert ist offene Frage an den Stakeholder.

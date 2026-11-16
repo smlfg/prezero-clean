@@ -1,23 +1,23 @@
 # prezero-clean
 
-Sauberer Neustart der Analyse der Glascontainer-Fuellstandsdaten
-(PreZero-Challenge, Future City Hackathon Heilbronn 2026).
+Sauberer Neustart: PreZero Glascontainer, nur mit den gegebenen Daten.
 
 ## Datenbasis
 
-- `data/raw/glass_fill_levels_anonymized_f.csv` — 11.701 Messungen, 449 Locations, 1.192 `overfull`.
-- `data/external/locations.csv` — Zuordnung Location_id -> lat/lon (Quelle/Konfidenz je Zeile).
+`data/raw/glass_fill_levels_anonymized_f.csv` — 11.701 Messungen, 449 Container,
+17.10.2025 bis 30.09.2026. Nur diese vier Spalten: `Location_id`, `material_type`,
+`date`, `fill_level_perc`.
 
-Kopie der Originaldaten, keine generierten Outputs.
+Keine Koordinaten, keine Distanzen, keine Kosten, keine synthetischen Daten.
 
-## Scope
+## Fakten
 
-Nur Daten laden, analysieren, visualisieren. Kein Routing, keine Scoring-Modelle, kein Dashboard.
-
-## Start
+Alle Zahlen stammen aus `scripts/fakten.py`:
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-pytest -q
+python scripts/fakten.py
 ```
+
+## Regeln
+
+Siehe `AGENTS.md` (Datenquelle, Annahmen, Bilanztest-Gate, Zielzahl) und `SCOPE.md`.
