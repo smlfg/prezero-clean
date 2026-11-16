@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 *.egg-info/
 .pytest_cache/
+
+# Rohdaten (können vertraulich sein, nicht veröffentlichen)
+data/*.csv
+data/raw/*.csv

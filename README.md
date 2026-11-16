@@ -1,55 +1,82 @@
 # prezero-clean
 
-Sauberer Neustart: PreZero Glascontainer, nur mit den gegebenen Daten.
+Sauberer Neustart: Analyse und Simulation der PreZero-Glascontainer, nur mit den gegebenen Daten.
 
-## Datenbasis
+## Status
 
-`data/raw/glass_fill_levels_anonymized_f.csv` — 11.701 Messungen, 449 Container,
-17.10.2025 bis 30.09.2026. Nur diese vier Spalten: `Location_id`, `material_type`,
-`date`, `fill_level_perc`.
+Python-Projekt mit Fakten-Skript, Domänen- und Puffer-Modell, Tests, Diagnose-Bildern und einem lokalen Simulations-Kino. Die Roh-CSV ist nicht Bestandteil des öffentlichen Repositories. Sie kann vertraulich sein und muss lokal unter `data/raw/glass_fill_levels_anonymized_f.csv` liegen (siehe `.gitignore`).
 
-Keine Koordinaten, keine Distanzen, keine Kosten, keine synthetischen Daten.
+Es gibt keine öffentlich gehostete Demo. Das Simulations-Kino ist die lokale Datei `sim/kino.html` und ist als Simulation gekennzeichnet, nicht als Messergebnis (`docs/KINO_VERTRAG.md`).
 
-## Modell
+## Schnellstart
 
-- `src/domaene.py` — Domänenmodell `Glas` – `Container` – `LKW` (AGENTS.md §2).
-  Container (`Location_id`) mit 1–3 Kammern je Farbe; der LKW **misst** eine
-  Teilmenge der Kammern und **leert** alle. Gate: `tests/test_domaene.py`.
-- `src/modell.py` — Puffer-Modell je Kammer, Füllrate je `Location_id`+`material_type`.
-  Gate: `tests/test_bilanz.py` (AGENTS.md §4).
+Voraussetzung: Python 3.11 oder neuer, pandas und NumPy. Die CSV muss lokal am Standardpfad liegen oder als Argument übergeben werden.
 
 ```bash
+pip install "pandas>=2.0" "numpy>=1.24" pytest
+python scripts/fakten.py
+python scripts/fakten.py pfad/zur/datei.csv
 python -m pytest tests/ -q
 ```
 
-## Fakten
+Ohne die lokale CSV laufen Fakten-Skript und Tests, die die Datei lesen, nicht. Alle Zahlen in diesem README zu den Messdaten stammen aus `scripts/fakten.py`.
 
-Alle Zahlen stammen aus `scripts/fakten.py`:
+## Daten
 
-```bash
-python scripts/fakten.py
-```
+| Spalte | Bedeutung |
+|---|---|
+| `Location_id` | Container-Standort (anonym) |
+| `material_type` | `brown`, `white`, `green` |
+| `date` | Datum der Messung, ohne Uhrzeit |
+| `fill_level_perc` | 0–100 in 10er-Stufen oder der Text `overfull` |
 
-## Volumen
+- 11.701 Messungen, keine fehlenden Werte, keine Duplikate, Zeitraum 17.10.2025 bis 30.09.2026 (348 Tage Differenz).
+- 449 Container-IDs, 1.338 Kombinationen aus ID und Farbe. 441 IDs haben alle drei Farben, 7 haben zwei, 1 hat eine.
+- Füllstand nie numerisch über 100. Überlauf steht als Text `overfull`: 1.192 Zeilen (10,2 %). Genau 100 %: 1.953 (16,7 %). Überlauf je Farbe: weiß 16,5 %, grün 8,6 %, braun 3,4 %.
+- 4.468 Besuche (ID und Datum). Nur bei 3.061 wurden alle drei Farben gemessen, bei 1.111 zwei, bei 296 eine.
+- Abstand zwischen Besuchen: Median 26 Tage, P10 12, P90 56, Maximum 222. Je ID Median 9 Besuche (1 bis 37).
+- Der mittlere Füllstand steigt mit dem Abstand nur bis etwa 15–30 Tage (63,3 %) und bleibt danach flach. Der Überlaufanteil steigt weiter: 1,0 % bei höchstens 7 Tagen, 16,6 % bei mehr als 60 Tagen.
+- Bilanz-Probe (Rate mal Abstand, in-sample): mittlerer Fehler 14,4 Prozentpunkte, 53,2 % der Fälle innerhalb von 10 Prozentpunkten. Das ist ein Befund; die festgelegten Grenzwerte stehen in `AGENTS.md`.
 
-Sensitivity aus internen Füllständen × externer Kammervolumen-Bandbreite
-(Quelle/Unsicherheit: `docs/externe_parameter.md`):
+Ein Besuch ist als Paar (`Location_id`, `date`) definiert. Dass danach alle Farben auf 0 geleert werden, ist Annahme A1 in `AGENTS.md`, keine direkt beobachtete Gewissheit.
+
+Abgeleitete Simulationsdaten liegen unter `data/derived/orte.json` (erzeugt von `scripts/sim_daten.py`).
+
+## Modell und Tests
+
+- `src/domaene.py` — Domänenmodell Glas, Container und LKW. Gate: `tests/test_domaene.py`.
+- `src/modell.py` — Puffer-Modell je Kammer, Füllrate je `Location_id` und `material_type`. Gate: `tests/test_bilanz.py`.
+- `tests/test_sim.py` — Tests zur Simulation.
+
+Festgelegte Annahmen und Bilanz-Grenzwerte: `AGENTS.md`. Fachliche Beschreibung: `docs/modell.md` und `docs/datenmodell.md`.
+
+## Weitere Befehle
 
 ```bash
 python scripts/volumen_sensitivity.py
-```
-
-## Bilder
-
-Vier Diagnose-Bilder aus denselben Daten, ohne Modell und ohne Annahme außer A1/A2:
-
-```bash
 python scripts/bilder.py
 ```
 
-`bilder/01_mechanismus.png` · `02_alle_orte.png` · `03_einheit.png` · `04_takt.png`.
-Was jedes Bild zeigt und was fehlt: `bilder/LIESMICH.md`. Regeln für weitere Bilder: `assets/ui/UI_REGELN.md`.
+Die vier Diagnose-Bilder `bilder/01_mechanismus.png`, `02_alle_orte.png`, `03_einheit.png` und `04_takt.png` entstehen aus denselben Daten. Erklärung: `bilder/LIESMICH.md`. Externe Volumenparameter: `docs/externe_parameter.md`.
 
-## Regeln
+Das Simulations-Kino wird mit `scripts/kino_bauen.py` gebaut und lokal in `sim/kino.html` geöffnet.
 
-Siehe `AGENTS.md` (Datenquelle, Annahmen, Bilanztest-Gate, Zielzahl), `SCOPE.md` und `assets/ui/UI_REGELN.md`.
+## Zielzahl
+
+Eingesparte Leerungen in Prozent gegenüber dem Ist-Plan, bei höchstens gleicher Überlaufquote. Ist-Basis aus den Daten: 4.468 Besuche, 10,2 % Überlauf-Messungen. Mehr Fahrten zählen nicht als Erfolg.
+
+## Nicht im Scope
+
+Geokoordinaten, Karten, Routing, Distanzen, Kosten, CO₂, Kraftstoff, LKW-Kapazität, Prognose-ML, Copilot, Pitch-Folien sowie gescrapte oder erfundene Zusatzdaten. Regeln: `SCOPE.md` und `assets/ui/UI_REGELN.md`.
+
+## Offene Fragen an den Stakeholder (Marcel Fortuin, PreZero)
+
+1. Ist ein Datensatz-Eintrag wirklich ein Besuch mit anschließender Leerung auf 0?
+2. Warum fehlen bei 1.407 Besuchen eine oder zwei Farben: nicht gemessen oder nicht geleert?
+3. Was bedeutet `overfull` genau, und wie viel Menge steckt dahinter?
+4. Wie ist ein Besuch mit nur einem Tag Abstand (Minimum) zu erklären?
+5. Was wäre aus Sicht von PreZero ein glaubwürdiger Wert für weniger Leerungen?
+
+## Lizenz
+
+Noch keine LICENSE-Datei; damit gelten zunächst alle Rechte vorbehalten.
