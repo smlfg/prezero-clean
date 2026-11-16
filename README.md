@@ -65,6 +65,10 @@ python scripts/bilder.py
 
 Die vier Diagnose-Bilder `bilder/01_mechanismus.png`, `02_alle_orte.png`, `03_einheit.png` und `04_takt.png` entstehen aus denselben Daten. Erklärung: `bilder/LIESMICH.md`. Externe Volumenparameter: `docs/externe_parameter.md`.
 
+Sensitivity aus internen Füllständen × externem Kammervolumen. Operative Annahme
+**A6 (farbabhängig, AGENTS.md §3)**: white 3,2 / green 2,1 / brown 1,1 m³.
+Quelle/Unsicherheit und festgehaltenes Ergebnis: `docs/externe_parameter.md` (V-1–V-4).
+
 Das Simulations-Kino wird mit `scripts/kino_bauen.py` gebaut und lokal in `sim/kino.html` geöffnet.
 
 ## Kino

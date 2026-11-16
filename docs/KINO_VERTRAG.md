@@ -8,6 +8,8 @@ Klar beschriftet als **Simulation**, nie als Ergebnis oder Ersparnis.
 - **Orte:** 449 `Location_id`, je 1–3 Container (`material_type`).
 - **Produzent:** Füllrate `r` in %/Tag je Container, Median aus den Daten:
   `p / Abstand zur vorigen Messung desselben Containers` (Annahmen A2 + A4).
+  **Keine Saisonalität:** eine Rate je Kammer für alle Tage (A2, geprüft —
+  Monats-Mediane 0,955–1,062, kein Jahresgang, `fakten.py` Abschnitt 10).
 - **Konsument:** ein Auto leert einen Ort auf 0 (Annahme A1).
 - **Abstand `s`:** derselbe Abstand zwischen allen benachbarten Orten. Standard **5**.
   Es gibt keine Geografie, keine Koordinaten, keine Karte. `s` ist eine reine Zahl.

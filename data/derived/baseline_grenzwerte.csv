@@ -1,0 +1,5 @@
+Modell,Median Pp,P90 Pp,MAE Pp,n
+B1 globaler Mittelwert,29.0,41.0,25.3,9206
+B2 Mittelwert je Farbe,17.5,35.9,20.8,9206
+B3 Rate je Farbe (Median),20.6,55.4,25.6,9206
+Modell (Rate je Ort+Farbe),9.9,36.3,14.4,9206
