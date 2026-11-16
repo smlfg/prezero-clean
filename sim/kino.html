@@ -288,22 +288,6 @@
     </div>
   </div>
 
-  <div class="gruppe">
-    <div class="gruppeKopf"><h2>Darstellung</h2><span>&auml;ndert nur das Bild, nicht das Ergebnis</span></div>
-    <div class="felder">
-      <div class="feld">
-        <label>Ansicht <span class="chipSlot" data-herk="ansicht"></span></label>
-        <div class="kontrolle">
-          <div class="seg">
-            <button id="bRinge" class="on">3 Ringe</button>
-            <button id="bContainer">Container</button>
-          </div>
-        </div>
-        <div class="hilfe" id="ansichtHilfe"></div>
-      </div>
-    </div>
-  </div>
-
   <div class="herkunft" id="herkunft"></div>
 
   <details class="drehbuch" id="drehbuch">
@@ -10243,8 +10227,6 @@ const FARBEN = [
   { key: "green", name: "Grün",  glas: "#2ea043" },
   { key: "brown", name: "Braun", glas: "#9c6b3f" }
 ];
-/* Bühnenansicht: "ringe" = drei Farbringe, "container" = ein Ort = ein Container. */
-let ansicht = "ringe";
 /* Für jeden Ort: Farbe -> Index im Container-Array der Engine (i*MAXC + j). */
 const farbIdx = DATEN.orte.map(o => {
   const m = {};
@@ -10455,13 +10437,12 @@ function zeichneAutoUndText(progress, b, rAuto) {
   rctx.textAlign = "center";
   rctx.fillStyle = "#8b98a5";
   rctx.font = "12px -apple-system, sans-serif";
-  rctx.fillText(ansicht === "ringe" ? zahl(N) + " Orte · Zuordnung über ID" : zahl(N) + " Container · 1–3 Kammern je Ort", b.cx, b.cy - 4);
+  rctx.fillText(zahl(N) + " Orte · Zuordnung über ID", b.cx, b.cy - 4);
   rctx.font = "11px -apple-system, sans-serif";
   rctx.fillText("Simulation — keine Messung", b.cx, b.cy + 14);
 }
 
 function zeichneRing(progress) {
-  if (ansicht === "container") { zeichneContainer(progress); return; }
   const b = buehneBasis();
   if (!b) return;                    // Layout steht noch nicht
   if (!buehneBildGueltig || buehneBildAnsicht !== "ringe") {
@@ -10586,86 +10567,6 @@ function zeichneRingStatisch(b) {
     ctx.font = "12px -apple-system, sans-serif";
     ctx.fillText(ringFarbe.name, cx, y);
   });
-}
-
-/* Container-Ansicht: ein Ort = ein Container mit drei radial gestapelten Kammern
-   (außen Weiß, Mitte Grün, innen Braun). Fehlende Kammer = Lücke. */
-function zeichneContainer(progress) {
-  const b = buehneBasis();
-  if (!b) return;                    // Layout steht noch nicht
-  if (!buehneBildGueltig || buehneBildAnsicht !== "container") {
-    zeichneContainerStatisch(b);
-    buehneBildGueltig = true;
-    buehneBildAnsicht = "container";
-  }
-  rctx.clearRect(0, 0, b.w, b.h);
-  rctx.drawImage(buehneBild, 0, 0, b.w, b.h);
-  zeichneAutoUndText(progress, b, b.rAuto);
-}
-
-function zeichneContainerStatisch(b) {
-  const ctx = buehneBildCtx;
-  ctx.setTransform(b.dpr, 0, 0, b.dpr, 0, 0);
-  ctx.clearRect(0, 0, b.w, b.h);
-  const cx = b.cx, cy = b.cy, seg = b.seg;
-  const rAussen = b.rAussen;
-  const rAuto = b.rAuto;
-  const kammerAbstand = 22;                      // kompakt: ein Container, nicht drei Ringe
-  const tiefe = kammerAbstand - 5;               // Bandtiefe je Kammer, gleiche Kodierung wie oben
-  const radien = [rAussen, rAussen - kammerAbstand, rAussen - 2 * kammerAbstand];
-  const fill = eng.fill;
-
-  ctx.beginPath();
-  ctx.setLineDash([2, 6]);
-  ctx.strokeStyle = "rgba(255,209,102,.14)";
-  ctx.lineWidth = 1;
-  ctx.arc(cx, cy, rAuto, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  /* Verbindungslinien: alle Orte in EINEN Pfad, ein stroke() statt 449.
-     Diese Linien haben alle dieselbe Farbe - hier lohnt das Buendeln wirklich.
-     Die Kammern selbst tragen je Füllstand eine eigene Farbe, also je Kammer
-     ein stroke() (siehe Kommentar bei zeichneRing). */
-  ctx.beginPath();
-  for (let i = 0; i < N; i++) {
-    const ang = i * seg - Math.PI / 2;
-    const c = Math.cos(ang), s = Math.sin(ang);
-    ctx.moveTo(cx + (radien[2] - tiefe / 2 - 2) * c, cy + (radien[2] - tiefe / 2 - 2) * s);
-    ctx.lineTo(cx + (radien[0] + tiefe / 2 + 2) * c, cy + (radien[0] + tiefe / 2 + 2) * s);
-  }
-  ctx.strokeStyle = "rgba(139,152,165,.30)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  FARBEN.forEach((ringFarbe, k) => {
-    const R = radien[k];
-    const rInnen = R - tiefe / 2;
-    const breite = Math.max(2, (2 * Math.PI * R) / N * 0.72);
-
-    zeichneGrundband(ctx, cx, cy, R, tiefe, seg, ringFarbe.key, ringFarbe.glas, 0.12, 0.88);
-
-    const ueberGruppen = [];
-    for (let i = 0; i < N; i++) {
-      const j = farbIdx[i][ringFarbe.key];
-      if (j === undefined) continue;              // Kammer fehlt -> Lücke
-      const v = fill[i * MAXC + j];
-      const a0 = i * seg - Math.PI / 2;
-      if (zeichneKeil(ctx, cx, cy, rInnen, tiefe, breite, a0 + seg * 0.5, v)) {
-        ueberGruppen.push([a0 + seg * 0.12, a0 + seg * 0.88]);
-      }
-    }
-    /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Bandes */
-    zeichneUeberrand(ctx, cx, cy, R + tiefe / 2 + 1.2, ueberGruppen);
-  });
-
-  ctx.textAlign = "center";
-  const y = cy - radien[0] + 4;
-  ctx.fillStyle = "rgba(13,17,23,0.88)";
-  ctx.fillRect(cx - 74, y - 11, 148, 15);
-  ctx.fillStyle = "#c9d1d9";
-  ctx.font = "12px -apple-system, sans-serif";
-  ctx.fillText("1 Container = Weiß · Grün · Braun", cx, y);
 }
 
 /* ---------- Verlauf: zwei Panels, gemeinsame x-Achse, je eigene y-Achse ----------
@@ -10859,13 +10760,9 @@ function zeichneBuehneHerkunft() {
 function zeichneBuehneTitel() {
   const n = zahl(META.orte);
   document.getElementById("buehneTitel").innerHTML =
-    "Bühne: " +
-    (ansicht === "ringe"
-      ? "3 Ringe — Weiß / Grün / Braun · " + chip("orte") + " " + n +
-        " Orte über die ID ausgerichtet · Keil-Länge = Füllstand der Kammer"
-      : "Container — " + chip("orte") + " " + n +
-        " Orte, je ein Container mit bis zu drei Kammern · Keil-Länge = Füllstand der Kammer") +
-    " " + chip("ring_reihenfolge");
+    "Bühne: 3 Ringe — Weiß / Grün / Braun · " + chip("orte") + " " + n +
+    " Orte über die ID ausgerichtet · Keil-Länge = Füllstand der Kammer " +
+    chip("ring_reihenfolge");
 }
 
 /* Kopfzeile: die Zahlen sind gemessen, die Anordnung ist gesetzt */
@@ -11678,24 +11575,6 @@ document.getElementById("bFuell").addEventListener("click", () => {
   markiereSchmutzig();
   simSchreibe();
 });
-document.getElementById("bRinge").addEventListener("click", () => {
-  ansicht = "ringe";
-  document.getElementById("bRinge").classList.add("on");
-  document.getElementById("bContainer").classList.remove("on");
-  document.getElementById("ansichtHilfe").innerHTML =
-    chip("ring_reihenfolge") + " Farben getrennt";
-  zeichneBuehneTitel();
-  markiereSchmutzig();
-});
-document.getElementById("bContainer").addEventListener("click", () => {
-  ansicht = "container";
-  document.getElementById("bContainer").classList.add("on");
-  document.getElementById("bRinge").classList.remove("on");
-  document.getElementById("ansichtHilfe").innerHTML =
-    chip("ring_reihenfolge") + " Ein Ort = ein Container";
-  zeichneBuehneTitel();
-  markiereSchmutzig();
-});
 document.getElementById("tempoSeg").querySelectorAll("button").forEach(b =>
   b.addEventListener("click", () => {
     setzeTempo(parseFloat(b.dataset.t));
@@ -11857,8 +11736,6 @@ zeichneBuehneTitel();
 zeichneFussHerkunft();
 document.getElementById("strHilfe").innerHTML =
   chip("ist_rhythmus") + " Beobachteter Rhythmus, kalibriert";
-document.getElementById("ansichtHilfe").innerHTML =
-  chip("ring_reihenfolge") + " Farben getrennt";
 /* Herkunftsmarker der Steuerleiste aus meta.herkunft setzen.
    Vertrag 7.1: kein Chip steht von Hand im HTML. Unbekannte Groesse fällt auf S. */
 document.querySelectorAll("[data-herk]").forEach(function (el) {

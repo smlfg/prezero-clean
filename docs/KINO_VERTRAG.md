@@ -145,9 +145,9 @@ Regeln für den Export:
 ## 5. UI (das Kino)
 
 - **Oben:** Abstand `s` (2,5–20, Schritt 0,5) · Autos `M` (1–4) · Strategie (`ist`/`fuell`)
-  · **Ansicht (`ringe`/`container`, Standard `ringe`)** · Schwelle (50–95 %, nur bei `fuell`)
+  · Schwelle (50–95 %, nur bei `fuell`)
   · Play/Pause · Tempo · Tag-Anzeige.
-- **Bühne, Ansicht `ringe`:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
+- **Bühne:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
   Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
   die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
   bleibt an diesem Winkel eine Lücke. Jedes Farbband hat eine **Tiefe** — sie nimmt den
@@ -158,15 +158,9 @@ Regeln für den Export:
   100 % ist die Länge gedeckelt — den Überlauf trägt allein der rote Rand am Außenrand des
   Bandes. Damit kodiert die **Länge** den Füllstand (in Graustufen lesbar), die Farbe
   zusätzlich (leer → voll → übervoll). Bandtiefe, Grundband und Keil sind Darstellung (`S`).
-- **Bühne, Ansicht `container`:** ein Ort = ein Container mit drei radial gestapelten Kammern
-  (außen Weiß, Mitte Grün, innen Braun), verbunden durch eine feine Linie. Winkel und
-  Füllstandskodierung sind identisch zu `ringe` (Grundband + Keil, nur mit kleinerer
-  Bandtiefe); fehlt eine Kammer, bleibt sie leer. Damit
-  wird sichtbar, dass die Farben zusammen **einen** Container bilden (Rahmen bleibt stehen,
-  Kammern werden einzeln geleert) — wie beim realen Mehrkammer-Depotcontainer.
-- **Beide Ansichten:** Autos auf einer dünnen Spur außerhalb der Bühne; beim Leeren ein
-  kurzer radialer Blitz an der besuchten ID. Ringreihenfolge, Farben, Kammerabstand und
-  Ansicht sind Darstellung (`S`), keine Daten; die Simulation selbst bleibt unverändert.
+- **Autos:** auf einer dünnen Spur außerhalb der Bühne; beim Leeren ein
+  kurzer radialer Blitz an der besuchten ID. Ringreihenfolge, Farben und Kammerabstand
+  sind Darstellung (`S`), keine Daten; die Simulation selbst bleibt unverändert.
 - **Unten:** die Kennzahlen live, plus Verlauf als **zwei Panels** mit gemeinsamer
   x-Achse „Tag“ (nur sie ist beschriftet) und je eigener y-Skala. Getrennt, weil zwei
   Einheiten in einem Bild einen Vergleich vortäuschen, den es nicht gibt.
