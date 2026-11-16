@@ -9600,7 +9600,7 @@ var KINO = (function () {
     var P = { s: 5.0, m: 1, strategie: "ist", schwelle: 80 };
     var fill, naechste, budget, tag, leerungen, ueberlaufTage, vollBeiLeerung,
         ueber100, maxSumme, faelligSumme, fuellSumme, fuellZaehler, tagesverlauf,
-        autos, letzteTage, maxfill;
+        autos, letzteTage, maxfill, warmupPending;
 
     function reset(p) {
       if (p) {
@@ -9618,13 +9618,14 @@ var KINO = (function () {
       for (var i = 0; i < N; i++) naechste[i] = i * periode[i] / N;
       autos = [];
       for (var k = 0; k < P.m; k++) autos.push({ pos: 0, weg: [] });
-      /* Warmlauf sofort hinterziehen: er zaehlt nichts, erzeugt aber den realistischen
-         Startzustand (gefuellte Puffer, bereits geleerte Orte). */
-      while (tag < WARMLAUF) stepDay();
+      /* Der Warmlauf darf den sichtbaren Tag 0 nicht vorwegnehmen. Er wird beim
+         ersten echten Simulationsschritt nachgeholt; reset zeigt einen leeren,
+         zeitlich unveränderten Startzustand. */
+      warmupPending = true;
       return api;
     }
 
-    function stepDay() {
+    function stepDayCore() {
       var i, j, mx;
       for (i = 0; i < N; i++) {
         mx = 0;
@@ -9684,6 +9685,17 @@ var KINO = (function () {
       return bedient.length;
     }
 
+    function ensureWarmup() {
+      if (!warmupPending) return;
+      warmupPending = false;
+      while (tag < WARMLAUF) stepDayCore();
+    }
+
+    function stepDay() {
+      ensureWarmup();
+      return stepDayCore();
+    }
+
     function metrics() {
       var t = Math.max(1, TAGE);
       return {
@@ -9704,6 +9716,7 @@ var KINO = (function () {
     }
 
     function runToEnd() {
+      ensureWarmup();
       while (tag < WARMLAUF + TAGE) stepDay();
       return metrics();
     }
