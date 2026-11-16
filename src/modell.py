@@ -17,52 +17,18 @@ Modellgleichung je Container c = (Location_id, material_type):
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CSV = ROOT / "data" / "raw" / "glass_fill_levels_anonymized_f.csv"
-ERLAUBTE_SPALTEN = ["Location_id", "material_type", "date", "fill_level_perc"]
+from domaene import DEFAULT_CSV, ERLAUBTE_SPALTEN, lade_messungen  # noqa: F401 (Re-Export)
 
 # Grenzwerte gemäß AGENTS.md §4 (von Samuel festgelegt)
 GRENZWERT_MEDIAN_PP = 10.0
 GRENZWERT_P90_PP = 37.0
-GRENZWERT_MAE_PP = 15.0
+GRENZWERT_MAE_PP = 12.0
 GRENZWERT_OOS_MEDIAN_PP = 16.0
 GRENZWERT_OOS_P90_PP = 50.0
 UEBERLAUF_TOLERANZ_PP = 0.04
-
-
-def lade_messungen(csv_pfad: str | Path = DEFAULT_CSV) -> pd.DataFrame:
-    """Lädt die Rohdaten (nur die 4 erlaubten Spalten) und berechnet Besuchsabstände.
-
-    - Behandelt 'overfull' als rechtszensierten Wert (>= 100 %), nicht als 100:
-      Spalte `p` ist für 'overfull' NaN, Spalte `p_untergrenze` ist 100.0.
-    - Berechnet `abstand` in Tagen zur vorigen Messung derselben (Location_id, material_type) (A4)
-      sowie `abstand_ort` zum vorigen Standort-Besuch (Location_id, date) (A1).
-    """
-    raw = pd.read_csv(csv_pfad, usecols=ERLAUBTE_SPALTEN, parse_dates=["date"])
-    d = raw[ERLAUBTE_SPALTEN].copy()
-    d["ueber"] = d["fill_level_perc"].eq("overfull")
-    d["p"] = pd.to_numeric(d["fill_level_perc"].where(~d["ueber"]))
-    d["p_untergrenze"] = np.where(d["ueber"], 100.0, d["p"])
-
-    # Standort-Besuchsabstand (Location_id, date)
-    v = d[["Location_id", "date"]].drop_duplicates().sort_values(["Location_id", "date"])
-    v["abstand_ort"] = v.groupby("Location_id")["date"].diff().dt.days
-    d = d.merge(v, on=["Location_id", "date"], how="left")
-
-    # Container-Messabstand (Location_id, material_type) -> nach jeder Messung Leerung auf 0 %
-    d = d.sort_values(["Location_id", "material_type", "date"]).reset_index(drop=True)
-    d["abstand"] = d.groupby(["Location_id", "material_type"])["date"].diff().dt.days
-
-    # Tägliches Wachstum (% pro Tag) auf unzensierten Intervallen; Untergrenze auf 'overfull'
-    folge = d["abstand"] > 0
-    d["rate_unzensiert"] = np.where(folge & ~d["ueber"], d["p"] / d["abstand"], np.nan)
-    d["rate_min_zensiert"] = np.where(folge & d["ueber"], 100.0 / d["abstand"], np.nan)
-    return d
 
 
 def schaetze_fuellraten(df: pd.DataFrame) -> pd.DataFrame:
@@ -130,6 +96,27 @@ def simuliere_puffer(
             np.maximum(0.0, 100.0 - sim["pred_raw"]),
         ),
     )
+    return sim
+
+
+def simuliere_beobachtungsmodell(
+    df: pd.DataFrame, raten: pd.DataFrame | pd.Series | None = None
+) -> pd.DataFrame:
+    """Simuliert die beobachteten Füllstände auf dem echten Besuchsplan.
+
+    Die Zeilen von ``df`` sind bereits genau die tatsächlich gemessenen Farben bei
+    tatsächlich stattgefundenen Besuchen; fehlende Farben werden daher nicht ergänzt.
+    Der modellierte Stand wächst ab der letzten Messung derselben Kammer, wird auf
+    die 10-Prozent-Auflösung gerundet und ab 100 % als ``overfull`` zensiert (A3).
+    """
+    sim = simuliere_puffer(df, raten).copy()
+    sim["sim_fill_level_perc"] = np.where(
+        sim["pred_raw"] >= 100.0,
+        "overfull",
+        (sim["pred_raw"] / 10.0).round() * 10.0,
+    )
+    sim["sim_p_untergrenze"] = (sim["pred_raw"] / 10.0).round() * 10.0
+    sim.loc[sim["pred_raw"] >= 100.0, "sim_p_untergrenze"] = 100.0
     return sim
 
 

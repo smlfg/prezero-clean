@@ -162,14 +162,16 @@ class LKW:
 
 
 def lade_messungen(csv_pfad: str | Path = DEFAULT_CSV) -> pd.DataFrame:
-    """Lädt die Rohdaten (nur die 4 erlaubten Spalten) mit Besuchs-/Messabständen.
+    """Lädt die Rohdaten (nur die 4 erlaubten Spalten) und berechnet Abstände + Raten.
 
-    Spalten:
-      - `ueber`: True bei Textwert 'overfull' (rechtszensiert, A3).
-      - `p`: numerischer Füllstand (NaN bei 'overfull').
-      - `p_untergrenze`: 100.0 bei 'overfull', sonst `p`.
-      - `abstand_ort`: Tage bis zum vorigen Besuch desselben Standorts (A1).
-      - `abstand`: Tage bis zur vorigen Messung derselben Kammer (A4).
+    - Behandelt 'overfull' als rechtszensierten Wert (>= 100 %), nicht als 100:
+      Spalte `p` ist für 'overfull' NaN, Spalte `p_untergrenze` ist 100.0.
+    - `abstand_ort` in Tagen zum vorigen Standort-Besuch (Location_id, date) (A1).
+    - `abstand` in Tagen zur vorigen Messung derselben Kammer (Location_id,
+      material_type); nach jeder Messung steht der Puffer auf 0 % (A4).
+    - Tägliches Wachstum (%/Tag) auf unzensierten Intervallen; Untergrenze bei
+      'overfull': `rate_unzensiert = p / abstand` bzw. `rate_min_zensiert = 100 / abstand`.
+      (Abgeleitete Größen aus internen Beobachtungen, AGENTS.md §1.)
     """
     raw = pd.read_csv(csv_pfad, usecols=ERLAUBTE_SPALTEN, parse_dates=["date"])
     d = raw[ERLAUBTE_SPALTEN].copy()
@@ -183,6 +185,11 @@ def lade_messungen(csv_pfad: str | Path = DEFAULT_CSV) -> pd.DataFrame:
 
     d = d.sort_values(["Location_id", "material_type", "date"]).reset_index(drop=True)
     d["abstand"] = d.groupby(["Location_id", "material_type"])["date"].diff().dt.days
+
+    # Tägliches Wachstum (% pro Tag) auf unzensierten Intervallen; Untergrenze auf 'overfull'
+    folge = d["abstand"] > 0
+    d["rate_unzensiert"] = np.where(folge & ~d["ueber"], d["p"] / d["abstand"], np.nan)
+    d["rate_min_zensiert"] = np.where(folge & d["ueber"], 100.0 / d["abstand"], np.nan)
     return d
 
 
