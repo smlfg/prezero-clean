@@ -30,14 +30,24 @@
             padding:10px 26px;border-bottom:1px solid var(--line);background:var(--panel2);
             font-size:12px;color:var(--muted)}
   .herkunft .titel{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
-  .herkunft .eintrag{display:flex;align-items:baseline;gap:6px;flex:1 1 300px;min-width:280px}
+  .herkunft .eintrag{display:inline-flex;align-items:baseline;gap:6px;flex:0 1 auto;min-width:0}
   .herkunft .eintrag b{color:#c9d1d9;font-weight:600;white-space:nowrap}
   .herkunft .klartext{flex:1 1 auto}
   .herkunft .beispiel{color:#6e7b8b;white-space:nowrap}
   .herkunft-linie{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5}
   .herkunft-linie b{color:#c9d1d9;font-weight:600}
-  /* ---- Drehbuch ---- */
-  .drehbuch{padding:16px 26px;border-bottom:1px solid var(--line);background:var(--panel)}
+  /* ---- Drehbuch: eingeklappt, damit es die Parameter nicht dominiert ---- */
+  .drehbuch{padding:0;border-bottom:1px solid var(--line);background:var(--panel)}
+  .drehbuch .dzSummary{display:flex;align-items:baseline;gap:12px;cursor:pointer;
+                       padding:14px 26px;list-style:none}
+  .drehbuch .dzSummary::-webkit-details-marker{display:none}
+  .drehbuch .dzSummary::before{content:"\25B8";color:var(--muted);font-size:12px;transition:transform .12s}
+  .drehbuch[open] .dzSummary::before{transform:rotate(90deg)}
+  .drehbuch[open] .dzSummary{border-bottom:1px solid var(--line)}
+  .drehbuch .dzTitel{font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--text)}
+  .drehbuch .dzKurz{font-size:13px;color:var(--accent)}
+  .drehbuch .dzHinweis{font-size:11.5px;color:var(--muted);margin-left:auto}
+  .drehbuch .dzKopf, .drehbuch .drehbuchInhalt{padding:14px 26px}
   .drehbuch .dzKopf{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
                      justify-content:space-between;margin-bottom:12px}
   .drehbuch h3{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
@@ -64,12 +74,32 @@
   .dzPlatzhalter b{color:#ffd58a}
   .dzFehler{margin-top:10px;padding:9px 11px;border-radius:7px;font-size:12px;
             background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.45);color:#ff8b85}
+  /* ---- Parameter-Ansicht: drei Zonen (Lauf, Modell, Darstellung) ---- */
+  .laufLeiste{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;
+              padding:16px 26px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .laufLeiste .prim{background:var(--accent);color:#07131f;border-color:var(--accent);
+                    font-weight:700;padding:11px 20px;font-size:14.5px}
+  .laufLeiste .prim:hover{filter:brightness(1.08);border-color:var(--accent)}
+  .laufTag{display:flex;flex-direction:column;gap:2px}
+  .laufTag .wert{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+  .laufTag .hilfe{font-size:11.5px;color:var(--muted)}
+  .tempoBlock{display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap}
+  .tempoBlock .miniLabel{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+  .tempoBlock .hilfe{font-size:11.5px;color:var(--muted)}
+  .gruppe{padding:18px 26px;border-bottom:1px solid var(--line)}
+  .gruppeKopf{display:flex;align-items:baseline;gap:10px;margin:0 0 14px}
+  .gruppeKopf h2{margin:0;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--text)}
+  .gruppeKopf span{font-size:12px;color:var(--muted)}
+  .felder{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px 26px}
+  .feld{display:grid;grid-template-rows:auto minmax(34px,auto) auto;gap:6px;min-width:0}
+  .feld label{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+  .feld .kontrolle{display:flex;align-items:center;gap:12px;min-height:34px}
+  .feld .wert{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+  .feld .hilfe{font-size:11.5px;color:var(--muted);line-height:1.45}
+  .feld:has(input[type=range]:disabled) .wert{opacity:.45}
+  .feld:has(input[type=range]:disabled) input[type=range]{opacity:.35}
   .leiste{display:flex;flex-wrap:wrap;gap:18px;align-items:center;
           padding:14px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
-  .feld{display:flex;flex-direction:column;gap:5px;min-width:150px}
-  .feld label{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
-  .feld .wert{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
-  .feld .hilfe{font-size:11.5px;color:var(--muted)}
   input[type=range]{width:180px;accent-color:var(--accent)}
   .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
   .seg button{background:transparent;border:0;color:var(--muted);padding:8px 14px;cursor:pointer;font-size:13.5px}
@@ -109,7 +139,6 @@
   .kinoBar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
   .kinoBar .laufinfo{font-weight:600;font-variant-numeric:tabular-nums;margin-left:auto}
   .kinoBar .konfig{color:var(--muted);font-size:12px}
-  #parameterAnsicht #tempoFeld{display:none}
   .ereignisse{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
   .ereignisse h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
   .ereignis{padding:7px 8px;margin-top:6px;border-left:3px solid var(--accent);background:rgba(88,166,255,.07);font-size:12px;color:var(--text)}
@@ -138,69 +167,88 @@
 </nav>
 
 <section id="parameterAnsicht">
-  <div class="parameterIntro">
-    <h2>Parameter setzen</h2>
-    <p>Hier legst du fest, welche Modellrechnung das Kino anschließend zeigt. Die Bühne bleibt bewusst ausgeblendet, bis du startest.</p>
-  </div>
-  <div class="leiste">
-  <div class="feld">
-    <label>Abstand der Orte <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
-    <input type="range" id="s" min="2.5" max="20" step="0.5" value="5">
-    <div class="wert" id="sWert">5,0</div>
-    <div class="hilfe" id="sHilfe">Abstandseinheiten je Sprung</div>
-  </div>
-  <div class="feld">
-    <label>Autos <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
-    <input type="range" id="m" min="1" max="4" step="1" value="1">
-    <div class="wert" id="mWert">1</div>
-    <div class="hilfe" id="mHilfe"></div>
-  </div>
-  <div class="feld">
-    <label>Strategie <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
-    <div class="seg">
-      <button id="bIst" class="on">Ist-Rhythmus</button>
-      <button id="bFuell">nach Füllstand</button>
+  <div class="laufLeiste">
+    <button class="knopf prim" id="play">&#9654; Kino starten</button>
+    <button class="knopf" id="reset">&#8635; Reset</button>
+    <div class="laufTag">
+      <span class="wert" id="tagWert"></span>
+      <span class="hilfe">Startzustand leer &mdash; der Warmlauf wird im ersten Schritt nachgeholt.</span>
     </div>
-    <div class="hilfe" id="strHilfe"></div>
-  </div>
-  <div class="feld">
-    <label>Ansicht <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
-    <div class="seg">
-      <button id="bRinge" class="on">3 Ringe</button>
-      <button id="bContainer">Container</button>
+    <div class="tempoBlock" id="tempoFeld">
+      <span class="miniLabel">Tempo <span class="chipSlot" data-herk="tempo"></span></span>
+      <div class="seg" id="tempoSeg">
+        <button data-t="0.2">0,2&times;</button><button data-t="0.25">0,25&times;</button>
+        <button data-t="0.5" class="on">0,5&times;</button><button data-t="1">1&times;</button>
+      </div>
+      <span class="hilfe" id="tempoHilfe"></span>
     </div>
-    <div class="hilfe" id="ansichtHilfe"></div>
   </div>
-  <div class="feld" id="feldSchwelle">
-    <label>Schwelle <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
-    <input type="range" id="schwelle" min="50" max="95" step="1" value="80" disabled>
-    <div class="wert" id="schwelleWert">80 %</div>
-    <div class="hilfe">ab hier wird geleert</div>
-  </div>
-  <div class="feld">
-    <label>Lauf <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
-    <div class="takt">
-      <button class="knopf" id="play">&#9654; Kino starten</button>
-      <button class="knopf" id="reset">&#8635; Reset</button>
+
+  <div class="gruppe">
+    <div class="gruppeKopf"><h2>Modell</h2><span>&auml;ndert das Ergebnis</span></div>
+    <div class="felder">
+      <div class="feld">
+        <label for="s">Abstand der Orte <span class="chipSlot" data-herk="abstand"></span></label>
+        <div class="kontrolle">
+          <input type="range" id="s" min="2.5" max="20" step="0.5" value="5">
+          <span class="wert" id="sWert">5,0</span>
+        </div>
+        <div class="hilfe" id="sHilfe">Abstandseinheiten je Sprung</div>
+      </div>
+      <div class="feld">
+        <label for="m">Autos <span class="chipSlot" data-herk="autos"></span></label>
+        <div class="kontrolle">
+          <input type="range" id="m" min="1" max="4" step="1" value="1">
+          <span class="wert" id="mWert">1</span>
+        </div>
+        <div class="hilfe" id="mHilfe"></div>
+      </div>
+      <div class="feld">
+        <label>Strategie <span class="chipSlot" data-herk="strategie"></span></label>
+        <div class="kontrolle">
+          <div class="seg">
+            <button id="bIst" class="on">Ist-Rhythmus</button>
+            <button id="bFuell">nach F&uuml;llstand</button>
+          </div>
+        </div>
+        <div class="hilfe" id="strHilfe"></div>
+      </div>
+      <div class="feld" id="feldSchwelle">
+        <label for="schwelle">Schwelle <span class="chipSlot" data-herk="schwelle"></span></label>
+        <div class="kontrolle">
+          <input type="range" id="schwelle" min="50" max="95" step="1" value="80" disabled>
+          <span class="wert" id="schwelleWert">80 %</span>
+        </div>
+        <div class="hilfe">Leerung ab diesem F&uuml;llstand &mdash; gilt nur bei &bdquo;nach F&uuml;llstand&ldquo;.</div>
+      </div>
     </div>
-    <div class="wert" id="tagWert"></div>
-    <div class="hilfe" id="tempoHilfe">Tempo 1&times;</div>
   </div>
-  <div class="feld" id="tempoFeld">
-    <label>Tempo <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
-    <div class="seg" id="tempoSeg">
-      <button data-t="0.2">0,2&times;</button><button data-t="0.25">0,25&times;</button>
-      <button data-t="0.5" class="on">0,5&times;</button><button data-t="1">1&times;</button>
+
+  <div class="gruppe">
+    <div class="gruppeKopf"><h2>Darstellung</h2><span>&auml;ndert nur das Bild, nicht das Ergebnis</span></div>
+    <div class="felder">
+      <div class="feld">
+        <label>Ansicht <span class="chipSlot" data-herk="ansicht"></span></label>
+        <div class="kontrolle">
+          <div class="seg">
+            <button id="bRinge" class="on">3 Ringe</button>
+            <button id="bContainer">Container</button>
+          </div>
+        </div>
+        <div class="hilfe" id="ansichtHilfe"></div>
+      </div>
     </div>
-    <div class="hilfe"><span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span> Standard: 1 Tag je ~2,0 s · Bereich 1–5 s je Tag</div>
   </div>
-</div>
 
   <div class="herkunft" id="herkunft"></div>
 
-  <div class="drehbuch" id="drehbuch">
+  <details class="drehbuch" id="drehbuch">
+    <summary class="dzSummary">
+      <span class="dzTitel">Drehbuch</span>
+      <span class="dzKurz" id="dzKurz"></span>
+      <span class="dzHinweis">optional &middot; setzt die Parameter oben</span>
+    </summary>
     <div class="dzKopf">
-      <h3>Drehbuch</h3>
       <div class="presets" id="dzPresets"></div>
       <label class="datei">Drehbuch laden
         <input type="file" id="dzDatei" accept="application/json,.json">
@@ -214,7 +262,7 @@
       </div>
       <div class="dzVorschau" id="dzVorschau"></div>
     </div>
-  </div>
+  </details>
 </section>
 
 <section id="kinoAnsicht" hidden>
@@ -738,8 +786,11 @@ function zeichneKarten() {
     { name: "Leerungen (Stopps)", wert: zahl(m.leerungen), herk: "S",
       vergl: chip("daten_besuche") + " gemessen: <b>" + zahl(d.besuche) + "</b> Besuche",
       klasse: m.leerungen <= d.besuche ? "gut" : "warn" },
+    /* soll_stopps_pro_tag ist eine Kapazitaet (Obergrenze aus Abstand x Autos),
+       kein Ziel: liegt sie unter dem Bedarf, bindet der Abstand; liegt sie darueber,
+       bindet der Faelligkeitsrhythmus und s aendert die Stopps nicht. */
     { name: "Stopps pro Tag", wert: zahl(m.stopps_pro_tag, 1), herk: "S",
-      vergl: chip("stopps_pro_tag_soll") + " Modell-Soll: <b>" + zahl(m.soll_stopps_pro_tag, 1) + "</b> · " +
+      vergl: chip("stopps_pro_tag_soll") + " Kapazität/Tag (Obergrenze): <b>" + zahl(m.soll_stopps_pro_tag, 1) + "</b> · " +
               chip("k0_pro_tag") + " aus den Daten: <b>" + zahl(d.k0_pro_tag, 1) + "</b>", klasse: "" },
     { name: "voll oder übervoll bei Leerung", wert: zahl(m.voll_bei_leerung_pct, 1) + " %", herk: "S",
       vergl: chip("daten_voll_bei_leerung_pct") + " gemessen: <b>" + zahl(d.daten_voll_bei_leerung_pct, 1) + " %</b>", klasse: "" },
@@ -943,6 +994,8 @@ function drehbuchAnwenden(d) {
 function drehbuchAnzeigen(d) {
   document.getElementById("dzBeschreibung").textContent =
     d.beschreibung || d.name || "—";
+  const dzKurz = document.getElementById("dzKurz");
+  if (dzKurz) dzKurz.textContent = d.name || "";
 
   const h = d.herkunft || {};
   const p = d.parameter;
@@ -1036,10 +1089,11 @@ function wertSetzen() {
   document.getElementById("sWert").textContent = zahl(s, 1);
   document.getElementById("mWert").textContent = String(m);
   document.getElementById("schwelleWert").textContent = schwelle + " %";
-  /* Soll-Durchsatz aus den gemessenen Daten: M Autos × K0 Stopps/Tag je Auto bei
-     Abstand s0, skaliert mit dem Abstand. Keine hartkodierten Zahlen. */
+  /* Kapazitaet aus den gemessenen Daten: M Autos × K0 Stopps/Tag je Auto bei
+     Abstand s0, skaliert mit dem Abstand. Obergrenze, kein Ziel — unter s0 bindet
+     der Ist-Rhythmus. Keine hartkodierten Zahlen. */
   const soll = (m * META.k0_pro_tag * META.s0 / s);
-  document.getElementById("mHilfe").innerHTML = chip("k0_pro_tag") + " " + zahl(soll, 1) + " Stopps/Tag";
+  document.getElementById("mHilfe").innerHTML = chip("k0_pro_tag") + " " + zahl(soll, 1) + " Stopps/Tag (Obergrenze)";
   document.getElementById("sHilfe").innerHTML =
     "Abstandseinheiten je Sprung · " + chip("warmlauf_tage") + " Warmlauf " + META.warmlauf_tage + " Tage";
   zeichneKarten(); zeichneSpark();
@@ -1215,6 +1269,11 @@ document.getElementById("strHilfe").innerHTML =
   chip("ist_rhythmus") + " Beobachteter Rhythmus, kalibriert";
 document.getElementById("ansichtHilfe").innerHTML =
   chip("ring_reihenfolge") + " Farben getrennt";
+/* Herkunftsmarker der Steuerleiste aus meta.herkunft setzen.
+   Vertrag 7.1: kein Chip steht von Hand im HTML. Unbekannte Groesse fällt auf S. */
+document.querySelectorAll("[data-herk]").forEach(function (el) {
+  el.innerHTML = chip(el.dataset.herk);
+});
 drehbuchPresetsZeichnen();
 setzeTempo(0.5);
 zeigeEreignisse();
