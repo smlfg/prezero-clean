@@ -1,0 +1,26 @@
+{
+  "$schema": "../drehbuch.schema.json",
+  "name": "Ist-Zustand",
+  "beschreibung": "Beobachteter Rhythmus, ein LKW, Standardcontainer.",
+  "parameter": {
+    "abstand": 5.0,
+    "autos": 1,
+    "strategie": "ist",
+    "schwelle": 80
+  },
+  "lkw": {
+    "id": "gc23",
+    "name": "Glas-Sammelfahrzeug GC 23",
+    "volumen_m3": 23.0,
+    "vorschau_bild": "bilder/lkw/gc23.png",
+    "wirkung": "Platzhalter — noch keine Wirkung auf die Simulation",
+    "quelle": "Stummer Fact Sheet Glass Collector GC 23 (PDF)"
+  },
+  "herkunft": {
+    "abstand": "S",
+    "autos": "S",
+    "strategie": "A",
+    "schwelle": "S",
+    "lkw": "R"
+  }
+}

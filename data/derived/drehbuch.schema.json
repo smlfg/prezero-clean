@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prezero-clean.local/schemas/drehbuch-v1.json",
+  "title": "Drehbuch (Szenario) fuer das Simulations-Kino",
+  "description": "Ein Szenario als Datei. 'parameter' speist die Simulation ein. 'lkw' ist ein reines Etikett (Platzhalter) und wirkt nicht auf den Lauf.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "parameter", "lkw", "herkunft"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Anzeigename des Szenarios."
+    },
+    "beschreibung": {
+      "type": "string",
+      "description": "Ein Satz, was das Szenario zeigt."
+    },
+    "parameter": {
+      "type": "object",
+      "description": "Diese Werte speisen die Simulation ein. Mehr ist hier nicht erlaubt.",
+      "additionalProperties": false,
+      "required": ["abstand", "autos", "strategie", "schwelle"],
+      "properties": {
+        "abstand": {
+          "type": "number",
+          "minimum": 2.5,
+          "maximum": 20.0,
+          "description": "Abstand der Orte in Abstandseinheiten (KINO_VERTRAG Abschnitt 1)."
+        },
+        "autos": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "description": "Anzahl LKWs."
+        },
+        "strategie": {
+          "type": "string",
+          "enum": ["ist", "fuell"],
+          "description": "Ist-Rhythmus oder Leerung nach Fuellstand."
+        },
+        "schwelle": {
+          "type": "number",
+          "minimum": 50,
+          "maximum": 95,
+          "description": "Schwelle in Prozent. Nur wirksam bei Strategie 'fuell'."
+        }
+      }
+    },
+    "lkw": {
+      "type": "object",
+      "description": "Platzhalter-Etikett: welches Fahrzeug steht fuer dieses Szenario. KEINE Wirkung auf die Simulation.",
+      "additionalProperties": false,
+      "required": ["id", "name", "volumen_m3", "wirkung"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Katalog-ID aus scripts/lkw_katalog.py."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Bezeichnung des Objekts, wie im Katalog."
+        },
+        "volumen_m3": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Ladevolumen in m3. Recherchiert (V-5), nicht gemessen."
+        },
+        "vorschau_bild": {
+          "type": "string",
+          "description": "Pfad zum Vorschau-Bild, relativ zum Repo-Wurzelverzeichnis."
+        },
+        "wirkung": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Klartext, dass das Etikett die Simulation nicht veraendert."
+        },
+        "quelle": {
+          "type": "string",
+          "description": "Quelle des Ladevolumens (V-5)."
+        }
+      }
+    },
+    "herkunft": {
+      "type": "object",
+      "description": "Herkunft je Groesse. M = gemessen, A = abgeleitet, S = gesetzt, R = recherchiert (KINO_VERTRAG Abschnitt 7).",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["M", "A", "S", "R"]
+      }
+    }
+  }
+}

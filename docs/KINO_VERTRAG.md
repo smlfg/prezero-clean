@@ -13,12 +13,21 @@ Klar beschriftet als **Simulation**, nie als Ergebnis oder Ersparnis.
 - **Konsument:** ein Auto leert einen Ort auf 0 (Annahme A1).
 - **Abstand `s`:** derselbe Abstand zwischen allen benachbarten Orten. Standard **5**.
   Es gibt keine Geografie, keine Koordinaten, keine Karte. `s` ist eine reine Zahl.
-- **Tagesleistung:** aus den Daten ergibt sich der Ist-Durchsatz
+- **Tageskapazität:** aus den Daten ergibt sich der Ist-Durchsatz
   `K0 = 4.468 Besuche / 348 Tage = 12,83 Stopps/Tag` bei `s0 = 5`.
-  Ein Auto schafft bei Abstand `s`: `K(s) = K0 * s0 / s` Stopps/Tag.
-  `M` Autos: `K_ges = M * K(s)`.
-  Damit ist die Tagesstrecke eines Autos konstant `D = K0 * s0 = 64,15` Abstandseinheiten;
-  ein größerer Abstand halbiert die Stopps, statt eine erfundene Geschwindigkeit zu brauchen.
+  Ein Auto **kann** bei Abstand `s` höchstens `K(s) = K0 * s0 / s` Stopps/Tag fahren,
+  `M` Autos höchstens `K_ges = M * K(s)`. Das ist eine **Obergrenze, kein Ziel**:
+  gefahren wird `min(K_ges, Bedarf)`, und der Bedarf kommt aus dem Fälligkeitsrhythmus
+  (Abschnitt 2).
+  - `s > s0`: die Kapazität bindet. `K(s)` fällt mit `1/s`, die Tagesstrecke ist
+    `D = K0 * s0 = 64,15` Abstandseinheiten — ein größerer Abstand halbiert die Stopps,
+    ohne eine erfundene Geschwindigkeit.
+  - `s < s0`: der Bedarf bindet. Mehr Fahrzeit allein erzeugt keine Stopps; `s` ändert
+    die Stoppzahl dann **nicht**.
+  - **Modellgrenze:** `K(s) = K0 * s0 / s` unterstellt, dass je Stopp nur Fahrtzeit
+    anfällt. Die feste Stoppzeit (Entladen, Rangieren) steht nicht in der CSV und ist
+    deshalb nicht modelliert; dadurch ist `K(s)` für kleine `s` zu hoch. Wer sie
+    einführen will, braucht eine externe Größe in `docs/externe_parameter.md`.
 - **Zeit:** ein Tag = ein Schritt. Keine Uhrzeit. Keine Tonnen, keine Ladekapazität
   (steht nicht in den Daten, bleibt draußen).
 - **Start:** alle Füllstände 0, **90 Tage Warmlauf**, danach 348 Tage Messfenster.
@@ -59,8 +68,11 @@ Er ist eine reine Startbedingung (kein Datenwert) und wird nicht als Zahl ausgeg
 - **Überlauf-Tage** (Ort-Tage mit Füllstand ≥ 100).
 - **Überlauf bei Leerung** (Anteil der Stopps, bei denen ein Container ≥ 100 war).
 - **Ø Füllstand** (ohne zensierte Überläufe, wie in `fakten.py`).
-- **Distanz** = `s × Stopps`.
+- **Distanz** = `s × Stopps` (nur die angefahrenen Stopps).
 - **Auslastung** = bediente / fällige Stopps.
+- **Kapazität/Tag** = `M · K(s)` — Obergrenze, kein Ziel. **Bedarf/Tag** = fällige
+  Stopps pro Tag. Gelesen wird `min(Kapazität, Bedarf)`: liegt der Bedarf darunter,
+  ist `s` wirkungslos.
 
 Immer **gegen den Ist-Lauf im selben Panel**, nie absolut allein.
 
@@ -119,7 +131,9 @@ Regeln für den Export:
 - **Beide Ansichten:** Autos auf einer dünnen Spur außerhalb der Bühne; beim Leeren ein
   kurzer radialer Blitz an der besuchten ID. Ringreihenfolge, Farben, Kammerabstand und
   Ansicht sind Darstellung (`S`), keine Daten; die Simulation selbst bleibt unverändert.
-- **Unten:** die sechs Metriken live, plus Sparkline „Überlauf-Tage pro Tag".
+- **Unten:** die Kennzahlen live, plus Verlauf als **zwei Panels** mit gemeinsamer
+  x-Achse „Tag“ (nur sie ist beschriftet) und je eigener y-Skala. Getrennt, weil zwei
+  Einheiten in einem Bild einen Vergleich vortäuschen, den es nicht gibt.
 - **Fußzeile:** „Simulation — keine Messung. Raten und Rhythmus aus den Daten, alles andere Annahme."
 
 Verboten: Karte, Koordinaten, km, Euro, Tonnen, Prognose für echte Kalendertage.
@@ -134,7 +148,9 @@ Der Ist-Lauf ist immer daneben sichtbar; ohne Vergleich keine Zahl.
    sondern ein offener Punkt des Modells: der Ist-Rhythmus ist über die Kalibrierung
    auf die *Anzahl* der Besuche festgelegt, nicht auf die *Überlaufquote*. Wer die
    Quote angleichen will, muss das im Modell entscheiden, nicht in der Anzeige.
-2. `s` verdoppeln halbiert die Stopps pro Tag. (Ist: 12,7 → 6,4 Stopps/Tag.)
+2. `s` verdoppeln halbiert die Stopps pro Tag, **solange die Kapazität bindet** (`s ≥ s0`).
+   (Ist: 12,7 → 6,4 Stopps/Tag.) Für `s < s0` bleibt die Stoppzahl konstant, weil der
+   Bedarf bindet — das ist kein Fehler, sondern die Modellgrenze aus Abschnitt 1.
 3. `M` erhöhen senkt oder hält den Überlauf.
 4. Deterministisch: gleicher Seed, gleicher Lauf, gleiche Zahlen.
 5. Referenz: eine unabhängige Python-Implementierung liefert für einen festen Parametersatz
@@ -158,6 +174,10 @@ Rechnung auf gemessenen Werten. Der Kalibrierungsfaktor 1,1565 ist abgeleitet, n
 gemessen — er entsteht erst aus `Σ 1/gap` gegenüber 4.468/348. Der Füllstand einer Kammer
 ist im Kino abgeleitet (Median aus Folgemessungen), nicht gemessen, weil er im Lauf
 fortgeschrieben wird.
+
+Die **Tageskapazität** (`M · K(s)`) trägt `S`, nicht `A`: sie enthält das gesetzte `s0`
+und den gesetzten Abstand `s` und ist damit eine Modellgröße. `K0` allein bleibt `A`
+(4.468 / 348 aus der CSV).
 
 ### 7.1 Quelle der Marker
 
@@ -183,7 +203,10 @@ Damit können Dokument und Seite nicht auseinanderlaufen.
 | Bühne: Ringreihenfolge, Farben, Lage der Orte | `S` | reine Darstellung |
 | Kennzahlenkarten: alle Laufwerte | `S` | Modellrechnung dieses Laufs |
 | Kennzahlenkarten: Vergleichswerte aus den Daten | `M` bzw. `A` | je nach Größe aus `meta.herkunft` |
-| Verlauf (Sparkline): beide Kurven | `S` | Modellrechnung |
+| Verlauf: zwei Panels, Kurven und y-Skalen | `S` | Modellrechnung dieses Laufs |
+| Verlauf oben: gestrichelte Ist-Linie | `M` | gemessene Besuchszahl (`meta.besuche`) als Bezug der Zielzahl |
+| Verlauf unten: **keine** Ist-Linie | `—` | die Daten kennen keinen Überlauf-Tag; eine Linie wäre eine erfundene Annahme |
+| Verlauf: x-Achsbeschriftung, Raster, Skalenwahl | `S` | Darstellung; die y-Achse bleibt unbeschriftet |
 | Fußzeile: Messungen, Orte, Kammern, Besuche, Tage | `M` | direkt aus der CSV |
 
 ### 7.3 Regeln
@@ -209,8 +232,9 @@ gehören nach `meta`, nicht in den Code.
 Die Seite schreibt ihren Zustand zusätzlich in das Element `#simWerte` (JSON mit
 `params` und `metrics`). Das ist nötig, weil Browser-Erweiterungen ihren Prüfcode in
 einer isolierten Welt ausführen, in der `window.simFinish` nicht sichtbar ist — das
-DOM ist der einzige gemeinsame Ort. Der Wert wird bei jedem gerenderten Frame
-aktualisiert.
+DOM ist der einzige gemeinsame Ort. Der Wert wird bei jeder Änderung aktualisiert:
+nach `simSet`/`simFinish` sofort, im Lauf bei jedem neuen Tag (Kennzahlen und Verlauf
+hängen am Tag, nicht am Frame — ein Frame ohne neuen Tag schreibt keine Zahl neu).
 
 ```
 window.simSet({s: 10, m: 2})   // Parameter setzen

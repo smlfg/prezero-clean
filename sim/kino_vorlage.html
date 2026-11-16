@@ -130,6 +130,9 @@
   .karte .vergleich b{color:#c9d1d9;font-weight:600}
   .karte.gut .wert{color:var(--ok)} .karte.schlecht .wert{color:var(--bad)} .karte.warn .wert{color:var(--warn)}
   .tagesliste{font-size:12px;color:var(--muted);margin-top:4px}
+  .spark{display:block;width:100%;margin-top:8px}
+  #sparkLeer{height:104px}
+  #sparkUeber{height:88px}
   .ansichtNav{display:flex;gap:8px;align-items:center;padding:10px 26px;background:var(--bg);border-bottom:1px solid var(--line)}
   .ansichtNav .status{margin-left:auto;color:var(--muted);font-size:12px}
   .ansichtNav button.active{background:var(--accent);color:#07131f;font-weight:600}
@@ -298,7 +301,8 @@
     <h2>Kennzahlen des Laufs</h2>
     <div id="karten"></div>
     <h2 style="margin-top:18px">Verlauf</h2>
-    <canvas id="spark" width="348" height="120" style="width:100%;height:120px"></canvas>
+    <canvas id="sparkLeer" class="spark"></canvas>
+    <canvas id="sparkUeber" class="spark"></canvas>
     <div class="tagesliste" id="sparkHerkunft"></div>
     <div class="tagesliste" id="tagesliste">&mdash;</div>
     <div class="ereignisse">
@@ -370,7 +374,8 @@ function chipText(key, text) {
 
 /* ---------- Darstellung ---------- */
 const ring = document.getElementById("ring"), rctx = ring.getContext("2d");
-const spark = document.getElementById("spark"), sctx = spark.getContext("2d");
+const sparkLeer = document.getElementById("sparkLeer");
+const sparkUeber = document.getElementById("sparkUeber");
 
 /* ---------- Render-Zustand ----------
    Der Loop laeuft nur, wenn sich wirklich etwas aendert. Ohne diese Bremse zeichnet
@@ -381,6 +386,7 @@ const spark = document.getElementById("spark"), sctx = spark.getContext("2d");
    - sonst: Loop steht. Kein Frame, keine GPU-Last. */
 let last = 0, tageTimer = 0, progress = 0, tempo = 0.5;
 let schmutzig = true;          // etwas hat sich geaendert -> neu zeichnen
+let domSchmutzig = true;       // Kennzahlen/Verlauf sind veraltet -> einmal neu schreiben
 let frameAngefordert = false;  // ein rAF ist bereits geplant
 let blitzRest = 0;             // Restlaufzeit des radialen Blitzes in ms
 let ereignisHistorie = [];
@@ -397,6 +403,11 @@ function fordertFrameAn() {
 
 function markiereSchmutzig() {
   schmutzig = true;
+  domSchmutzig = true;
+  /* Jede Stelle, die neu zeichnen laesst, setzt auch Parameter oder Ansicht neu
+     (Slider, Strategie, Reset, Ansichtswechsel). Der statische Buehnenteil wird
+     deshalb hier einmal verworfen - nicht pro Frame. */
+  buehneVergessen();
   fordertFrameAn();
 }
 
@@ -429,21 +440,23 @@ function positionAufWeg(a, progress) {
 /* ---------- Zeichen-Bündelung ----------
    Die Bühne hat ~1350 Segmente (3 Ringe x 449 Orte).
 
-   Gemessen im Browser (dpr=3, 2001x2001 Backing Store, 40 Durchläufe):
+   Falle: die Zahlen unten (dpr=3, 2001x2001 Backing Store, 40 Durchläufe)
      - 1347 einzelne arc()+stroke()        0,150 ms
      - 3 Pfade, je Ring ein stroke()       0,138 ms
      - nach Farbe gruppiert (moveTo+arc)   0,227 ms   <- LANGSAMER
      - nach Farbe gruppiert (fill)         0,320 ms   <- LANGSAMER
-   Das Gruppieren nach Farbe ist langsamer, weil jeder Pfad eine eigene
-   strokeStyle tragen muss und Skia den Pfad an der Farbgrenze trennen muss.
+   messen nur die JS-Aufrufe, die die Pfade aufzeichnen. Tessellierung und
+   Rasterung passieren danach im Compositor, im GPU-Prozess. Diese Zeit steht
+   in keiner JS-Messung - deshalb war die frühere Folgerung „0,15 ms pro Frame,
+   vernachlässigbar" falsch: während eines Laufs wurde jeder Frame komplett neu
+   gezeichnet (1.350 Draw-Calls), und der GPU-Prozess lief am Anschlag.
 
-   Schluss: Der eigentliche Gewinn liegt NICHT bei weniger Strokes, sondern
-   darin, den Renderloop anzuhalten, wenn sich nichts aendert (siehe Schleife).
-   Der Aufwand pro Frame ist mit 0,15 ms vernachlaessigbar.
-
-   Buendeln lohnt sich nur, wenn viele Elemente DIESELBE Farbe tragen - wie die
-   Verbindungslinien in der Container-Ansicht. Dort wird ein Pfad fuer alle
-   Linien gebaut und einmal gestroked. */
+   Buendeln nach Farbe bringt nichts (siehe Messung). Der Hebel ist, die
+   Draw-Calls aus dem Frame zu nehmen: der statische Teil der Bühne (Ringe,
+   Kammern, Grundring, roter Überrand, Ringbeschriftung) hängt nur an den
+   Füllständen, und die springen einmal pro Tag in `stepDay()`. Er wird deshalb
+   in ein Offscreen-Canvas gezeichnet und pro Frame nur kopiert.
+   Pro Frame bleibt: 1 drawImage + Autos + Blitz + 2 Textzeilen. */
 
 /* Buehne-Groesse und Canvas-Aufloesung werden gecacht. `ring.width` neu zu setzen
    loescht den Backing Store komplett aus - das ist teuer und erzwingt ein Neurastern.
@@ -455,6 +468,17 @@ function positionAufWeg(a, progress) {
    der Cache nicht gesetzt. */
 let buehneCache = null;
 
+/* Statischer Buehnenteil als Bild. Wird nur neu gezeichnet, wenn sich die
+   Fuellstaende (stepDay/reset), die Ansicht oder die Groesse aendern. */
+let buehneBild = null;
+let buehneBildCtx = null;
+let buehneBildGueltig = false;
+let buehneBildAnsicht = null;
+
+function buehneVergessen() {
+  buehneBildGueltig = false;
+}
+
 function buehneBasis() {
   const w = ring.clientWidth;
   if (!w) {
@@ -464,22 +488,31 @@ function buehneBasis() {
     return null;
   }
   const h = Math.max(430, Math.min(w, 780));
-  const dpr = window.devicePixelRatio || 1;
+  /* Deckel bei 2: darueber waechst nur die Pixelflaeche. Bei dpr 3 waeren es
+     neunmal so viele Pixel wie in CSS - fuer duenne Ringe ohne Gewinn. */
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
   const gleich = buehneCache && buehneCache.bw === bw && buehneCache.bh === bh;
   if (!gleich) {
     ring.width = bw; ring.height = bh; ring.style.height = h + "px";
+    if (!buehneBild) buehneBild = document.createElement("canvas");
+    buehneBild.width = bw; buehneBild.height = bh;
+    buehneBildCtx = buehneBild.getContext("2d");
     buehneCache = { w: w, h: h, dpr: dpr, bw: bw, bh: bh };
+    buehneVergessen();
   }
   rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  rctx.clearRect(0, 0, w, h);
-  return { w: w, h: h, cx: w / 2, cy: h / 2, seg: (Math.PI * 2) / N };
+  return {
+    w: w, h: h, cx: w / 2, cy: h / 2, seg: (Math.PI * 2) / N, dpr: dpr,
+    rAussen: Math.min(w, h) / 2 - 34, rAuto: Math.min(w, h) / 2 - 34 + 16
+  };
 }
 
 /* Fenstergröße geändert -> Canvas neu aufbauen. Ohne diesen Listener bleibt das
    Canvas nach einem Resize falsch skaliert. */
 window.addEventListener("resize", function () {
   buehneCache = null;
+  sparkGroesseVergessen();
   schmutzig = true;
   fordertFrameAn();
 });
@@ -524,35 +557,51 @@ function zeichneRing(progress) {
   if (ansicht === "container") { zeichneContainer(progress); return; }
   const b = buehneBasis();
   if (!b) return;                    // Layout steht noch nicht
+  if (!buehneBildGueltig || buehneBildAnsicht !== "ringe") {
+    zeichneRingStatisch(b);
+    buehneBildGueltig = true;
+    buehneBildAnsicht = "ringe";
+  }
+  /* Ein Bild kopieren statt 1.347 Segmente zeichnen. */
+  rctx.clearRect(0, 0, b.w, b.h);
+  rctx.drawImage(buehneBild, 0, 0, b.w, b.h);
+  zeichneAutoUndText(progress, b, b.rAuto);
+}
+
+/* Statischer Teil der Ringansicht: alles, was nur von den Fuellstaenden abhaengt. */
+function zeichneRingStatisch(b) {
+  const ctx = buehneBildCtx;
+  ctx.setTransform(b.dpr, 0, 0, b.dpr, 0, 0);
+  ctx.clearRect(0, 0, b.w, b.h);
   const w = b.w, h = b.h, cx = b.cx, cy = b.cy, seg = b.seg;
-  const rAussen = Math.min(w, h) / 2 - 34;
+  const rAussen = b.rAussen;
   const abstand = Math.max(22, Math.min(38, (rAussen - 60) / 2));
   const radien = FARBEN.map((_, k) => rAussen - k * abstand);
   const fill = eng.fill;
 
-  const rAuto = rAussen + 16;
-  rctx.beginPath();
-  rctx.setLineDash([2, 6]);
-  rctx.strokeStyle = "rgba(255,209,102,.14)";
-  rctx.lineWidth = 1;
-  rctx.arc(cx, cy, rAuto, 0, Math.PI * 2);
-  rctx.stroke();
-  rctx.setLineDash([]);
+  const rAuto = b.rAuto;
+  ctx.beginPath();
+  ctx.setLineDash([2, 6]);
+  ctx.strokeStyle = "rgba(255,209,102,.14)";
+  ctx.lineWidth = 1;
+  ctx.arc(cx, cy, rAuto, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
   /* Drei Ringe: Grundring in der Glasfarbe, Segment darüber = Füllstand.
      Jedes Segment hat seinen eigenen Füllstand und damit seine eigene Farbe,
      also je Segment ein stroke(). Messung: das ist schneller als das Bündeln
-     nach Farbe (siehe Kommentar bei zeichneSegmente). */
+     nach Farbe (siehe Kommentar bei zeichneRing). */
   FARBEN.forEach((ringFarbe, k) => {
     const R = radien[k];
     const lw = Math.max(2.2, (2 * Math.PI * R) / N * 0.8);
-    rctx.beginPath();
-    rctx.strokeStyle = ringFarbe.glas;
-    rctx.globalAlpha = 0.35;
-    rctx.lineWidth = lw;
-    rctx.arc(cx, cy, R, 0, Math.PI * 2);
-    rctx.stroke();
-    rctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.strokeStyle = ringFarbe.glas;
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = lw;
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
 
     const ueberGruppen = [];
     for (let i = 0; i < N; i++) {
@@ -560,39 +609,37 @@ function zeichneRing(progress) {
       if (j === undefined) continue;
       const v = fill[i * MAXC + j];
       const a0 = i * seg - Math.PI / 2;
-      rctx.beginPath();
-      rctx.strokeStyle = farbe(v);
-      rctx.lineWidth = lw * 0.62;
-      rctx.arc(cx, cy, R, a0 + seg * 0.1, a0 + seg * 0.9);
-      rctx.stroke();
+      ctx.beginPath();
+      ctx.strokeStyle = farbe(v);
+      ctx.lineWidth = lw * 0.62;
+      ctx.arc(cx, cy, R, a0 + seg * 0.1, a0 + seg * 0.9);
+      ctx.stroke();
       if (v > VOLL) ueberGruppen.push([a0 + seg * 0.1, a0 + seg * 0.9]);
     }
     /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Segments */
     if (ueberGruppen.length) {
-      rctx.beginPath();
+      ctx.beginPath();
       for (let i = 0; i < ueberGruppen.length; i++) {
         const a0 = ueberGruppen[i][0], a1 = ueberGruppen[i][1];
-        rctx.moveTo(cx + (R + lw * 0.5) * Math.cos(a0), cy + (R + lw * 0.5) * Math.sin(a0));
-        rctx.arc(cx, cy, R + lw * 0.5, a0, a1);
+        ctx.moveTo(cx + (R + lw * 0.5) * Math.cos(a0), cy + (R + lw * 0.5) * Math.sin(a0));
+        ctx.arc(cx, cy, R + lw * 0.5, a0, a1);
       }
-      rctx.strokeStyle = "#ff3b30";
-      rctx.lineWidth = lw * 0.28;
-      rctx.stroke();
+      ctx.strokeStyle = "#ff3b30";
+      ctx.lineWidth = lw * 0.28;
+      ctx.stroke();
     }
   });
 
   /* Ringbeschriftung oben: dunkler Grund, Name in der Glasfarbe */
-  rctx.textAlign = "center";
+  ctx.textAlign = "center";
   FARBEN.forEach((ringFarbe, k) => {
     const y = cy - radien[k] + 4;
-    rctx.fillStyle = "rgba(13,17,23,0.88)";
-    rctx.fillRect(cx - 24, y - 11, 48, 15);
-    rctx.fillStyle = ringFarbe.glas;
-    rctx.font = "12px -apple-system, sans-serif";
-    rctx.fillText(ringFarbe.name, cx, y);
+    ctx.fillStyle = "rgba(13,17,23,0.88)";
+    ctx.fillRect(cx - 24, y - 11, 48, 15);
+    ctx.fillStyle = ringFarbe.glas;
+    ctx.font = "12px -apple-system, sans-serif";
+    ctx.fillText(ringFarbe.name, cx, y);
   });
-
-  zeichneAutoUndText(progress, b, rAuto);
 }
 
 /* Container-Ansicht: ein Ort = ein Container mit drei radial gestapelten Kammern
@@ -600,36 +647,50 @@ function zeichneRing(progress) {
 function zeichneContainer(progress) {
   const b = buehneBasis();
   if (!b) return;                    // Layout steht noch nicht
+  if (!buehneBildGueltig || buehneBildAnsicht !== "container") {
+    zeichneContainerStatisch(b);
+    buehneBildGueltig = true;
+    buehneBildAnsicht = "container";
+  }
+  rctx.clearRect(0, 0, b.w, b.h);
+  rctx.drawImage(buehneBild, 0, 0, b.w, b.h);
+  zeichneAutoUndText(progress, b, b.rAuto);
+}
+
+function zeichneContainerStatisch(b) {
+  const ctx = buehneBildCtx;
+  ctx.setTransform(b.dpr, 0, 0, b.dpr, 0, 0);
+  ctx.clearRect(0, 0, b.w, b.h);
   const cx = b.cx, cy = b.cy, seg = b.seg;
-  const rAussen = Math.min(b.w, b.h) / 2 - 34;
-  const rAuto = rAussen + 16;
+  const rAussen = b.rAussen;
+  const rAuto = b.rAuto;
   const kammerAbstand = 9;                       // kompakt: ein Container, nicht drei Ringe
   const radien = [rAussen, rAussen - kammerAbstand, rAussen - 2 * kammerAbstand];
   const fill = eng.fill;
   const lw = Math.max(2.4, (2 * Math.PI * rAussen) / N * 0.78);
 
-  rctx.beginPath();
-  rctx.setLineDash([2, 6]);
-  rctx.strokeStyle = "rgba(255,209,102,.14)";
-  rctx.lineWidth = 1;
-  rctx.arc(cx, cy, rAuto, 0, Math.PI * 2);
-  rctx.stroke();
-  rctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.setLineDash([2, 6]);
+  ctx.strokeStyle = "rgba(255,209,102,.14)";
+  ctx.lineWidth = 1;
+  ctx.arc(cx, cy, rAuto, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
   /* Verbindungslinien: alle Orte in EINEN Pfad, ein stroke() statt 449.
      Diese Linien haben alle dieselbe Farbe - hier lohnt das Buendeln wirklich.
      Die Kammern selbst tragen je Füllstand eine eigene Farbe, also je Kammer
-     ein stroke() (siehe Kommentar bei zeichneSegmente). */
-  rctx.beginPath();
+     ein stroke() (siehe Kommentar bei zeichneRing). */
+  ctx.beginPath();
   for (let i = 0; i < N; i++) {
     const ang = i * seg - Math.PI / 2;
     const c = Math.cos(ang), s = Math.sin(ang);
-    rctx.moveTo(cx + (radien[2] - 5) * c, cy + (radien[2] - 5) * s);
-    rctx.lineTo(cx + (radien[0] + 5) * c, cy + (radien[0] + 5) * s);
+    ctx.moveTo(cx + (radien[2] - 5) * c, cy + (radien[2] - 5) * s);
+    ctx.lineTo(cx + (radien[0] + 5) * c, cy + (radien[0] + 5) * s);
   }
-  rctx.strokeStyle = "rgba(139,152,165,.30)";
-  rctx.lineWidth = 1;
-  rctx.stroke();
+  ctx.strokeStyle = "rgba(139,152,165,.30)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
 
   const ueberGruppen = [];
   for (let i = 0; i < N; i++) {
@@ -639,68 +700,187 @@ function zeichneContainer(progress) {
       const j = farbIdx[i][ringFarbe.key];
       if (j === undefined) return;                // Kammer fehlt -> Lücke
       const v = fill[i * MAXC + j];
-      rctx.beginPath();
-      rctx.strokeStyle = farbe(v);
-      rctx.lineWidth = lw;
-      rctx.arc(cx, cy, radien[k], s0, s1);
-      rctx.stroke();
+      ctx.beginPath();
+      ctx.strokeStyle = farbe(v);
+      ctx.lineWidth = lw;
+      ctx.arc(cx, cy, radien[k], s0, s1);
+      ctx.stroke();
       if (v > VOLL) ueberGruppen.push([k, s0, s1]);
     });
   }
   /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Segments */
   if (ueberGruppen.length) {
-    rctx.beginPath();
+    ctx.beginPath();
     for (let i = 0; i < ueberGruppen.length; i++) {
       const k = ueberGruppen[i][0], a0 = ueberGruppen[i][1], a1 = ueberGruppen[i][2];
       const R = radien[k] + lw * 0.55;
-      rctx.moveTo(cx + R * Math.cos(a0), cy + R * Math.sin(a0));
-      rctx.arc(cx, cy, R, a0, a1);
+      ctx.moveTo(cx + R * Math.cos(a0), cy + R * Math.sin(a0));
+      ctx.arc(cx, cy, R, a0, a1);
     }
-    rctx.strokeStyle = "#ff3b30";
-    rctx.lineWidth = lw * 0.35;
-    rctx.stroke();
+    ctx.strokeStyle = "#ff3b30";
+    ctx.lineWidth = lw * 0.35;
+    ctx.stroke();
   }
 
-  rctx.textAlign = "center";
+  ctx.textAlign = "center";
   const y = cy - radien[0] + 4;
-  rctx.fillStyle = "rgba(13,17,23,0.88)";
-  rctx.fillRect(cx - 74, y - 11, 148, 15);
-  rctx.fillStyle = "#c9d1d9";
-  rctx.font = "12px -apple-system, sans-serif";
-  rctx.fillText("1 Container = Weiß · Grün · Braun", cx, y);
+  ctx.fillStyle = "rgba(13,17,23,0.88)";
+  ctx.fillRect(cx - 74, y - 11, 148, 15);
+  ctx.fillStyle = "#c9d1d9";
+  ctx.font = "12px -apple-system, sans-serif";
+  ctx.fillText("1 Container = Weiß · Grün · Braun", cx, y);
+}
 
-  zeichneAutoUndText(progress, b, rAuto);
+/* ---------- Verlauf: zwei Panels, gemeinsame x-Achse, je eigene y-Achse ----------
+   Warum zwei Panels und nicht zwei Linien in einem Bild: Leerungen und
+   Überlauf-Tage sind verschiedene Einheiten. In einem Bild mit zwei Skalen
+   liest jeder Zuschauer einen Vergleich heraus, den es nicht gibt. */
+const SPARK_FARBE = { leerungen: "#58a6ff", ueberlauf: "#f85149",
+                      gitter: "#2a3441", text: "#8b98a5", ist: "#6e7681" };
+
+/* Nach Resize oder Ansichtswechsel neu messen lassen */
+function sparkGroesseVergessen() {
+  [sparkLeer, sparkUeber].forEach(cv => { cv._groesse = null; });
+}
+
+/* Canvas in CSS-Pixeln zeichnen: das Attributmass kommt aus Layoutgroesse mal
+   Geraetepixel, sonst verzerrt die CSS-Streckung die Achsenbeschriftung. */
+function passeCanvasAn(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  if (!cv._groesse) {
+    const r = cv.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return null;   // versteckt: spaeter erneut messen
+    cv._groesse = { b: r.width, h: r.height, dpr: dpr };
+    cv.width = Math.round(r.width * dpr);
+    cv.height = Math.round(r.height * dpr);
+  }
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(cv._groesse.dpr, 0, 0, cv._groesse.dpr, 0, 0);
+  return ctx;
+}
+
+/* Runde Skala: hoechstens fuenf Schritte, Schrittweite ganzzahlig.
+   Gezaehlte Groessen (Stopps, Ort-Tage) bekommen keine 2,5er-Schritte. */
+function schoeneSkala(maxWert) {
+  const max = Math.max(1, maxWert);
+  const stufe = Math.pow(10, Math.max(0, Math.floor(Math.log10(max))));
+  const ks = stufe >= 10 ? [1, 2, 2.5, 5, 10] : [1, 2, 5];
+  let beste = null;
+  for (const k of ks) {
+    const schritt = Math.max(1, k * stufe);
+    const oben = Math.ceil(max / schritt) * schritt;
+    if (oben / schritt > 5) continue;
+    if (beste === null || oben < beste.oben) beste = { schritt: schritt, oben: oben };
+  }
+  return beste || { schritt: Math.max(1, max), oben: max };
+}
+
+function zeichneSparkPanel(cv, o) {
+  const ctx = passeCanvasAn(cv);
+  if (!ctx) return;
+  const b = cv._groesse.b, h = cv._groesse.h;
+  ctx.clearRect(0, 0, b, h);
+  ctx.textBaseline = "alphabetic";
+
+  /* Nur die x-Achse wird beschriftet. y-Zahlen und y-Titel sind bewusst weg:
+     die Kurve zeigt den Takt (Steigung), nicht einen ablesbaren Stand. */
+  const links = 10, rechts = 8, oben = 16, unten = o.xAchse ? 15 : 8;
+  const x0 = links, x1 = b - rechts, y0 = oben, y1 = h - unten;
+
+  ctx.font = "10px -apple-system, sans-serif";
+  ctx.fillStyle = SPARK_FARBE.text;
+  ctx.textAlign = "left";
+  ctx.fillText(o.titel, 0, 9);
+
+  if (!o.serie.length) {
+    ctx.fillText("Noch kein Lauf gestartet.", x0, (y0 + y1) / 2 + 3);
+    return;
+  }
+
+  const skala = schoeneSkala(o.maxY);
+  const xVon = t => x0 + (Math.min(Math.max(t, 0), o.tage) / o.tage) * (x1 - x0);
+  const yVon = v => y1 - (v / skala.oben) * (y1 - y0);
+
+  /* y-Gitter als Hoehenhilfe, ohne Zahlen */
+  ctx.lineWidth = 1;
+  for (let v = 0; v <= skala.oben + 1e-9; v += skala.schritt) {
+    const y = Math.round(yVon(v)) + 0.5;
+    ctx.strokeStyle = SPARK_FARBE.gitter;
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+  }
+
+  /* Ist-Linie teilt die Skala der Kurve: ihr Abstand ist die Zielzahl.
+     Das Label bekommt einen Hintergrund, damit es nicht wie ein Gitterwert aussieht. */
+  let yIst = null;
+  if (o.istWert) {
+    yIst = yVon(o.istWert);
+    ctx.save();
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = SPARK_FARBE.ist; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, yIst); ctx.lineTo(x1, yIst); ctx.stroke();
+    ctx.restore();
+    const text = o.istText + " " + zahl(o.istWert);
+    ctx.font = "9px -apple-system, sans-serif";
+    const tb = ctx.measureText(text).width;
+    ctx.fillStyle = "rgba(13,17,23,0.9)";
+    ctx.fillRect(x0 + 2, yIst + 1, tb + 6, 12);
+    ctx.fillStyle = SPARK_FARBE.ist;
+    ctx.textAlign = "left";
+    ctx.fillText(text, x0 + 5, yIst + 10);
+  }
+
+  /* Kurve ueber die Modellzeit, x aus p.tag statt aus dem Index */
+  ctx.beginPath();
+  o.serie.forEach((p, i) => {
+    const x = xVon(p.tag), y = yVon(p[o.feld]);
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  });
+  ctx.strokeStyle = o.farbe; ctx.lineWidth = 1.6; ctx.stroke();
+
+  /* x-Achse nur am unteren Panel */
+  if (o.xAchse) {
+    ctx.strokeStyle = SPARK_FARBE.gitter;
+    ctx.beginPath(); ctx.moveTo(x0, y1 + 0.5); ctx.lineTo(x1, y1 + 0.5); ctx.stroke();
+    ctx.fillStyle = SPARK_FARBE.text; ctx.font = "9px -apple-system, sans-serif";
+    [0, o.tage / 2, o.tage].forEach((t, i) => {
+      ctx.textAlign = i === 0 ? "left" : i === 2 ? "right" : "center";
+      ctx.fillText(zahl(Math.round(t)), xVon(t), y1 + 11);
+    });
+  }
+
+  /* Endwert der Kurve erst am letzten Tag, damit die Zahl nicht mitten im
+     Lauf im leeren Feld steht. */
+  const ende = o.serie[o.serie.length - 1];
+  const yEnde = yVon(ende[o.feld]);
+  if (ende.tag >= o.tage - 1) {
+    ctx.font = "9px -apple-system, sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillStyle = o.farbe;
+    ctx.fillText(zahl(ende[o.feld]), x1, yEnde + (yIst === null || yEnde >= yIst ? 11 : -4));
+  }
 }
 
 function zeichneSpark() {
-  const w = spark.width, h = spark.height;
-  sctx.clearRect(0, 0, w, h);
   const verlauf = eng.tagesverlauf;
-  if (!verlauf.length) return;
-  const n = verlauf.length;
-  const maxL = Math.max(1, verlauf[n - 1].leerungen);
-  const maxU = Math.max(1, verlauf[n - 1].ueberlauf);
-  sctx.strokeStyle = "#2a3441"; sctx.lineWidth = 1;
-  for (let g = 1; g < 4; g++) {
-    const y = (h / 4) * g;
-    sctx.beginPath(); sctx.moveTo(0, y); sctx.lineTo(w, y); sctx.stroke();
-  }
-  sctx.beginPath();
-  verlauf.forEach((p, i) => {
-    const x = (i / Math.max(1, n - 1)) * w;
-    const y = h - (p.leerungen / maxL) * (h - 6) - 3;
-    i ? sctx.lineTo(x, y) : sctx.moveTo(x, y);
+  const tage = Math.max(1, TAGE);
+  const ende = feld => verlauf.length ? verlauf[verlauf.length - 1][feld] : 0;
+
+  zeichneSparkPanel(sparkLeer, {
+    titel: "Leerungen, kumuliert",
+    serie: verlauf, feld: "leerungen",
+    farbe: SPARK_FARBE.leerungen,
+    maxY: Math.max(META.besuche, ende("leerungen"), 1),
+    istWert: META.besuche, istText: "Ist-Plan",
+    xAchse: false, tage: tage
   });
-  sctx.strokeStyle = "#58a6ff"; sctx.lineWidth = 1.6; sctx.stroke();
-  sctx.beginPath();
-  verlauf.forEach((p, i) => {
-    const x = (i / Math.max(1, n - 1)) * w;
-    const y = h - (p.ueberlauf / maxU) * (h - 6) - 3;
-    i ? sctx.lineTo(x, y) : sctx.moveTo(x, y);
+  zeichneSparkPanel(sparkUeber, {
+    titel: "Überlauf-Tage (Ort-Tage), kumuliert · x = Tag",
+    serie: verlauf, feld: "ueberlauf",
+    farbe: SPARK_FARBE.ueberlauf,
+    maxY: Math.max(ende("ueberlauf"), 1),
+    istWert: null, istText: "",     // die Daten kennen keinen Überlauf-Tag
+    xAchse: true, tage: tage
   });
-  sctx.strokeStyle = "#f85149"; sctx.lineWidth = 1.6; sctx.stroke();
-  sctx.fillStyle = "#8b98a5"; sctx.font = "10px sans-serif";
-  sctx.fillText("Leerungen (blau) / Überlauf-Tage (rot)", 4, 11);
 }
 
 function zahl(v, n) {
@@ -812,13 +992,16 @@ function zeichneKarten() {
     ' <span class="chip ' + k.herk + '" title="Von uns gesetzt: Modellrechnung dieses Laufs.">' + k.herk + "</span>" +
     "</span>" +
     '<span class="wert">' + k.wert + '</span></div><div class="vergleich">' + k.vergl + "</div></div>").join("");
-  document.getElementById("tagesliste").textContent =
+  document.getElementById("tagesliste").innerHTML =
     "Letzter Tag: " + eng.letzteTage.length + " Orte geleert · " +
     chip("kalibrierungsfaktor") + " Kalibrierungsfaktor " +
     zahl(META.kalibrierungsfaktor, 4) + " (abgeleitet: damit der Ist-Rhythmus genau " +
     zahl(META.besuche) + " Besuche verlangt)";
   document.getElementById("sparkHerkunft").innerHTML =
-    chip("ueberlauf_tage") + " Beide Kurven sind Modellrechnung dieses Laufs — keine Messung.";
+    chip("ueberlauf_tage") + " Beide Kurven sind Modellrechnung dieses Laufs — keine Messung. " +
+    "Oben gestrichelt der " + chip("daten_besuche") + " Ist-Plan mit " + zahl(d.besuche) +
+    " Besuchen: der Abstand zur Kurve am letzten Tag ist die eingesparte Zahl. " +
+    "Unten bewusst ohne Ist-Linie — die Daten kennen keinen Überlauf-Tag.";
   document.getElementById("legText").textContent =
     "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE + " · " +
     (eng.getParams().strategie === "ist" ? "Ist-Rhythmus" : "Schwelle " + eng.getParams().schwelle + " %");
@@ -890,6 +1073,7 @@ function setzeAnsicht(kino) {
   document.getElementById("kinoKonfig").textContent = konfigurationText();
   if (kino) {
     zeichneBuehneTitel();
+    sparkGroesseVergessen();   // Panels waren versteckt, jetzt ist das Layout messbar
     markiereSchmutzig();
   } else {
     laufend = false;
@@ -1194,13 +1378,18 @@ function loop(ts) {
   const dt = ts - last; last = ts;
 
   let bewegt = false;
+  let neuerTag = false;
   if (laufend) {
     const dauer = 1000 / tempo;
     tageTimer += dt;
     while (tageTimer >= dauer) {
       tageTimer -= dauer;
-      if (eng.tag < eng.warmlauf + TAGE) { eng.stepDay(); notiereEreignisse(); progress = 0; }
-      else {
+      if (eng.tag < eng.warmlauf + TAGE) {
+        eng.stepDay();
+        notiereEreignisse();
+        progress = 0;
+        neuerTag = true;
+      } else {
         laufend = false;
         document.getElementById("play").textContent = "▶ Kino starten";
         document.getElementById("kinoPlay").textContent = "▶ Start";
@@ -1220,13 +1409,21 @@ function loop(ts) {
   if (!bewegt && !schmutzig) return;    // Loop beendet, kein weiterer Frame geplant
 
   schmutzig = false;
+  /* Ein Schritt ist ein neuer Tag -> der statische Buehnenteil ist veraltet. */
+  if (neuerTag) buehneVergessen();
   zeichneRing(progress);
-  const tagText = "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE;
-  document.getElementById("tagWert").textContent = tagText;
-  document.getElementById("kinoTagWert").textContent = tagText;
-  zeichneKarten();
-  zeichneSpark();
-  simSchreibe();
+
+  /* Kennzahlen und Verlauf haengen am Tag, nicht am Frame: sie werden einmal pro
+     Tag geschrieben, nicht bei jedem der 60-120 Frames dazwischen. */
+  if (neuerTag || domSchmutzig) {
+    domSchmutzig = false;
+    const tagText = "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE;
+    document.getElementById("tagWert").textContent = tagText;
+    document.getElementById("kinoTagWert").textContent = tagText;
+    zeichneKarten();
+    zeichneSpark();
+    simSchreibe();
+  }
 
   /* Layout steht noch nicht (Canvas war 0 breit) -> nochmal versuchen. */
   /* Buehne nicht laid out: nur dann neu anfordern, wenn sie sichtbar ist.
@@ -1245,8 +1442,21 @@ function loop(ts) {
 /* ---------- Testbarkeit ---------- */
 /* Die Werte werden zusaetzlich ins DOM geschrieben, damit sie auch aus einer
    isolierten Browser-Welt (z.B. Extension-Konsole) lesbar sind. */
-window.simSet = function (p) { eng.setParams(p); eng.reset(); return true; };
-window.simFinish = function () { const m = eng.runToEnd(); zeichneKarten(); zeichneSpark(); return m; };
+window.simSet = function (p) {
+  eng.setParams(p);
+  eng.reset();
+  buehneVergessen();
+  zeichneKarten(); zeichneSpark(); simSchreibe();
+  markiereSchmutzig();
+  return true;
+};
+window.simFinish = function () {
+  const m = eng.runToEnd();
+  buehneVergessen();
+  zeichneKarten(); zeichneSpark(); simSchreibe();
+  markiereSchmutzig();
+  return m;
+};
 window.simMetrics = function () { return eng.metrics(); };
 window.simReady = true;
 function simSchreibe() {

@@ -89,7 +89,9 @@ HERKUNFT_SONSTIGE = {
     "gap": "A",
     "container_ohne_rate": "M",
     "warmlauf_tage": "S",
-    "stopps_pro_tag_soll": "A",
+    # Kapazitaet enthaelt das gesetzte s0 und den gesetzten Abstand s —
+    # Modellgroesse, nicht Ableitung aus Messwerten.
+    "stopps_pro_tag_soll": "S",
     "wegeinheiten": "S",
     "auslastung_pct": "S",
     "ueberlauf_tage": "S",
