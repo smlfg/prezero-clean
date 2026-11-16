@@ -98,11 +98,6 @@ Er ist eine reine Startbedingung (kein Datenwert) und wird nicht als Zahl ausgeg
 - **Kapazität/Tag** = `M · K(s)` — Obergrenze, kein Ziel. **Bedarf/Tag** = fällige
   Stopps pro Tag. Gelesen wird `min(Kapazität, Bedarf)`: liegt der Bedarf darunter,
   ist `s` wirkungslos.
-- **Je Tag** (für den Kalender-Hover) stehen im `tagesverlauf` zusätzlich `bedient`,
-  `faellig`, `abgeholt` (Σ Füllstand der geleerten Kammern, Pp) und `wegeinheiten`
-  (`s × Stopps` des Tages). Sie summieren sich über den Lauf zu `leerungen`,
-  `abgeholt_pp` und `wegeinheiten` und ändern keine Kennzahl.
-
 Immer **gegen den Ist-Lauf im selben Panel**, nie absolut allein.
 
 ## 4. Datenschnittstelle `data/derived/orte.json`
@@ -152,25 +147,6 @@ Regeln für den Export:
 - **Oben:** Abstand `s` (2,5–20, Schritt 0,5) · Autos `M` (1–4) · Strategie (`ist`/`fuell`)
   · **Ansicht (`ringe`/`container`, Standard `ringe`)** · Schwelle (50–95 %, nur bei `fuell`)
   · Play/Pause · Tempo · Tag-Anzeige.
-- **Kalender (unter der Steuerleiste):** die Simulationstage als Raster — **eine Zelle = ein
-  Tag**, eine Zeile = 7 Tage (Woche), ein Block = ein Zwölftel des Messfensters (bei 348 Tagen
-  **29 Tage** je Monat). Gelaufene Tage sind gefüllt, der aktuelle Tag ist hervorgehoben, die
-  übrigen bleiben leer. Reine Darstellung (`S`): **kein Kalenderdatum**, keine Wochentage,
-  keine Prognose für echte Kalendertage. Die Daten haben nur Tagesauflösung; der Kalender
-  zählt Simulationstage und erfindet keine Datumsangabe.
-- **Tagesbewertung (Farbe der Zelle), Stakeholder-Sicht:** `abgeholt` = der Consumer (LKW) hat an
-  diesem Tag **mindestens so viel Glas abgeholt, wie der Producer erzeugt hat** (der Bestand ist
-  nicht gewachsen); `steht noch` = weniger abgeholt als erzeugt. Einheit sind **Prozentpunkte
-  (Pp)** je Tag: `abgeholt` steht im `tagesverlauf` der Engine, `erzeugt` ist
-  `meta.produziert_pp_pro_tag`. **Stopps tragen diese Aussage nicht:** ein Stopp ist ein Ort mit
-  1–3 Kammern (A1), und fällig ist ein Ort, sobald **eine** Kammer es ist — ob braun und grün
-  noch halb leer sind, sieht die Stoppzahl nicht. Die Zelle antwortet damit auf die eine Frage
-  des Stakeholders: *Konnten wir das Glas abproduzieren — ja oder nein?*
-- **Hover je Tag:** Zeigt Simulationstag, Stopps (`bedient` / `fällig`), Wegeinheiten
-  (`s × Stopps` des Tages), Glas (`Σ Füllstand bei Leerung`, Pp) und ob das **Soll erfüllt**
-  ist. Soll erfüllt = alle fälligen Stopps des Tages bedient — dieselbe Regel wie die
-  Zellfarbe `gedeckt`. Tage, die noch nicht gelaufen sind, haben keinen Tipp. Der Tipp
-  ist Darstellung (`S`), seine Werte sind Modellrechnungen des Laufs (`S`).
 - **Bühne, Ansicht `ringe`:** drei konzentrische Ringe, außen → innen **Weiß (448), Grün (448),
   Braun (442)**. Jeder Ort `i` liegt auf allen Ringen beim selben Winkel `i·2π/449 − π/2`;
   die Kammern einer ID fluchten radial („Zuordnung über ID"). Fehlt einem Ort eine Farbe,
@@ -270,10 +246,6 @@ Damit können Dokument und Seite nicht auseinanderlaufen.
 | Kopfzeile: Ringreihenfolge, „alle Abstände gleich" | `S` | Darstellung |
 | Steuerleiste: Abstand `s`, Autos `M`, Strategie, Schwelle, Lauf, Tempo | `S` | Modellgrößen und Startwerte |
 | Steuerleiste: „Stopps/Tag" | `A` | aus Besuchen und Tagen gerechnet |
-| Kalender: Tagesraster, Wochenzeilen, Monatsblöcke | `S` | Darstellung; ein Monat = 29 Simulationstage, kein Kalenderdatum |
-| Kalender: gefüllte Tage und hervorgehobener aktueller Tag | `S` | Modellzeit dieses Laufs |
-| Kalender: Tagesbewertung `abgeholt`/`steht noch` | `S` | abgeholtes Glas (Pp, Modell) gegen erzeugtes Glas (`A`, `meta.produziert_pp_pro_tag`) |
-| Kalender: Hover-Tooltip je Tag (Stopps, Wegeinheiten, Glas, Soll) | `S` | Modellwerte des Laufs; ein Chip im Kopf des Tipps, wie bei den Kennzahlenkarten ein Chip je Karte |
 | Bühne: Füllstand der Kammer | `A` | Median aus Folgemessungen, im Lauf fortgeschrieben |
 | Bühne: Ringreihenfolge, Farben, Lage der Orte | `S` | reine Darstellung |
 | Kennzahlenkarten: alle Laufwerte | `S` | Modellrechnung dieses Laufs |

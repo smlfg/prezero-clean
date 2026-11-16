@@ -133,33 +133,7 @@
   .spark{display:block;width:100%;margin-top:8px}
   #sparkLeer{height:104px}
   #sparkUeber{height:88px}
-  /* ---- Kalender der Simulation: Tag, Woche, Monat (nur Darstellung) ---- */
-  .kalenderPanel{position:relative;margin:14px 26px 0;padding:10px 16px 8px;background:var(--panel);
-                 border:1px solid var(--line);border-radius:14px}
-  .kalenderKopf{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:6px}
-  .kalenderKopf h2{font-size:13px;text-transform:uppercase;letter-spacing:.7px;
-                   color:var(--muted);margin:0}
-  .kalenderKopf .tagesliste{margin-top:0;margin-left:auto}
-  canvas#kalender{display:block;width:100%;height:74px}
-  .kalenderLegende{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;margin-top:7px;
-                   font-size:11.5px;color:var(--muted)}
-  .kalenderLegende .eintrag{display:inline-flex;align-items:center;gap:6px}
-  .kalenderLegende .punkt{width:9px;height:9px;border-radius:2px;display:inline-block}
-  .kalenderLegende .gedeckt{background:var(--ok)}
-  .kalenderLegende .verpasst{background:var(--bad)}
-  .kalenderLegende .offen{background:#212b38;border:1px solid var(--line)}
-  /* Hover je Kalendertag: Canvas-Zellen koennen keinen title-Tipp tragen. */
-  .kalenderTipp{position:absolute;z-index:6;display:none;pointer-events:none;min-width:238px;
-                max-width:300px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;
-                background:#161b22;color:#e6edf3;font-size:12px;line-height:1.5;
-                box-shadow:0 8px 22px rgba(0,0,0,.5)}
-  .kalenderTipp .kopf{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-weight:600}
-  .kalenderTipp .zeile{display:flex;justify-content:space-between;gap:14px}
-  .kalenderTipp .zeile .name{color:var(--muted)}
-  .kalenderTipp .zeile .wert{white-space:nowrap;font-variant-numeric:tabular-nums}
-  .kalenderTipp .soll{margin-top:6px;padding-top:6px;border-top:1px solid var(--line);font-weight:600}
-  .kalenderTipp .soll.gut{color:var(--ok)}
-  .kalenderTipp .soll.schlecht{color:var(--bad)}
+
   .ansichtNav{display:flex;gap:8px;align-items:center;padding:10px 26px;background:var(--bg);border-bottom:1px solid var(--line)}
   .ansichtNav .status{margin-left:auto;color:var(--muted);font-size:12px}
   .ansichtNav button.active{background:var(--accent);color:#07131f;font-weight:600}
@@ -237,7 +211,6 @@
   @media (max-width:900px){
     main{grid-template-columns:1fr}
     .kinoBar .laufinfo{margin-left:0;width:100%}
-    .kalenderPanel{margin:12px 16px 0}
   }
   footer{padding:16px 26px 30px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line)}
   code{background:#21262d;padding:1px 5px;border-radius:4px;font-size:12px}
@@ -369,20 +342,6 @@
     <span class="laufinfo" id="kinoTagWert">Tag 0 / 348</span>
   </div>
 
-  <section class="kalenderPanel">
-    <div class="kalenderKopf">
-      <h2>Kalender der Simulation <span class="chipSlot" data-herk="kalender"></span></h2>
-      <div class="tagesliste" id="kalenderHerkunft"></div>
-    </div>
-    <canvas id="kalender"></canvas>
-    <div class="kalenderTipp" id="kalenderTipp" role="tooltip"></div>
-    <div class="kalenderLegende">
-      <span class="eintrag"><span class="punkt offen"></span>noch nicht gelaufen</span>
-      <span class="eintrag"><span class="punkt gedeckt"></span>abgeholt — Consumer holte mindestens so viel Glas, wie am Tag erzeugt wurde</span>
-      <span class="eintrag"><span class="punkt verpasst"></span>steht noch — weniger abgeholt als erzeugt, der Bestand wächst</span>
-      <span class="eintrag">Glas in Prozentpunkten (Pp) · ein Stopp ist ein Ort mit 1–3 Kammern, keine Mengeneinheit</span>
-    </div>
-  </section>
 
 <main>
   <div class="buehne">
@@ -10319,7 +10278,7 @@ function chipText(key, text) {
 const ring = document.getElementById("ring"), rctx = ring.getContext("2d");
 const sparkLeer = document.getElementById("sparkLeer");
 const sparkUeber = document.getElementById("sparkUeber");
-const kalender = document.getElementById("kalender");
+
 
 /* ---------- Render-Zustand ----------
    Der Loop laeuft nur, wenn sich wirklich etwas aendert. Ohne diese Bremse zeichnet
@@ -10460,9 +10419,8 @@ function buehneBasis() {
 window.addEventListener("resize", function () {
   buehneCache = null;
   sparkGroesseVergessen();
-  kalenderVergessen();
   schmutzig = true;
-  domSchmutzig = true;   // Kurven und Kalender haengen an der Pixelgroesse, nicht nur am Tag
+  domSchmutzig = true;   // Kurven haengen an der Pixelgroesse, nicht nur am Tag
   fordertFrameAn();
 });
 
@@ -10839,157 +10797,6 @@ function zeichneSparkPanel(cv, o) {
   }
 }
 
-/* ---------- Kalender: Tag, Woche, Monat ----------
-   Die Zeit der Daten hat nur Tagesauflösung und keinen echten Kalendertag. Der
-   Kalender zeigt deshalb ausschließlich Simulationstage: eine Zelle = ein Tag,
-   eine Zeile = 7 Tage (Woche), ein Block = ein Zwölftel des Messfensters (Monat).
-   Das ist Darstellung (S) — kein Datum, keine Wochentage, keine Prognose. */
-const KAL_MONATE = 12;
-const KAL_WOCHE = 7;
-const KAL_FARBE = {
-  offen: "#212b38",                     // noch nicht gelaufen
-  gedeckt: "#3fb950",                   // abgeholt: Consumer deckt den Producer
-  verpasst: "#f85149",                  // steht noch: Bestand gewachsen
-  text: "#8b98a5"
-};
-
-/* Erzeugtes Glas je Tag in Prozentpunkten (aus den Kammer-Raten, A). */
-const PROD_TAG = META.produziert_pp_pro_tag;
-
-function kalenderVergessen() { kalender._groesse = null; kalender._zellen = null; }
-
-/* Tagesbewertung aus Sicht des Stakeholders: hat der Consumer (LKW) an diesem
-   Tag mindestens so viel Glas abgeholt, wie der Producer erzeugt hat? Dann ist
-   der Bestand nicht gewachsen — „das Glas ist abgeholt".
-   Einheit sind Prozentpunkte (Pp). Stopps taugen dafür nicht: ein Stopp ist ein
-   Ort mit 1–3 Kammern (A1), und ein Ort ist fällig, sobald eine Kammer es ist.
-   Ob braun und grün noch halb leer sind, sieht die Stoppzahl nicht. */
-function kalenderBewertung(p) {
-  return (p.abgeholt || 0) >= PROD_TAG ? "gedeckt" : "verpasst";
-}
-
-/* ---------- Hover je Kalendertag ----------
-   Der Kalender ist ein Canvas; eine Zelle kann keinen title-Tipp tragen. Deshalb
-   merkt sich zeichneKalender die Zellrechtecke, und ein DOM-Element zeigt die
-   Werte des Tages: Stopps, Wegeinheiten, Glas (abgeholter Fuellstand in Pp) und
-   ob das Soll erfuellt ist.
-   Soll = alle faelligen Stopps des Tages bedient - dieselbe Regel wie die
-   Zellfarbe gedeckt/verpasst. Alle Werte sind Modellrechnungen des Laufs (S). */
-const kalenderTipp = document.getElementById("kalenderTipp");
-let kalenderZeiger = null;          // letzte Mausposition ueber einer Zelle
-
-function kalenderTagWerte(tag) {
-  const v = eng.tagesverlauf;
-  for (let i = 0; i < v.length; i++) if (v[i].tag === tag) return v[i];
-  return null;
-}
-
-function kalenderTippInhalt(tag) {
-  const p = kalenderTagWerte(tag);
-  if (!p) return null;
-  const faellig = p.faellig || 0;
-  const abgeholt = p.abgeholt || 0;
-  const gedeckt = abgeholt >= PROD_TAG;
-  const bilanz = abgeholt - PROD_TAG;
-  const befund = gedeckt
-    ? "Abgeholt — Consumer deckt den Producer" +
-      (bilanz > 0.5 ? " (+\u00a0" + zahl(bilanz, 0) + " Pp)" : "")
-    : "Steht noch — " + zahl(Math.abs(bilanz), 0) + " Pp weniger abgeholt als erzeugt";
-  return '<div class="kopf">Tag ' + zahl(tag) + " " + chip("tages_glas_pp") + "</div>" +
-    '<div class="zeile"><span class="name">Glas erzeugt</span><span class="wert">' +
-      zahl(PROD_TAG, 0) + " Pp</span></div>" +
-    '<div class="zeile"><span class="name">Glas abgeholt</span><span class="wert">' +
-      zahl(abgeholt) + " Pp</span></div>" +
-    '<div class="zeile"><span class="name">Stopps</span><span class="wert">' +
-      zahl(p.bedient) + " bedient · " + zahl(faellig) + " fällig</span></div>" +
-    '<div class="zeile"><span class="name">Wegeinheiten</span><span class="wert">' +
-      zahl(p.wegeinheiten, 1) + "</span></div>" +
-    '<div class="soll ' + (gedeckt ? "gut" : "schlecht") + '">' + befund + "</div>";
-}
-
-function kalenderTippSetzen() {
-  if (!kalenderZeiger) { kalenderTipp.style.display = "none"; return; }
-  const inhalt = kalenderTippInhalt(kalenderZeiger.tag);
-  if (!inhalt) { kalenderTipp.style.display = "none"; return; }
-  kalenderTipp.innerHTML = inhalt;
-  kalenderTipp.style.display = "block";
-  const rahmen = kalender.parentNode.getBoundingClientRect();
-  const x = kalenderZeiger.px - rahmen.left;
-  const y = kalenderZeiger.py - rahmen.top;
-  const b = kalenderTipp.offsetWidth, h = kalenderTipp.offsetHeight;
-  let links = x + 14;
-  if (links + b > rahmen.width - 6) links = x - b - 14;
-  links = Math.max(6, Math.min(rahmen.width - b - 6, links));
-  let oben = y - h - 14;
-  if (oben < 4) oben = y + 18;
-  oben = Math.max(4, Math.min(rahmen.height - h - 4, oben));
-  kalenderTipp.style.left = links + "px";
-  kalenderTipp.style.top = oben + "px";
-}
-
-function zeichneKalender() {
-  const ctx = passeCanvasAn(kalender);
-  if (!ctx) return;
-  const b = kalender._groesse.b, h = kalender._groesse.h;
-  ctx.clearRect(0, 0, b, h);
-  ctx.textBaseline = "alphabetic";
-
-  const tage = Math.max(1, TAGE);
-  const jetzt = Math.min(tage, Math.max(0, eng.tag - eng.warmlauf));
-  /* Zellrechtecke fuer den Hover merken: der Canvas selbst kennt keine Zellen. */
-  kalender._zellen = [];
-  /* Bewertung je Simulationstag aus dem Tagesverlauf der Engine. */
-  const bewertung = new Array(tage + 1);
-  eng.tagesverlauf.forEach(p => {
-    if (p.tag >= 1 && p.tag <= tage) bewertung[p.tag] = kalenderBewertung(p);
-  });
-  /* Monatsgrenzen als gerundete Tagindizes: bei 348 Tagen exakt 29 Tage je Monat. */
-  const grenze = m => Math.round(m * tage / KAL_MONATE);
-
-  const lueckeMonat = Math.max(4, Math.min(12, b * 0.012));
-  const zellBreite = Math.max(2, (b - lueckeMonat * (KAL_MONATE - 1)) / (KAL_MONATE * KAL_WOCHE));
-  const labelHoehe = zellBreite >= 4 ? 13 : 0;
-  const zeilenLuecke = 2;
-  const zellHoehe = Math.max(3, Math.min(11, (h - labelHoehe - 4 * zeilenLuecke) / 5));
-
-  ctx.font = "9px -apple-system, sans-serif";
-  for (let m = 0; m < KAL_MONATE; m++) {
-    const von = grenze(m) + 1, bis = grenze(m + 1);
-    const x0 = m * (KAL_WOCHE * zellBreite + lueckeMonat);
-    if (labelHoehe) {
-      ctx.fillStyle = KAL_FARBE.text;
-      ctx.textAlign = "left";
-      ctx.fillText("M" + (m + 1), x0, 9);
-    }
-    for (let d = von; d <= bis; d++) {
-      const k = d - von;
-      const x = x0 + (k % KAL_WOCHE) * zellBreite;
-      const y = labelHoehe + Math.floor(k / KAL_WOCHE) * (zellHoehe + zeilenLuecke);
-      const w = Math.max(1, zellBreite - 1);
-      kalender._zellen.push({ tag: d, x: x, y: y, b: zellBreite, h: zellHoehe + zeilenLuecke });
-      ctx.fillStyle = d <= jetzt ? (KAL_FARBE[bewertung[d]] || KAL_FARBE.offen) : KAL_FARBE.offen;
-      ctx.fillRect(x, y, w, zellHoehe);
-      /* Der aktuelle Tag behaelt seine Bewertungsfarbe und bekommt einen hellen Rand. */
-      if (d === jetzt) {
-        ctx.strokeStyle = "#e6edf3";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, w - 1), zellHoehe - 1);
-      }
-    }
-  }
-  /* Laufende Simulation: ein offener Tipp zeigt weiter den Tag unter der Maus. */
-  kalenderTippSetzen();
-}
-
-function zeichneKalenderHerkunft() {
-  const jeMonat = tage => Math.round(tage / KAL_MONATE);
-  document.getElementById("kalenderHerkunft").innerHTML =
-    chipText("kalender", "Zelle = 1 Simulationstag · Zeile = 7 Tage (Woche) · Block = ein Zwölftel der " +
-      zahl(TAGE) + " Tage") +
-    " &nbsp;·&nbsp; Monat = " + zahl(jeMonat(TAGE)) + " Simulationstage " + chip("kalender") +
-    " &nbsp;·&nbsp; kein Kalenderdatum, keine Prognose";
-}
-
 function zeichneSpark() {
   const verlauf = eng.tagesverlauf;
   const tage = Math.max(1, TAGE);
@@ -11011,7 +10818,6 @@ function zeichneSpark() {
     istWert: null, istText: "",     // die Daten kennen keinen Überlauf-Tag
     xAchse: true, tage: tage
   });
-  zeichneKalender();
 }
 
 function zahl(v, n) {
@@ -11287,7 +11093,6 @@ function setzeAnsicht(kino) {
   if (kino) {
     zeichneBuehneTitel();
     sparkGroesseVergessen();   // Panels waren versteckt, jetzt ist das Layout messbar
-    kalenderVergessen();
     starteVorschau();          // nie auf ein leeres Bild schauen
     markiereSchmutzig();
   } else {
@@ -12043,21 +11848,6 @@ function simSchreibe() {
   });
 }
 
-/* Hover ueber dem Kalender: Zelle suchen, Tipp setzen. Nur gelaufene Tage haben
-   einen Eintrag im Tagesverlauf; kuenftige Tage bleiben ohne Tipp. */
-kalender.addEventListener("mousemove", function (ev) {
-  const zellen = kalender._zellen;
-  if (!zellen || !zellen.length) return;
-  const r = kalender.getBoundingClientRect();
-  const mx = ev.clientX - r.left, my = ev.clientY - r.top;
-  const z = zellen.find(c => mx >= c.x && mx < c.x + c.b && my >= c.y && my < c.y + c.h);
-  kalenderZeiger = z ? { tag: z.tag, px: ev.clientX, py: ev.clientY } : null;
-  kalenderTippSetzen();
-});
-kalender.addEventListener("mouseleave", function () {
-  kalenderZeiger = null;
-  kalenderTipp.style.display = "none";
-});
 
 wertSetzen();
 zeichneKopf();
@@ -12069,7 +11859,6 @@ document.getElementById("strHilfe").innerHTML =
   chip("ist_rhythmus") + " Beobachteter Rhythmus, kalibriert";
 document.getElementById("ansichtHilfe").innerHTML =
   chip("ring_reihenfolge") + " Farben getrennt";
-zeichneKalenderHerkunft();
 /* Herkunftsmarker der Steuerleiste aus meta.herkunft setzen.
    Vertrag 7.1: kein Chip steht von Hand im HTML. Unbekannte Groesse fällt auf S. */
 document.querySelectorAll("[data-herk]").forEach(function (el) {
