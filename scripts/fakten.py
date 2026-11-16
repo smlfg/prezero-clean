@@ -99,7 +99,7 @@ f_oos_zens = pd.Series(np.where(~te_all.ueber, (te_all.pred_tr_clip - te_all.p).
 print(f"Out-of-Sample inkl. zensiert (n={len(te_all)}): mittlerer Fehler", round(f_oos_zens.mean(), 1), "Pp | Median:", round(f_oos_zens.median(), 1), "| P90:", round(f_oos_zens.quantile(.9), 1), "| <= 10 Pp:", f"{(f_oos_zens <= 10).mean():.1%}")
 d_fol = x[x.abstand > 0].join(r_full, on=["Location_id", "material_type"])
 print("Überlauf-Quote auf Folgemessungen (n=10363): Daten", f"{d_fol.ueber.mean():.1%}", "| Modell >=100%:", f"{(d_fol.rate_med * d_fol.abstand >= 100).mean():.1%}", "| Modell >100%:", f"{(d_fol.rate_med * d_fol.abstand > 100).mean():.1%}", "| Modell >110%:", f"{(d_fol.rate_med * d_fol.abstand > 110).mean():.1%}")
-print("Bilanztest-Grenzwerte (AGENTS.md §4): In-Sample Median <= 10.0 Pp, P90 <= 37.0 Pp, Mittel <= 15.0 Pp | Backtest Median <= 16.0 Pp, P90 <= 50.0 Pp.")
+print("Bilanztest-Grenzwerte (AGENTS.md §4): In-Sample Median <= 10.0 Pp, P90 <= 37.0 Pp, Mittel <= 14.0 Pp | Backtest Median <= 16.0 Pp, P90 <= 50.0 Pp.")
 
 h("7 Container-Cluster nach Rhythmus (Tag <=1d, Woche 2-7d, Monat 8-30d, Quartal 31-90d, >Quartal >90d)")
 v_ueber = d.groupby(["Location_id", "date"]).agg(hat_ueber=("ueber", "any"), max_p=("p", "max")).reset_index().sort_values(["Location_id", "date"])
@@ -232,3 +232,221 @@ for name, pred in [
 ]:
     e = (pred - paare.p).abs()
     print(f"{name}: Median-Fehler {e.median():.1f} Pp | Mittel {e.mean():.1f} Pp | <= 10 Pp: {(e <= 10).mean():.1%}")
+
+h("10 Saisonalität der Füllrate (A2-Jahreskonstanz prüfen)")
+sa = ok[ok.rate_med > 0].copy()
+print("Basis: Abschnitt 6 (numerische Folgemessungen, Zeilen ohne Container-Rate entfernt):", len(sa))
+sa["rel"] = sa.rate / sa.rate_med
+sa["monat"] = sa.date.dt.month
+m10 = sa.groupby("monat", observed=True).agg(
+    n=("rel", "size"),
+    median_rel=("rel", "median"),
+    q10=("rel", lambda s: s.quantile(0.10)),
+    q90=("rel", lambda s: s.quantile(0.90)),
+)
+print("Relative Rate je Monat (1,0 = Jahresmedian desselben Containers):\n" + m10.round(3).to_string())
+print("Spanne der Monats-Mediane:", round(m10.median_rel.min(), 3), "bis", round(m10.median_rel.max(), 3))
+sa["wt"] = sa.date.dt.day_of_week
+wt10 = sa.groupby("wt", observed=True).agg(n=("rel", "size"), median_rel=("rel", "median"))
+print("Relative Rate je Wochentag (0 = Montag):\n" + wt10.round(3).to_string())
+print("Befund: Monats-Mediane bleiben nahe 1,0 — kein messbarer Jahresgang (Okt nur Randmonat, Sa wenig n). "
+      "A2-Jahreskonstanz gestützt; Saisonalität bleibt unmodelliert.")
+
+h("11 Reparatur-Diagnose: MAE je Farbe und Fehler nach Abstandsklasse (nur Messung, kein Modellwechsel)")
+ok["fehler"] = (ok["pred"] - ok["p"]).abs()
+ok["rel"] = ok["rate"] / ok["rate_med"]
+print("Referenz: Gesamt-MAE (Abschnitt 6):", round(ok.fehler.mean(), 1), "Pp bei n =", len(ok))
+f11 = ok.groupby("material_type", observed=True).agg(
+    n=("fehler", "size"),
+    mae=("fehler", "mean"),
+    median_fehler=("fehler", "median"),
+    anteil_gesamt_mae=("fehler", lambda s: s.sum() / ok.fehler.sum()),
+    pred_mittel=("pred", "mean"),
+    echt_mittel=("p", "mean"),
+)
+print("(a) Fehler je Farbe — pred_mittel > echt_mittel heisst: Modell sagt zu viel Fuellung voraus:\n"
+      + f11.round(2).to_string())
+g11 = ok.groupby("klasse", observed=True).agg(
+    n=("fehler", "size"),
+    mae=("fehler", "mean"),
+    median_fehler=("fehler", "median"),
+    median_rel=("rel", "median"),
+)
+print("(b) Fehler und relative Rate nach Abstandsklasse (rel = rate / rate_med desselben Containers;\n"
+      "     median_rel deutlich ueber 1 bei kurzen Abstaenden = Auswahleffekt im Fehler):\n"
+      + g11.round(3).to_string())
+
+h("12 Schätzer-Vergleich: Rate aus Quotienten-Median vs. Poolung (Messung, kein Modellwechsel)")
+print("Hintergrund (Owner 2026-11-16): Der reale Plan ist eine dumm feste Route — Besuche reagieren")
+print("nicht auf den Füllstand. Die Rate-Abstand-Korrelation (Abschnitt 11b) ist damit Beobachtungs-")
+print("Artefakt (10er-Quantisierung bei kurzen Abständen), keine Füllsteuerung. Der Schätzer ist verdächtig, nicht die Dynamik.")
+kurz = sa[sa.abstand <= 7]
+print("Quantiserungs-Floor: Median p bei Abstand <=7d:", kurz.p.median(), "% | min:", kurz.p.min(), "% | Anteil p == 10:", f"{(kurz.p == 10).mean():.1%}")
+CUTOFF = pd.Timestamp("2026-04-09")            # Backtest-Grenze wie AGENTS.md §4.4
+train = sa[sa.date <= CUTOFF]
+test = sa[sa.date > CUTOFF]
+print("Schätzer jeweils NUR aus Trainingszeilen (<= 2026-04-09); n Train:", len(train), "| n Test:", len(test))
+def bewerte(rate_map, name):
+    r = sa.join(rate_map.rename("rate_est"), on=["Location_id", "material_type"])
+    ohne = r.rate_est.isna().sum()
+    r = r.dropna(subset=["rate_est"]).copy()
+    r["pred"] = (r.rate_est * r.abstand).clip(upper=100)
+    r["fehler"] = (r["pred"] - r.p).abs()
+    ins = r[r.date <= CUTOFF].fehler
+    oos = r[r.date > CUTOFF].fehler
+    print(f"{name}: Container mit Rate {r.groupby(['Location_id','material_type']).ngroups} | ohne Rate {ohne} | "
+          f"In-Sample MAE {ins.mean():.1f} | OOS MAE {oos.mean():.1f} | OOS Median {oos.median():.1f} | OOS P90 {oos.quantile(.9):.1f}")
+bewerte(train.groupby(["Location_id", "material_type"]).rate.median(), "A Median der Quotienten (heutiges Modell)")
+pooled = train.groupby(["Location_id", "material_type"]).apply(lambda g: g.p.sum() / g.abstand.sum(), include_groups=False)
+bewerte(pooled, "B Poolung sum(p)/sum(abstand)")
+ohne_kurz = train[train.abstand > 7].groupby(["Location_id", "material_type"]).rate.median()
+bewerte(ohne_kurz, "C Median der Quotienten ohne Abstand <=7d")
+ohne_lang = train[train.abstand <= 60].groupby(["Location_id", "material_type"]).rate.median()
+bewerte(ohne_lang, "D Median der Quotienten ohne Abstand >60d")
+
+h("12.1 Feinsplit kurze Abstände: Wird bei kurzen Abständen überhaupt geleert? (Messung)")
+fs = sa[sa.abstand <= 7].copy()
+fs["gap"] = pd.cut(fs.abstand, [0, 1, 2, 3, 5, 7], labels=["1", "2", "3", "4-5", "6-7"])
+t121 = fs.groupby("gap", observed=True).agg(
+    n=("p", "size"),
+    median_p=("p", "median"),
+    p10_p=("p", lambda s: s.quantile(0.1)),
+    anteil_p_unter_20=("p", lambda s: (s < 20).mean()),
+    median_rate=("rate", "median"),
+    median_rate_med=("rate_med", "median"),
+)
+print("Kurze Abstände im Detail (rate = p/abstand, rate_med = Container-Median):\n" + t121.round(2).to_string())
+print("Anteil kurzer Abstände mit p >= 30 % (unter A4+A2 mit Rate ~2,1 %/Tag kaum erklärbar):", f"{(fs.p >= 30).mean():.1%}")
+
+h("12.2 Schätzer auf allen Zeilen (Semantik wie Bilanztest In-Sample) und OOS (Train-Zeitraum)")
+def bewerte_full(rate_map, name):
+    r = sa.join(rate_map.rename("rate_est"), on=["Location_id", "material_type"])
+    ohne = int(r.rate_est.isna().sum())
+    r = r.dropna(subset=["rate_est"]).copy()
+    r["pred"] = (r.rate_est * r.abstand).clip(upper=100)
+    r["fehler"] = (r["pred"] - r.p).abs()
+    print(f"{name}: ohne Rate {ohne} | MAE über alle Zeilen {r.fehler.mean():.1f} | Median {r.fehler.median():.1f} | P90 {r.fehler.quantile(.9):.1f} (n={len(r)})")
+bewerte_full(sa.groupby(["Location_id", "material_type"]).rate.median(), "A Median der Quotienten (heutiges Modell)")
+bewerte_full(sa[sa.abstand > 7].groupby(["Location_id", "material_type"]).rate.median(), "C Median ohne <=7d (Fallback fehlender Container: ausgeschlossen)")
+ohne_kurz_fb = sa[sa.abstand > 7].groupby(["Location_id", "material_type"]).rate.median()
+bewerte_full(ohne_kurz_fb.combine_first(sa.groupby(["Location_id", "material_type"]).rate.median()), "C2 Median ohne <=7d, Fallback: Median aller Quotienten")
+
+h("12.3 Erreichbarkeits-Schranke: Wie tief kann MAE in der Klasse 'eine Rate je Container' überhaupt? (Messung)")
+print("Hintergrund: Owner 2026-11-16: 'Leert immer' — A1 exakt. Kurz-Abstand-Zeilen sind Anomalien oder")
+print("Rate-Spitzen, nicht Nicht-Leerungen. Frage: Welches MAE-Minimum hat die Modellklasse 'konstante Rate je Container+Farbe'?")
+def bestes_k():
+    p_ = sa.p.to_numpy(); g_ = sa.abstand.to_numpy(); r_ = sa.rate_med.to_numpy()
+    best = None
+    for k in np.arange(0.50, 1.51, 0.01):
+        pred = np.clip(k * r_ * g_, 0, 100)
+        mae = np.abs(pred - p_).mean()
+        if best is None or mae < best[1]: best = (round(float(k), 2), float(mae))
+    return best
+k, mae_k = bestes_k()
+print(f"Globale Skala k*: {k} -> MAE {mae_k:.1f} Pp (pred = clip(k * rate_med * abstand, 0, 100))")
+ora = sa.groupby(["Location_id", "material_type"]).apply(
+    lambda g: np.min([np.abs(np.clip(r * g.abstand.to_numpy(), 0, 100) - g.p.to_numpy()).mean()
+                      for r in np.arange(0.05, 6.01, 0.05)]), include_groups=False)
+mae_oracle = ora.mean()
+print(f"Oracle je Container (beste Rate pro Container, in-sample geschummelt — untere Schranke der Klasse): MAE {mae_oracle:.1f} Pp")
+print("Lesart: Auch das betrügerisch optimale 'eine Rate je Container' liegt bei "
+      f"{mae_oracle:.1f} Pp. Alles darüber braucht mehr als eine konstante Rate je Container.")
+
+h("12.4 MAE-optimaler Schätzer: abstandsgewichteter Median (Gewicht = Abstand) — Messung vor dem Wechsel")
+print("Begründung: min_r sum |r*gap_i - p_i| wird vom gewichteten Median der Quotienten (Gewicht gap_i) gelöst.")
+print("Das ist der MAE-optimale Schätzer INNERHALB der Klasse 'eine Rate je Container' — kein Tuning, geschlossene Lösung.")
+def wmedian(g, wert, gewicht):
+    g = g.sort_values(wert)
+    w = g[gewicht].to_numpy()
+    cw = np.cumsum(w)
+    return float(g[wert].to_numpy()[np.searchsorted(cw, cw[-1] / 2)])
+def rate_wmed(dfr):
+    return dfr.groupby(["Location_id", "material_type"]).apply(
+        lambda g: wmedian(g[["rate", "abstand"]], "rate", "abstand"), include_groups=False)
+def bewerte_map(rate_map, name):
+    r = sa.join(rate_map.rename("rate_est"), on=["Location_id", "material_type"])
+    ohne = int(r.rate_est.isna().sum())
+    r = r.dropna(subset=["rate_est"]).copy()
+    r["pred"] = (r.rate_est * r.abstand).clip(upper=100)
+    r["fehler"] = (r["pred"] - r.p).abs()
+    print(f"{name}: ohne Rate {ohne} | MAE alle Zeilen {r.fehler.mean():.1f} | Median {r.fehler.median():.1f} | "
+          f"P90 {r.fehler.quantile(.9):.1f} | OOS MAE {r[r.date > CUTOFF].fehler.mean():.1f} "
+          f"| OOS Median {r[r.date > CUTOFF].fehler.median():.1f} | OOS P90 {r[r.date > CUTOFF].fehler.quantile(.9):.1f}")
+bewerte_map(rate_wmed(sa), "E gewichteter Median, alle Zeilen (In-Sample-Semantik wie Bilanztest)")
+bewerte_map(rate_wmed(train), "E2 gewichteter Median, nur Trainingszeitraum")
+bewerte_map(train.groupby(["Location_id", "material_type"]).rate.median(), "Referenz A2: ungewichteter Median, nur Train")
+
+h("12.5 Clipping-bewusster MAE-Schätzer: pro Container die Rate mit minimalem MAE (gleiche Fit-Semantik wie der Median)")
+print("Gleiches Anpassungsniveau wie rate_med: ein Parameter je Container, gefittet auf den eigenen Zeilen.")
+print("Unterschied zur Referenz: Verlustfunktion MAE mit Clip bei 100 statt Median der Quotienten.")
+def rate_mae_opt(dfr):
+    def eins(g):
+        g_ = np.arange(0.05, 6.001, 0.05)
+        p = g.p.to_numpy(); ab = g.abstand.to_numpy()
+        maes = [np.abs(np.clip(r * ab, 0, 100) - p).mean() for r in g_]
+        return float(g_[int(np.argmin(maes))])
+    return dfr.groupby(["Location_id", "material_type"]).apply(eins, include_groups=False)
+bewerte_map(rate_mae_opt(sa), "F MAE-optimal je Container, alle Zeilen (In-Sample-Semantik wie Bilanztest)")
+bewerte_map(rate_mae_opt(train), "F2 MAE-optimal je Container, nur Trainingszeitraum")
+
+h("13 Diagnose Schätzer-Wechsel: Warum erzeugt der MAE-Fit mehr Überlauf? (Messung)")
+import sys as _sys
+_sys.path.insert(0, "src")
+from modell import rate_mae_fit  # noqa: E402
+rate_fit_map = ok.groupby(["Location_id", "material_type"]).apply(
+    lambda g: rate_mae_fit(g.p.to_numpy(dtype=float), g.abstand.to_numpy(dtype=float)),
+    include_groups=False,
+)
+cmp13 = ok.join(rate_fit_map.rename("rate_fit"), on=["Location_id", "material_type"])
+cmp13["hoeher"] = cmp13.rate_fit > cmp13.rate_med
+print(f"(a) rate_fit vs. rate_med (Median der Quotienten): Median rate_fit {cmp13.rate_fit.median():.2f} "
+      f"vs. rate_med {cmp13.rate_med.median():.2f} | P90 {cmp13.rate_fit.quantile(.9):.2f} vs. "
+      f"{cmp13.rate_med.quantile(.9):.2f} | Anteil Container mit rate_fit > rate_med: {cmp13.groupby(['Location_id','material_type']).hoeher.first().mean():.1%}")
+for est, col in [("rate_med", "pred_m"), ("rate_fit", "pred_f")]:
+    cmp13[col] = (cmp13[est] * cmp13.abstand)
+folge13 = cmp13[cmp13.abstand > 0]
+print(f"(b) Überlauf-Quote auf Folgemessungen (pred_raw > 110): Median-Schätzer "
+      f"{(folge13.pred_m > 110).mean():.1%} | MAE-Fit {(folge13.pred_f > 110).mean():.1%} | Daten {folge13.ueber.mean():.1%}")
+q13 = folge13.groupby("material_type", observed=True).agg(
+    ueber_daten=("ueber", "mean"),
+    ueber_med=("pred_m", lambda s: (s > 110).mean()),
+    ueber_fit=("pred_f", lambda s: (s > 110).mean()),
+)
+print("(c) je Farbe:\n" + q13.round(3).to_string())
+d13 = folge13[folge13.ueber].copy()
+d13["med_ge_100"] = d13.pred_m >= 100
+d13["fit_ge_100"] = d13.pred_f >= 100
+print(f"(d) Auf echten Überlauf-Zeilen (n={len(d13)}): pred>=100 Median-Schätzer {d13.med_ge_100.mean():.1%} "
+      f"| MAE-Fit {d13.fit_ge_100.mean():.1%}")
+n13 = folge13[~folge13.ueber]
+print(f"(e) Auf numerischen Folgemessungen (n={len(n13)}): falsch >110 Median-Schätzer "
+      f"{(n13.pred_m > 110).mean():.1%} | MAE-Fit {(n13.pred_f > 110).mean():.1%}")
+
+h("13.1 Mechanismus: Inflationiert die Gratis-Plattform bei p nahe 100 den MAE-Fit? (Messung)")
+print("Hintergrund: |clip(r*dt,0,100) - p| ist fuer p=100 fuer ALLE r >= 100/dt exakt 0 —")
+print("hohe Raten kosten an solchen Zeilen nichts, waehrend der Median durch Quotienten beschraenkt bleibt.")
+rows_hi = cmp13[cmp13.p >= 90]
+print(f"Anteil numerischer Zeilen mit p >= 90: {len(rows_hi)/len(cmp13):.1%} (n={len(rows_hi)}); p == 100 exakt: {(cmp13.p == 100).mean():.2%}")
+grp13 = cmp13.groupby(["Location_id", "material_type"]).agg(
+    rate_fit=("rate_fit", "first"), rate_med=("rate_med", "first"),
+    anteil_p90=("p", lambda s: (s >= 90).mean()),
+)
+grp13["inflation"] = grp13.rate_fit / grp13.rate_med
+b13 = grp13.groupby(pd.cut(grp13.anteil_p90, [-0.01, 0.001, 0.2, 0.5, 1.0],
+                           labels=["keine p>=90", "0-20 %", "20-50 %", ">50 %"]), observed=True).agg(
+    n=("inflation", "size"),
+    median_inflation=("inflation", "median"),
+    anteil_inflationiert=("inflation", lambda s: (s > 1.2).mean()),
+)
+print("(a) Inflation (rate_fit/rate_med) nach Anteil p>=90-Zeilen im Container:\n" + b13.round(2).to_string())
+
+h("13.2 Ist die exakte 100-Lesung eine verdeckte Zensierung? (Messung, kein Modellwechsel)")
+p_v = cmp13.p.value_counts().sort_index(ascending=False)
+print("(a) Top-Fuellstaende nach Haeufigkeit (Anteil an 9.206 numerischen Zeilen):")
+print((p_v.head(8) / len(cmp13)).round(4).to_string())
+hi = cmp13[cmp13.p >= 90]
+print(f"(b) Abstand-Median: p==100-Zeilen {cmp13[cmp13.p == 100].abstand.median():.0f} Tage "
+      f"| p in 80-90 {cmp13[(cmp13.p >= 80) & (cmp13.p < 90)].abstand.median():.0f} | p < 80 {cmp13[cmp13.p < 80].abstand.median():.0f}")
+p100 = cmp13[cmp13.p == 100]
+print(f"(c) p==100-Zeilen mit Modell-pred (rate_med*abstand) < 100: {(p100.pred_m < 100).mean():.1%} "
+      f"(n={len(p100)}) — unter A1/A2 waeren diese Lesungen ohne Zensierungs-Lesart 'zu voll'")

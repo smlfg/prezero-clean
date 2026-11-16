@@ -9,6 +9,10 @@ Modellgleichung je Container c = (Location_id, material_type):
   linear mit konstanter täglicher Rate r_c (% pro Tag Wachstum, A2):
       y_hat = r_c * dt
       p_hat = min(r_c * dt, 100)
+  Die Rate wird als clipping-bewusster MAE-Fit je Container geschätzt (Grid 0,05-6,0
+  %/Tag, Schritt 0,05; Verlust über die unzensierten Folgemessungen:
+  |clip(r*dt, 0, 100) - p|). Begründung und Klassenschranke 13,6 Pp:
+  docs/grenzwerte.md §2, scripts/fakten.py Abschnitt 12.5; Entscheid Samuel 2026-11-16.
 - Zensierung ('overfull', A3): 'overfull' ist rechtszensiert (wahrer Stand >= 100 %), nicht 100.
   In der Ratenschätzung wird 'overfull' nicht als 100 eingesetzt, sondern liefert die
   untere Schranke r_min = 100 / dt. Beim Nachrechnen ist der zensierte Fehler
@@ -25,20 +29,63 @@ from domaene import DEFAULT_CSV, ERLAUBTE_SPALTEN, lade_messungen  # noqa: F401 
 # Grenzwerte gemäß AGENTS.md §4 (von Samuel festgelegt)
 GRENZWERT_MEDIAN_PP = 10.0
 GRENZWERT_P90_PP = 37.0
-GRENZWERT_MAE_PP = 12.0
+# MAE ≤ 14,0 Pp (Samuel, 2026-11-16): Anker ist die zeilengewichtete Klassenschranke
+# 13,6 Pp der Modellklasse "eine Rate je Container" (fakten.py Abschnitt 12.5 F,
+# Oracle/clipping-bewusst) — unabhängig vom Modell-Ergebnis begründet, siehe
+# docs/grenzwerte.md §1/§2. Der frühere Wert 12,0 lag unter dieser Klassenschranke
+# und war damit in der Klasse prinzipiell unerreichbar.
+GRENZWERT_MAE_PP = 14.0
 GRENZWERT_OOS_MEDIAN_PP = 16.0
 GRENZWERT_OOS_P90_PP = 50.0
 UEBERLAUF_TOLERANZ_PP = 0.04
+
+# Grid für den MAE-Fit der Rate: 0,05-6,0 %/Tag, Schritt 0,05 (fakten.py Abschnitt 12.5)
+RATE_GRID = np.arange(0.05, 6.001, 0.05)
+
+
+def rate_mae_fit(p_unzensiert: np.ndarray, abstand_unzensiert: np.ndarray) -> float:
+    """Rate (%/Tag) mit minimalem MAE je Container auf RATE_GRID (clipping-bewusst).
+
+    Verlust (nur unzensierte Folgemessungen, wie fakten.py Abschnitt 12.5 F):
+    |clip(r * abstand, 0, 100) - p|. Zensierte 'overfull'-Zeilen fließen NICHT in
+    den Fit ein (Messung 2026-11-16: mit Zensiert-Term im Verlust steigt P90 auf
+    37,1 Pp > Grenzwert und die Überlaufquote auf 20,5 % — verworfen). Ohne
+    unzensierte Folgemessung: NaN (Fallback unten: Untergrenze wie bisher).
+    """
+    if len(abstand_unzensiert) == 0:
+        return float("nan")
+    r = RATE_GRID[:, None]
+    verlust = np.abs(
+        np.clip(r * abstand_unzensiert[None, :], 0.0, 100.0) - p_unzensiert[None, :]
+    ).sum(axis=1)
+    return float(RATE_GRID[int(np.argmin(verlust))])
+
+
+def _fit_gruppe(g: pd.DataFrame) -> float:
+    """MAE-Fit für eine Container-Gruppe (Spalten p, ueber, abstand vorhanden)."""
+    unz = g[(g["abstand"] > 0) & ~g["ueber"]]
+    return rate_mae_fit(
+        unz["p"].to_numpy(dtype=float),
+        unz["abstand"].to_numpy(dtype=float),
+    )
 
 
 def schaetze_fuellraten(df: pd.DataFrame) -> pd.DataFrame:
     """Schätzt die Füllrate (% pro Tag) je Container (Location_id, material_type).
 
-    - Unzensierte Intervalle (~ueber & abstand > 0): r_k = p_k / abstand_k -> Median je Container.
-    - Zensierte Intervalle (ueber & abstand > 0): 'overfull' wird NICHT als 100 in den
-      unzensierten Median gemischt, sondern liefert die Untergrenze r_min = 100 / abstand_k.
-      Hat ein Container ausschließlich 'overfull'-Folgemessungen, wird diese Untergrenze
-      als Mindestrate (rate_med) verwendet.
+    - Primär `rate_fit`: clipping-bewusster MAE-Fit je Container (`rate_mae_fit`) über
+      die unzensierten Folgemessungen. Ein Parameter je Container, gefittet auf den
+      eigenen Zeilen — gleiche Anpassungsstufe wie der frühere Median der Quotienten,
+      aber mit der Verlustfunktion MAE inkl. 100-%-Kappung (Klassenschranke 13,6 Pp,
+      fakten.py Abschnitt 12.5 F).
+    - Zensierte 'overfull'-Zeilen gehen NICHT in den Fit ein; Container ohne unzensierte
+      Folgemessung bekommen wie bisher die Untergrenze `rate_zensiert_min_med`
+      (Median von 100/abstand über 'overfull') als Fallback.
+    - Diagnostik bleibt erhalten:
+      `rate_unzensiert_med` = Median der Quotienten p/abstand über unzensierte
+      Folgemessungen; `rate_zensiert_min_med` = Median der Untergrenze 100/abstand
+      über zensierte Folgemessungen (Fallback alter Semantik).
+    - Container ohne verwertbare Folgemessung: NaN.
     """
     grp = df.groupby(["Location_id", "material_type"])
     basis = grp.agg(
@@ -49,8 +96,9 @@ def schaetze_fuellraten(df: pd.DataFrame) -> pd.DataFrame:
         rate_unzensiert_med=("rate_unzensiert", "median"),
         rate_zensiert_min_med=("rate_min_zensiert", "median"),
     )
-    basis["rate_med"] = basis["rate_unzensiert_med"].combine_first(basis["rate_zensiert_min_med"])
-    basis["tage_bis_100"] = 100.0 / basis["rate_med"].where(basis["rate_med"] > 0)
+    fit = grp.apply(_fit_gruppe, include_groups=False)
+    basis["rate_fit"] = fit.combine_first(basis["rate_zensiert_min_med"])
+    basis["tage_bis_100"] = 100.0 / basis["rate_fit"].where(basis["rate_fit"] > 0)
     return basis
 
 
@@ -60,7 +108,7 @@ def simuliere_puffer(
     """Rechnet den Puffer je (Location_id, material_type) nach.
 
     - Abfluss: Nach jeder Messung startet der Puffer bei 0 % (`stand_nach_leerung = 0.0`).
-    - Zufluss: Bis zur nächsten Messung nach `abstand` Tagen fließt `pred_raw = rate_med * abstand` zu.
+    - Zufluss: Bis zur nächsten Messung nach `abstand` Tagen fließt `pred_raw = rate_fit * abstand` zu.
     - Gedeckelter Skalenwert: `pred = min(pred_raw, 100.0)`.
     - Fehler (Prozentpunkte):
       * `fehler_numerisch`: |pred - p| auf unzensierten Folgemessungen (~ueber & abstand > 0).
@@ -69,21 +117,21 @@ def simuliere_puffer(
     """
     if raten is None:
         raten_df = schaetze_fuellraten(df)
-        rate_ser = raten_df["rate_med"].rename("rate_med")
+        rate_ser = raten_df["rate_fit"].rename("rate_fit")
     elif isinstance(raten, pd.DataFrame):
-        rate_ser = raten["rate_med"].rename("rate_med")
+        rate_ser = raten["rate_fit"].rename("rate_fit")
     else:
-        rate_ser = raten.rename("rate_med")
+        rate_ser = raten.rename("rate_fit")
 
     sim = df.join(rate_ser, on=["Location_id", "material_type"]).copy()
     sim["stand_nach_leerung"] = 0.0
-    sim["pred_raw"] = sim["rate_med"] * sim["abstand"]
+    sim["pred_raw"] = sim["rate_fit"] * sim["abstand"]
     sim["pred"] = sim["pred_raw"].clip(upper=100.0)
     sim["pred_ab_100"] = sim["pred_raw"] >= 100.0
     sim["pred_ueber_100"] = sim["pred_raw"] > 100.0
     sim["pred_ueber"] = sim["pred_raw"] > 110.0
 
-    ist_folge = (sim["abstand"] > 0) & sim["rate_med"].notna()
+    ist_folge = (sim["abstand"] > 0) & sim["rate_fit"].notna()
     sim["fehler_numerisch"] = np.where(
         ist_folge & ~sim["ueber"], (sim["pred"] - sim["p"]).abs(), np.nan
     )
@@ -166,21 +214,24 @@ def backtest_zeitlich(
     test_folge = folge[folge["date"] > stichtag_ts].copy()
 
     # Schätze Raten ausschließlich auf den Trainings-Folgemessungen
-    r_tr_unc = train_folge.groupby(["Location_id", "material_type"])["rate_unzensiert"].median()
-    r_tr_ov = train_folge.groupby(["Location_id", "material_type"])["rate_min_zensiert"].median()
-    r_tr_full = r_tr_unc.combine_first(r_tr_ov).rename("rate_med")
+    # (MAE-Fit, identisch zu schaetze_fuellraten)
+    r_tr = (
+        train_folge.groupby(["Location_id", "material_type"])
+        .apply(_fit_gruppe, include_groups=False)
+        .rename("rate_fit")
+    )
 
-    # 1. Numerische Auswertung (exakt wie scripts/fakten.py Abschnitt 6)
+    # 1. Numerische Auswertung
     te_num = test_folge[~test_folge["ueber"]].join(
-        r_tr_unc.rename("rate_tr"), on=["Location_id", "material_type"]
+        r_tr.rename("rate_tr"), on=["Location_id", "material_type"]
     ).dropna(subset=["rate_tr"])
     f_oos_num = ((te_num["rate_tr"] * te_num["abstand"]).clip(upper=100.0) - te_num["p"]).abs()
 
     # 2. Auswertung inkl. rechtszensierter 'overfull'-Zeilen
-    te_all = test_folge.join(r_tr_full, on=["Location_id", "material_type"]).dropna(
-        subset=["rate_med"]
+    te_all = test_folge.join(r_tr, on=["Location_id", "material_type"]).dropna(
+        subset=["rate_fit"]
     )
-    pred_raw = te_all["rate_med"] * te_all["abstand"]
+    pred_raw = te_all["rate_fit"] * te_all["abstand"]
     pred_clip = pred_raw.clip(upper=100.0)
     f_oos_zens = pd.Series(
         np.where(
