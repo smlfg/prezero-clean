@@ -962,7 +962,7 @@ function drehbuchAnzeigen(d) {
   if (lkw.vorschau_bild) {
     /* Der Pfad im Drehbuch ist relativ zum Repo-Wurzelverzeichnis; diese Seite
        liegt in sim/. Der Prefix "../" gilt fuer file:// und fuer HTTP gleich. */
-    const pfad = "../" + String(lkw.vorschau_bild).replace(/^\\.\\//, "");
+    const pfad = "../" + String(lkw.vorschau_bild).replace(/^\.\//, "");
     bild = '<img class="dzBild" src="' + pfad + '" alt="Vorschau: ' +
            (lkw.name || "LKW") + '">';
   } else {
@@ -1175,7 +1175,15 @@ function loop(ts) {
   simSchreibe();
 
   /* Layout steht noch nicht (Canvas war 0 breit) -> nochmal versuchen. */
-  if (!buehneCache) { schmutzig = true; fordertFrameAn(); return; }
+  /* Buehne nicht laid out: nur dann neu anfordern, wenn sie sichtbar ist.
+     In der Parameter-Ansicht ist der Canvas display:none (clientWidth 0);
+     ein sofortiges Wiederanfordern erzeugte dort einen 60-fps-Leerlauf
+     ohne jeden Zeichenaufruf (dauerhafte GPU-Last im Stand).
+     Sichtbar wird sie ueber setzeAnsicht() -> markiereSchmutzig() bzw. resize. */
+  if (!buehneCache) {
+    if (!ring.offsetParent) return;
+    schmutzig = true; fordertFrameAn(); return;
+  }
 
   if (bewegt) fordertFrameAn();         // naechsten Frame planen
 }
