@@ -20,11 +20,14 @@ ROOT = Path(__file__).resolve().parents[1]
 JSON_DATEI = ROOT / "data" / "derived" / "orte.json"
 
 PERIODE_OHNE_GAP = 348.0   # Ort mit nur einem Besuch: einmal im Fenster
-K0 = 12.8                  # Stopps/Tag im Ist-Durchsatz (4.468 Besuche / 348 Tage)
-S0 = 5.0                   # Abstandseinheiten zwischen benachbarten Orten im Ist-Fall
 WARMLAUF = 90              # Tage ohne Zaehlung
 TAGE = 348                 # Messfenster
 VOLL = 100.0               # >= 100 % gilt als voll/uebervoll (Daten: zensiertes 'overfull')
+
+# Ist-Durchsatz und Ausgangsabstand kommen aus data/derived/orte.json (meta),
+# nicht aus fest verdrahteten Zahlen. Ohne Daten: die dokumentierten Ausgangswerte.
+K0_DEFAULT = 12.8          # Stopps/Tag im Ist-Durchsatz (4.468 Besuche / 348 Tage)
+S0_DEFAULT = 5.0           # Abstandseinheiten zwischen benachbarten Orten im Ist-Fall
 
 
 def lade() -> dict:
@@ -48,6 +51,8 @@ def lade() -> dict:
 
     return {"ids": [o["id"] for o in orte], "rate": rate, "gap": gap, "periode": periode,
             "faktor": faktor, "besuche_pro_tag": besuche_pro_tag,
+            "k0": float(meta.get("k0_pro_tag", K0_DEFAULT)),
+            "s0": float(meta.get("s0", S0_DEFAULT)),
             "anzahl_container": [len(o["container"]) for o in orte], "meta": meta}
 
 
@@ -63,7 +68,7 @@ def run(s: float = 5.0, m: int = 1, strategie: str = "ist", schwelle: float = 80
     for i, c in enumerate(d["anzahl_container"]):
         gueltig[i, :c] = True
     budget = 0.0
-    k_ges = m * K0 * S0 / s
+    k_ges = m * d["k0"] * d["s0"] / s
     naechste = np.array([i * periode[i] / n for i in range(n)], dtype=float)
 
     leerungen = 0

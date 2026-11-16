@@ -6,7 +6,13 @@ Sauberer Neustart: Analyse und Simulation der PreZero-Glascontainer, nur mit den
 
 Python-Projekt mit Fakten-Skript, Domänen- und Puffer-Modell, Tests, Diagnose-Bildern und einem lokalen Simulations-Kino. Die Roh-CSV ist nicht Bestandteil des öffentlichen Repositories. Sie kann vertraulich sein und muss lokal unter `data/raw/glass_fill_levels_anonymized_f.csv` liegen (siehe `.gitignore`).
 
-Es gibt keine öffentlich gehostete Demo. Das Simulations-Kino ist die lokale Datei `sim/kino.html` und ist als Simulation gekennzeichnet, nicht als Messergebnis (`docs/KINO_VERTRAG.md`).
+## Live-Stand
+
+Das Simulations-Kino ist über GitHub Pages erreichbar:
+
+<https://smlfg.github.io/prezero-clean/sim/kino.html>
+
+Ausgeliefert wird `origin/master` → `sim/kino.html`; lokale Änderungen, die noch nicht nach GitHub übertragen sind, dort nicht sichtbar. Die Seite ist als Simulation gekennzeichnet, nicht als Messergebnis (`docs/KINO_VERTRAG.md`).
 
 ## Schnellstart
 
@@ -60,6 +66,19 @@ python scripts/bilder.py
 Die vier Diagnose-Bilder `bilder/01_mechanismus.png`, `02_alle_orte.png`, `03_einheit.png` und `04_takt.png` entstehen aus denselben Daten. Erklärung: `bilder/LIESMICH.md`. Externe Volumenparameter: `docs/externe_parameter.md`.
 
 Das Simulations-Kino wird mit `scripts/kino_bauen.py` gebaut und lokal in `sim/kino.html` geöffnet.
+
+## Kino
+
+Simulations-Kino (`sim/kino.html`): Füllrate, Abstand und Autoanzahl in Bewegung.
+Jede sichtbare Zahl trägt einen **Herkunftsmarker** — `M` gemessen, `A` abgeleitet,
+`S` gesetzt. Die Marker stehen in `meta.herkunft` (`scripts/sim_daten.py`), nicht im HTML.
+
+```bash
+python scripts/sim_daten.py    # Daten + Herkunftstags
+python scripts/kino_bauen.py   # sim/kino.html bauen
+```
+
+Regeln und Marker-Tabelle: `docs/KINO_VERTRAG.md` Abschnitt 7.
 
 ## Zielzahl
 

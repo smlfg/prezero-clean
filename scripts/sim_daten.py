@@ -15,6 +15,9 @@ Konventionen von scripts/fakten.py:
   (Besuch = Location_id + date), null bei nur einem Besuch.
 - Container ohne verwertbare Rate bekommen rate = null und werden in
   meta.container_ohne_rate gezaehlt.
+- drehbuch: die Szenario-Dateien aus data/derived/drehbuch/*.json werden eingebettet,
+  damit das Kino sie ohne Server laden kann. Das LKW darin ist ein PLATZHALTER
+  (recherchiert, wirkt nicht auf den Lauf).
 
 Aufruf: .venv/bin/python scripts/sim_daten.py [pfad_zur_csv]
 """
@@ -28,9 +31,76 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 CSV = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "data" / "raw" / "glass_fill_levels_anonymized_f.csv"
 OUT = ROOT / "data" / "derived" / "orte.json"
+DREHBUCH_DIR = ROOT / "data" / "derived" / "drehbuch"
 S0 = 5.0
+WARMLAUF = 90  # Tage ohne Zaehlung, gesetzt (siehe docs/KINO_VERTRAG.md)
 
 SPALTEN = ["Location_id", "material_type", "date", "fill_level_perc"]
+
+# Herkunftsmarkierung fuer das Kino. Vier Kategorien, mehr nicht.
+#   M = gemessen   -> steht so in der CSV
+#   A = abgeleitet -> aus Messwerten berechnet, keine Annahme
+#   S = gesetzt    -> Annahme, Modellgroesse, Startwert, Darstellung
+#   R = recherchiert -> externe Quelle mit Wert und Abrufdatum, wirkt nicht auf den Lauf
+KATEGORIEN = {
+    "M": {
+        "code": "M",
+        "kurz": "gemessen",
+        "lang": "Direkt aus der CSV gemessen.",
+    },
+    "A": {
+        "code": "A",
+        "kurz": "abgeleitet",
+        "lang": "Aus den Messwerten berechnet. Keine Annahme, aber keine Messung.",
+    },
+    "S": {
+        "code": "S",
+        "kurz": "gesetzt",
+        "lang": "Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.",
+    },
+    "R": {
+        "code": "R",
+        "kurz": "recherchiert",
+        "lang": "Aus einer externen Quelle mit Abrufdatum. Wirkt nicht auf die Simulation.",
+    },
+}
+
+# Welche Groesse des meta-Blocks welche Herkunft hat. Eine Liste, ein Ort:
+# das Kino liest sie und setzt die Marker - nichts wird im HTML von Hand markiert.
+HERKUNFT_META = {
+    "messungen": "M",
+    "orte": "M",
+    "container": "M",
+    "besuche": "M",
+    "tage": "M",
+    "daten_besuche": "M",
+    "daten_voll_bei_leerung_pct": "M",
+    "daten_overfull_bei_leerung_pct": "M",
+    "daten_mittel_max_bei_leerung_pct": "M",
+    "daten_ueberlauf_messungen_pct": "M",
+    "k0_pro_tag": "A",
+    "kalibrierungsfaktor": "A",
+    "s0": "S",
+}
+
+# Herkunft der Groessen, die nicht im meta-Block stehen, aber im Kino sichtbar sind.
+HERKUNFT_SONSTIGE = {
+    "rate": "A",
+    "gap": "A",
+    "container_ohne_rate": "M",
+    "warmlauf_tage": "S",
+    "stopps_pro_tag_soll": "A",
+    "wegeinheiten": "S",
+    "auslastung_pct": "S",
+    "ueberlauf_tage": "S",
+    "fuell_mittel": "S",
+    "ist_rhythmus": "A",
+    "schwelle": "S",
+    "ring_reihenfolge": "S",
+    "lkw_objekt": "R",
+    "lkw_volumen_m3": "R",
+    "container_volumen_m3": "R",
+}
 
 
 def lade(csv_pfad):
@@ -81,9 +151,28 @@ def kalibrierungsfaktor(gaps, besuche, tage):
     return round(float((1.0 / g).sum()) / (besuche / tage), 4)
 
 
+def lade_drehbuch() -> list:
+    """Die Szenario-Dateien einlesen und einbetten.
+
+    Das LKW je Szenario ist ein PLATZHALTER: recherchiert (V-5), ohne Wirkung auf
+    den Lauf. Der Vorschau-Bildpfad bleibt RELATIV zum Repo-Wurzelverzeichnis.
+    Die Seite (sim/kino.html) rechnet ihn selbst um - so funktioniert der Pfad
+    per Doppelklick (file://) genauso wie ueber einen HTTP-Server.
+    """
+    szenarien = []
+    if not DREHBUCH_DIR.exists():
+        return szenarien
+    for p in sorted(DREHBUCH_DIR.glob("*.json")):
+        d = json.loads(p.read_text(encoding="utf-8"))
+        d["datei"] = p.name
+        szenarien.append(d)
+    return szenarien
+
+
 def baue(d):
     med, n_messungen = raten(d)
     gaps = orts_gaps(d)
+    drehbuch = lade_drehbuch()
 
     orte = []
     for lid in sorted(d.Location_id.unique()):
@@ -126,8 +215,18 @@ def baue(d):
         "daten_ueberlauf_messungen_pct": b["ueberfull_messungen_pct"],
         # Kalibrierung: der Ist-Rhythmus soll genau die beobachteten Besuche verlangen
         "kalibrierungsfaktor": kalibrierungsfaktor(gaps, besuche, tage),
+        "warmlauf_tage": WARMLAUF,
+        # Herkunftsmarkierung: welche Groesse ist gemessen, abgeleitet oder gesetzt.
+        # Das Kino liest diese Tags und setzt die Marker - keine Handarbeit im HTML.
+        "herkunft": {
+            "kategorien": KATEGORIEN,
+            "meta": HERKUNFT_META,
+            "sonstige": HERKUNFT_SONSTIGE,
+        },
+        # Drehbuch-Szenarien (Platzhalter-LKW, recherchiert, ohne Wirkung auf den Lauf)
+        "drehbuch_anzahl": len(drehbuch),
     }
-    return {"meta": meta, "orte": orte}
+    return {"meta": meta, "orte": orte, "drehbuch": drehbuch}
 
 
 def main():
@@ -154,6 +253,7 @@ def main():
         raten_liste.quantile(0.9),
     ))
     print(f"orte_ohne_gap (nur ein Besuch): {ohne_gap}")
+    print(f"drehbuch: {meta['drehbuch_anzahl']} Szenarien eingebettet (LKW = Platzhalter)")
     print(f"geschrieben: {OUT.relative_to(ROOT)} ({groesse} Bytes)")
 
 

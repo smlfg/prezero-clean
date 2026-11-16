@@ -1,6 +1,6 @@
 {
  "meta": {
-  "erzeugt": "2026-11-16T14:24:12+01:00",
+  "erzeugt": "2026-11-16T16:24:15+01:00",
   "quelle": "data/raw/glass_fill_levels_anonymized_f.csv",
   "skript": "scripts/sim_daten.py",
   "orte": 449,
@@ -16,7 +16,65 @@
   "daten_overfull_bei_leerung_pct": 17.64,
   "daten_mittel_max_bei_leerung_pct": 82.48,
   "daten_ueberlauf_messungen_pct": 10.19,
-  "kalibrierungsfaktor": 1.1565
+  "kalibrierungsfaktor": 1.1565,
+  "warmlauf_tage": 90,
+  "herkunft": {
+   "kategorien": {
+    "M": {
+     "code": "M",
+     "kurz": "gemessen",
+     "lang": "Direkt aus der CSV gemessen."
+    },
+    "A": {
+     "code": "A",
+     "kurz": "abgeleitet",
+     "lang": "Aus den Messwerten berechnet. Keine Annahme, aber keine Messung."
+    },
+    "S": {
+     "code": "S",
+     "kurz": "gesetzt",
+     "lang": "Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung."
+    },
+    "R": {
+     "code": "R",
+     "kurz": "recherchiert",
+     "lang": "Aus einer externen Quelle mit Abrufdatum. Wirkt nicht auf die Simulation."
+    }
+   },
+   "meta": {
+    "messungen": "M",
+    "orte": "M",
+    "container": "M",
+    "besuche": "M",
+    "tage": "M",
+    "daten_besuche": "M",
+    "daten_voll_bei_leerung_pct": "M",
+    "daten_overfull_bei_leerung_pct": "M",
+    "daten_mittel_max_bei_leerung_pct": "M",
+    "daten_ueberlauf_messungen_pct": "M",
+    "k0_pro_tag": "A",
+    "kalibrierungsfaktor": "A",
+    "s0": "S"
+   },
+   "sonstige": {
+    "rate": "A",
+    "gap": "A",
+    "container_ohne_rate": "M",
+    "warmlauf_tage": "S",
+    "stopps_pro_tag_soll": "A",
+    "wegeinheiten": "S",
+    "auslastung_pct": "S",
+    "ueberlauf_tage": "S",
+    "fuell_mittel": "S",
+    "ist_rhythmus": "A",
+    "schwelle": "S",
+    "ring_reihenfolge": "S",
+    "lkw_objekt": "R",
+    "lkw_volumen_m3": "R",
+    "container_volumen_m3": "R"
+   }
+  },
+  "drehbuch_anzahl": 4
  },
  "orte": [
   {
@@ -9402,6 +9460,116 @@
      "n": 3
     }
    ]
+  }
+ ],
+ "drehbuch": [
+  {
+   "$schema": "../drehbuch.schema.json",
+   "name": "Glas-Sammelfahrzeug GC 23",
+   "beschreibung": "Ist-Rhythmus mit dem Glas-Sammelfahrzeug als Etikett.",
+   "parameter": {
+    "abstand": 5.0,
+    "autos": 1,
+    "strategie": "ist",
+    "schwelle": 80
+   },
+   "lkw": {
+    "id": "gc23",
+    "name": "Glas-Sammelfahrzeug GC 23",
+    "volumen_m3": 23.0,
+    "vorschau_bild": "bilder/lkw/gc23.png",
+    "wirkung": "Platzhalter — noch keine Wirkung auf die Simulation",
+    "quelle": "Stummer Fact Sheet Glass Collector GC 23 (PDF)"
+   },
+   "herkunft": {
+    "abstand": "S",
+    "autos": "S",
+    "strategie": "A",
+    "schwelle": "S",
+    "lkw": "R"
+   },
+   "datei": "gc23.json"
+  },
+  {
+   "$schema": "../drehbuch.schema.json",
+   "name": "Hakenlift Eurolift HL",
+   "beschreibung": "Leerung nach Füllstand (Schwelle 70 %), Hakenlift als Etikett.",
+   "parameter": {
+    "abstand": 5.0,
+    "autos": 2,
+    "strategie": "fuell",
+    "schwelle": 70
+   },
+   "lkw": {
+    "id": "hakenlift",
+    "name": "Hakenlift Eurolift HL",
+    "volumen_m3": 31.0,
+    "vorschau_bild": "bilder/lkw/hakenlift.png",
+    "wirkung": "Platzhalter — noch keine Wirkung auf die Simulation",
+    "quelle": "Stummer Produktseite Eurolift Hooklift"
+   },
+   "herkunft": {
+    "abstand": "S",
+    "autos": "S",
+    "strategie": "A",
+    "schwelle": "S",
+    "lkw": "R"
+   },
+   "datei": "hakenlift.json"
+  },
+  {
+   "$schema": "../drehbuch.schema.json",
+   "name": "Hecklader MEDIUM X4H",
+   "beschreibung": "Ist-Rhythmus, LKW-Anzahl 2, Hecklader als Etikett.",
+   "parameter": {
+    "abstand": 5.0,
+    "autos": 2,
+    "strategie": "ist",
+    "schwelle": 80
+   },
+   "lkw": {
+    "id": "x4h",
+    "name": "Hecklader MEDIUM X4H",
+    "volumen_m3": 29.0,
+    "vorschau_bild": "bilder/lkw/x4h.png",
+    "wirkung": "Platzhalter — noch keine Wirkung auf die Simulation",
+    "quelle": "Zoeller Datenblatt MEDIUM X4/X4H (PDF)"
+   },
+   "herkunft": {
+    "abstand": "S",
+    "autos": "S",
+    "strategie": "A",
+    "schwelle": "S",
+    "lkw": "R"
+   },
+   "datei": "hecklader-x4h.json"
+  },
+  {
+   "$schema": "../drehbuch.schema.json",
+   "name": "Ist-Zustand",
+   "beschreibung": "Beobachteter Rhythmus, ein LKW, Standardcontainer.",
+   "parameter": {
+    "abstand": 5.0,
+    "autos": 1,
+    "strategie": "ist",
+    "schwelle": 80
+   },
+   "lkw": {
+    "id": "gc23",
+    "name": "Glas-Sammelfahrzeug GC 23",
+    "volumen_m3": 23.0,
+    "vorschau_bild": "bilder/lkw/gc23.png",
+    "wirkung": "Platzhalter — noch keine Wirkung auf die Simulation",
+    "quelle": "Stummer Fact Sheet Glass Collector GC 23 (PDF)"
+   },
+   "herkunft": {
+    "abstand": "S",
+    "autos": "S",
+    "strategie": "A",
+    "schwelle": "S",
+    "lkw": "R"
+   },
+   "datei": "ist-zustand.json"
   }
  ]
 }

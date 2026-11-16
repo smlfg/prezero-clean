@@ -20,7 +20,11 @@ Klar beschriftet als **Simulation**, nie als Ergebnis oder Ersparnis.
 - **Zeit:** ein Tag = ein Schritt. Keine Uhrzeit. Keine Tonnen, keine Ladekapazität
   (steht nicht in den Daten, bleibt draußen).
 - **Start:** alle Füllstände 0, **90 Tage Warmlauf**, danach 348 Tage Messfenster.
-  Zählung der Metriken **erst nach dem Warmlauf**.
+  Zählung der Metriken **erst nach dem Warmlauf**. Der Warmlauf wird beim **ersten
+  Simulationsschritt** nachgeholt, nicht beim Reset: Tag 0 zeigt den leeren,
+  zeitlich unveränderten Startzustand — unabhängig von Abstand `s` und Autos `M`.
+  Am ersten Schritt springt die Bühne auf den Warmzustand (das ist die Simulationszeit,
+  keine Darstellung).
 - **Überlauf:** Füllstand **> 100 %**. Der Wert wächst weiter (A3, keine Kappung).
   In den Daten ist `overfull` zensiert; „> 100 %“ ist die nächstliegende Entsprechung.
 
@@ -122,8 +126,92 @@ Der Ist-Lauf ist immer daneben sichtbar; ohne Vergleich keine Zahl.
 ## 6. Abnahme
 
 1. Default (`s=5`, `M=1`, `ist`) erzeugt ungefähr so viel Überlauf wie die Daten (~10 %).
-2. `s` verdoppeln halbiert die Stopps pro Tag.
+   **Ist-Stand: 4,91 % Überlauf-Quote, 4.407 Leerungen** (Daten: 10,19 %, 4.468 Besuche).
+   Der Ist-Lauf erzeugt also **weniger** Überlauf als die Daten, nicht mehr. Das war schon
+   vor der Herkunftsmarkierung so (gegen `HEAD` geprüft) und ist **keine** Regression,
+   sondern ein offener Punkt des Modells: der Ist-Rhythmus ist über die Kalibrierung
+   auf die *Anzahl* der Besuche festgelegt, nicht auf die *Überlaufquote*. Wer die
+   Quote angleichen will, muss das im Modell entscheiden, nicht in der Anzeige.
+2. `s` verdoppeln halbiert die Stopps pro Tag. (Ist: 12,7 → 6,4 Stopps/Tag.)
 3. `M` erhöhen senkt oder hält den Überlauf.
 4. Deterministisch: gleicher Seed, gleicher Lauf, gleiche Zahlen.
 5. Referenz: eine unabhängige Python-Implementierung liefert für einen festen Parametersatz
    dieselben Metriken wie die Seite (Toleranz ±1 Stopp, ±0,5 Pp).
+   (Ist: über alle fünf Läufe Diff 0.)
+6. Herkunftsmarkierung: jede sichtbare Zahl trägt einen Marker aus Abschnitt 7.
+   Ein Marker wird nie ohne Klartext-Beispiel ausgegeben.
+
+## 7. Herkunftsmarkierung
+
+Jede sichtbare Zahl im Kino trägt einen Marker. **Drei Kategorien, mehr nicht.**
+
+| Marker | Kategorie | Definition | Beispiel |
+|---|---|---|---|
+| `M` | **gemessen** | steht so in der CSV | 11.701 Messungen · 4.468 Besuche · 45,5 % voll bei Leerung |
+| `A` | **abgeleitet** | aus Messwerten berechnet, **keine** Annahme | Rate je Kammer · 12,8 Stopps/Tag · Kalibrierungsfaktor 1,1565 |
+| `S` | **gesetzt** | Annahme, Modellgröße, Startwert oder Darstellung | `s` = 5 · `M` = 1 · Warmlauf 90 Tage · Ringreihenfolge |
+
+Die Grenze zwischen `M` und `A`: **gemessen** ist der Wert selbst, **abgeleitet** ist eine
+Rechnung auf gemessenen Werten. Der Kalibrierungsfaktor 1,1565 ist abgeleitet, nicht
+gemessen — er entsteht erst aus `Σ 1/gap` gegenüber 4.468/348. Der Füllstand einer Kammer
+ist im Kino abgeleitet (Median aus Folgemessungen), nicht gemessen, weil er im Lauf
+fortgeschrieben wird.
+
+### 7.1 Quelle der Marker
+
+Die Marker stehen **nicht** im HTML. Sie kommen aus `meta.herkunft` in
+`data/derived/orte.json`, erzeugt von `scripts/sim_daten.py`:
+
+- `meta.herkunft.kategorien` — Code, Kurzname und Klartext je Kategorie
+- `meta.herkunft.meta` — Herkunft jeder Größe aus dem `meta`-Block
+- `meta.herkunft.sonstige` — Herkunft der Größen, die nicht im `meta`-Block stehen
+
+Das Kino liest diese Tags und setzt die Chips. **Kein Chip steht von Hand im HTML.**
+Damit können Dokument und Seite nicht auseinanderlaufen.
+
+### 7.2 Wo welcher Marker sitzt
+
+| Element | Marker | Grund |
+|---|---|---|
+| Kopfzeile: Orte, Kammern | `M` | direkt aus der CSV |
+| Kopfzeile: Ringreihenfolge, „alle Abstände gleich" | `S` | Darstellung |
+| Steuerleiste: Abstand `s`, Autos `M`, Strategie, Schwelle, Lauf, Tempo | `S` | Modellgrößen und Startwerte |
+| Steuerleiste: „Stopps/Tag" | `A` | aus Besuchen und Tagen gerechnet |
+| Bühne: Füllstand der Kammer | `A` | Median aus Folgemessungen, im Lauf fortgeschrieben |
+| Bühne: Ringreihenfolge, Farben, Lage der Orte | `S` | reine Darstellung |
+| Kennzahlenkarten: alle Laufwerte | `S` | Modellrechnung dieses Laufs |
+| Kennzahlenkarten: Vergleichswerte aus den Daten | `M` bzw. `A` | je nach Größe aus `meta.herkunft` |
+| Verlauf (Sparkline): beide Kurven | `S` | Modellrechnung |
+| Fußzeile: Messungen, Orte, Kammern, Besuche, Tage | `M` | direkt aus der CSV |
+
+### 7.3 Regeln
+
+- Keine Zahl im Kino ohne Marker. Ausnahme: Achsen- und Ringbeschriftungen; die stehen
+  in Bereichen, die als `S` ausgewiesen sind.
+- Die Legende nennt je Kategorie ein **Klartext-Beispiel mit echten Werten** aus `meta`.
+- Marker ändern **keine** Werte. Sie markieren Herkunft, sonst nichts.
+- Eine neue Größe im Kino braucht einen Eintrag in `meta.herkunft`; ohne Eintrag
+  greift `S` und die Größe gilt als gesetzt.
+- Der Zeitstempel `meta.erzeugt` und der Quellpfad der CSV sind keine Zahlen und
+  tragen keinen Marker.
+
+### 7.4 Keine Zahl steht an zwei Orten
+
+`K0` (Ist-Durchsatz) und `S0` (Ausgangsabstand) lagen früher fest verdrahtet in
+`sim/engine.js`, `scripts/sim_referenz.py` und im HTML. Sie stehen jetzt **ausschließlich**
+in `meta` (`k0_pro_tag`, `s0`) und werden überall von dort gelesen. Neue Zahlen
+gehören nach `meta`, nicht in den Code.
+
+### 7.5 Testbarkeit
+
+Die Seite schreibt ihren Zustand zusätzlich in das Element `#simWerte` (JSON mit
+`params` und `metrics`). Das ist nötig, weil Browser-Erweiterungen ihren Prüfcode in
+einer isolierten Welt ausführen, in der `window.simFinish` nicht sichtbar ist — das
+DOM ist der einzige gemeinsame Ort. Der Wert wird bei jedem gerenderten Frame
+aktualisiert.
+
+```
+window.simSet({s: 10, m: 2})   // Parameter setzen
+document.getElementById("simWerte").textContent   // Zustand als JSON
+```
+

@@ -7,8 +7,6 @@
 var KINO = (function () {
   "use strict";
 
-  var K0 = 12.8;        // Stopps/Tag im Ist-Durchsatz
-  var S0 = 5.0;         // Abstandseinheiten im Ist-Fall
   var WARMLAUF = 90;    // Tage ohne Zaehlung
   var VOLL = 100.0;     // >= 100 % gilt als voll/uebervoll
   var MAXC = 3;
@@ -18,6 +16,11 @@ var KINO = (function () {
     var orte = daten.orte;
     var N = orte.length;
     var TAGE = META.tage;
+
+    /* Ist-Durchsatz und Ausgangsabstand kommen aus den Daten (meta), nicht aus
+       fest verdrahteten Zahlen: K0 = Besuche/Tage, S0 = gesetzter Ausgangsabstand. */
+    var K0 = META.k0_pro_tag;
+    var S0 = META.s0;
 
     var rate = new Float64Array(N * MAXC);
     var anz = new Int32Array(N);
@@ -39,7 +42,7 @@ var KINO = (function () {
     var P = { s: 5.0, m: 1, strategie: "ist", schwelle: 80 };
     var fill, naechste, budget, tag, leerungen, ueberlaufTage, vollBeiLeerung,
         ueber100, maxSumme, faelligSumme, fuellSumme, fuellZaehler, tagesverlauf,
-        autos, letzteTage, maxfill, warmupPending;
+        autos, letzteTage, letzteUeberlauf, maxfill, warmupPending;
 
     function reset(p) {
       if (p) {
@@ -53,7 +56,7 @@ var KINO = (function () {
       naechste = new Float64Array(N);
       budget = 0; tag = 0; leerungen = 0; ueberlaufTage = 0; vollBeiLeerung = 0;
       ueber100 = 0; maxSumme = 0; faelligSumme = 0; fuellSumme = 0; fuellZaehler = 0;
-      tagesverlauf = []; letzteTage = [];
+      tagesverlauf = []; letzteTage = []; letzteUeberlauf = [];
       for (var i = 0; i < N; i++) naechste[i] = i * periode[i] / N;
       autos = [];
       for (var k = 0; k < P.m; k++) autos.push({ pos: 0, weg: [] });
@@ -77,9 +80,11 @@ var KINO = (function () {
       }
       var messfenster = tag >= WARMLAUF;
       var faellig = [];
+      var ueberlaufHeute = [];
       for (i = 0; i < N; i++) {
         var due = P.strategie === "ist" ? tag >= naechste[i] : maxfill[i] >= P.schwelle;
         if (due) faellig.push(i);
+        if (maxfill[i] >= VOLL) ueberlaufHeute.push(i);
       }
       if (messfenster) {
         for (i = 0; i < N; i++) if (maxfill[i] >= VOLL) ueberlaufTage++;
@@ -120,6 +125,7 @@ var KINO = (function () {
         tagesverlauf.push({ tag: tag - WARMLAUF + 1, ueberlauf: ueberlaufTage, leerungen: leerungen });
       }
       letzteTage = bedient;
+      letzteUeberlauf = ueberlaufHeute;
       tag++;
       return bedient.length;
     }
@@ -171,12 +177,13 @@ var KINO = (function () {
       get tag() { return tag; },
       get autos() { return autos; },
       get letzteTage() { return letzteTage; },
+      get letzteUeberlauf() { return letzteUeberlauf; },
       get tagesverlauf() { return tagesverlauf; }
     };
     return reset(null);
   }
 
-  return { create: create, K0: K0, S0: S0, WARMLAUF: WARMLAUF, VOLL: VOLL, MAXC: MAXC };
+  return { create: create, WARMLAUF: WARMLAUF, VOLL: VOLL, MAXC: MAXC };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = KINO;

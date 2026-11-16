@@ -18,6 +18,52 @@
   .hinweis{display:inline-block;margin-top:10px;padding:5px 11px;border-radius:999px;
            background:rgba(210,153,34,.14);border:1px solid rgba(210,153,34,.45);
            color:#f0c674;font-size:12.5px}
+  /* ---- Herkunftsmarkierung: M = gemessen, A = abgeleitet, S = gesetzt, R = recherchiert ---- */
+  .chip{display:inline-block;min-width:16px;height:16px;padding:0 4px;border-radius:4px;
+        font-size:10.5px;font-weight:700;line-height:16px;text-align:center;vertical-align:2px;
+        letter-spacing:.3px;cursor:help;user-select:none}
+  .chip.M{background:var(--accent);color:#07131f}
+  .chip.A{background:rgba(88,166,255,.18);border:1px solid var(--accent);color:#79c0ff}
+  .chip.S{background:transparent;border:1px solid var(--muted);color:var(--muted)}
+  .chip.R{background:rgba(210,153,34,.16);border:1px solid var(--warn);color:#f0c674}
+  .herkunft{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:baseline;
+            padding:10px 26px;border-bottom:1px solid var(--line);background:var(--panel2);
+            font-size:12px;color:var(--muted)}
+  .herkunft .titel{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+  .herkunft .eintrag{display:flex;align-items:baseline;gap:6px;flex:1 1 300px;min-width:280px}
+  .herkunft .eintrag b{color:#c9d1d9;font-weight:600;white-space:nowrap}
+  .herkunft .klartext{flex:1 1 auto}
+  .herkunft .beispiel{color:#6e7b8b;white-space:nowrap}
+  .herkunft-linie{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5}
+  .herkunft-linie b{color:#c9d1d9;font-weight:600}
+  /* ---- Drehbuch ---- */
+  .drehbuch{padding:16px 26px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .drehbuch .dzKopf{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
+                     justify-content:space-between;margin-bottom:12px}
+  .drehbuch h3{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+  .drehbuch .presets{display:flex;flex-wrap:wrap;gap:8px}
+  .drehbuch .presets button{background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+                            border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px}
+  .drehbuch .presets button:hover{border-color:var(--accent);color:var(--text)}
+  .drehbuch .presets button.on{background:var(--accent);color:#07131f;font-weight:600;border-color:var(--accent)}
+  .drehbuch .datei{font-size:11.5px;color:var(--muted)}
+  .drehbuch .datei input{font-size:11.5px;color:var(--muted);background:var(--panel2);
+                          border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+  .drehbuchInhalt{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+  .dzBeschreibung{font-size:13px;color:var(--text);margin:0 0 10px;line-height:1.5}
+  .dzParameter{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--muted)}
+  .dzParameter span b{color:#c9d1d9;font-weight:600}
+  .dzVorschau{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .dzVorschau img{width:100%;height:auto;display:block;border-radius:6px;background:#fff}
+  .dzVorschau img.fehlt{display:none}
+  .dzVorschau .keinBild{padding:22px 10px;text-align:center;font-size:12px;color:var(--muted)}
+  .dzVorschau .dzName{font-size:13.5px;font-weight:600;margin:9px 0 3px}
+  .dzVorschau .dzMeta{font-size:11.5px;color:var(--muted);line-height:1.55}
+  .dzPlatzhalter{margin-top:9px;padding:7px 9px;border-radius:7px;font-size:11.5px;line-height:1.45;
+                 background:rgba(210,153,34,.10);border:1px solid rgba(210,153,34,.4);color:#f0c674}
+  .dzPlatzhalter b{color:#ffd58a}
+  .dzFehler{margin-top:10px;padding:9px 11px;border-radius:7px;font-size:12px;
+            background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.45);color:#ff8b85}
   .leiste{display:flex;flex-wrap:wrap;gap:18px;align-items:center;
           padding:14px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
   .feld{display:flex;flex-direction:column;gap:5px;min-width:150px}
@@ -54,6 +100,26 @@
   .karte .vergleich b{color:#c9d1d9;font-weight:600}
   .karte.gut .wert{color:var(--ok)} .karte.schlecht .wert{color:var(--bad)} .karte.warn .wert{color:var(--warn)}
   .tagesliste{font-size:12px;color:var(--muted);margin-top:4px}
+  .ansichtNav{display:flex;gap:8px;align-items:center;padding:10px 26px;background:var(--bg);border-bottom:1px solid var(--line)}
+  .ansichtNav .status{margin-left:auto;color:var(--muted);font-size:12px}
+  .ansichtNav button.active{background:var(--accent);color:#07131f;font-weight:600}
+  .parameterIntro{max-width:760px;padding:22px 26px 8px}
+  .parameterIntro h2{margin:0 0 6px;font-size:17px}
+  .parameterIntro p{margin:0;color:var(--muted);font-size:13px}
+  .kinoBar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .kinoBar .laufinfo{font-weight:600;font-variant-numeric:tabular-nums;margin-left:auto}
+  .kinoBar .konfig{color:var(--muted);font-size:12px}
+  #parameterAnsicht #tempoFeld{display:none}
+  .ereignisse{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .ereignisse h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .ereignis{padding:7px 8px;margin-top:6px;border-left:3px solid var(--accent);background:rgba(88,166,255,.07);font-size:12px;color:var(--text)}
+  .ereignis.warn{border-color:var(--warn);background:rgba(210,153,34,.08)}
+  .ereignis.bad{border-color:var(--bad);background:rgba(248,81,73,.08)}
+  [hidden]{display:none !important}
+  @media (max-width:900px){
+    main{grid-template-columns:1fr}
+    .kinoBar .laufinfo{margin-left:0;width:100%}
+  }
   footer{padding:16px 26px 30px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line)}
   code{background:#21262d;padding:1px 5px;border-radius:4px;font-size:12px}
 </style>
@@ -61,67 +127,112 @@
 <body>
 <header>
   <h1>Simulations-Kino — PreZero Glascontainer</h1>
-  <div class="sub">449 Orte ohne Karte · drei Ringe nach Glasfarbe, über die ID ausgerichtet · alle Abstände gleich.</div>
+  <div class="sub" id="kopfSub"></div>
   <div class="hinweis">Modelliert — keine Messung. Raten und Rhythmus sind aus den Daten abgeleitet, alles andere ist Annahme.</div>
 </header>
 
-<div class="leiste">
+<nav class="ansichtNav" aria-label="Ansicht">
+  <button class="knopf active" id="navParameter">1 · Parameter</button>
+  <button class="knopf" id="navKino">2 · Kino</button>
+  <span class="status" id="ansichtStatus">Einstellungen prüfen und Simulation starten</span>
+</nav>
+
+<section id="parameterAnsicht">
+  <div class="parameterIntro">
+    <h2>Parameter setzen</h2>
+    <p>Hier legst du fest, welche Modellrechnung das Kino anschließend zeigt. Die Bühne bleibt bewusst ausgeblendet, bis du startest.</p>
+  </div>
+  <div class="leiste">
   <div class="feld">
-    <label>Abstand der Orte</label>
+    <label>Abstand der Orte <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
     <input type="range" id="s" min="2.5" max="20" step="0.5" value="5">
     <div class="wert" id="sWert">5,0</div>
     <div class="hilfe" id="sHilfe">Abstandseinheiten je Sprung</div>
   </div>
   <div class="feld">
-    <label>Autos</label>
+    <label>Autos <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
     <input type="range" id="m" min="1" max="4" step="1" value="1">
     <div class="wert" id="mWert">1</div>
-    <div class="hilfe" id="mHilfe">12,8 Stopps/Tag</div>
+    <div class="hilfe" id="mHilfe"></div>
   </div>
   <div class="feld">
-    <label>Strategie</label>
+    <label>Strategie <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
     <div class="seg">
       <button id="bIst" class="on">Ist-Rhythmus</button>
       <button id="bFuell">nach Füllstand</button>
     </div>
-    <div class="hilfe" id="strHilfe">Beobachteter Rhythmus, kalibriert</div>
+    <div class="hilfe" id="strHilfe"></div>
   </div>
   <div class="feld">
-    <label>Ansicht</label>
+    <label>Ansicht <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
     <div class="seg">
       <button id="bRinge" class="on">3 Ringe</button>
       <button id="bContainer">Container</button>
     </div>
-    <div class="hilfe" id="ansichtHilfe">Farben getrennt</div>
+    <div class="hilfe" id="ansichtHilfe"></div>
   </div>
   <div class="feld" id="feldSchwelle">
-    <label>Schwelle</label>
+    <label>Schwelle <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
     <input type="range" id="schwelle" min="50" max="95" step="1" value="80" disabled>
     <div class="wert" id="schwelleWert">80 %</div>
     <div class="hilfe">ab hier wird geleert</div>
   </div>
   <div class="feld">
-    <label>Lauf</label>
+    <label>Lauf <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
     <div class="takt">
-      <button class="knopf" id="play">&#9654; Start</button>
+      <button class="knopf" id="play">&#9654; Kino starten</button>
       <button class="knopf" id="reset">&#8635; Reset</button>
     </div>
-    <div class="wert" id="tagWert">Tag 0 / 348</div>
+    <div class="wert" id="tagWert"></div>
     <div class="hilfe" id="tempoHilfe">Tempo 1&times;</div>
   </div>
-  <div class="feld">
-    <label>Tempo</label>
+  <div class="feld" id="tempoFeld">
+    <label>Tempo <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span></label>
     <div class="seg" id="tempoSeg">
-      <button data-t="0.5">0,5&times;</button><button data-t="1" class="on">1&times;</button>
-      <button data-t="2">2&times;</button><button data-t="4">4&times;</button><button data-t="8">8&times;</button>
+      <button data-t="0.2">0,2&times;</button><button data-t="0.25">0,25&times;</button>
+      <button data-t="0.5" class="on">0,5&times;</button><button data-t="1">1&times;</button>
     </div>
-    <div class="hilfe">1 Tag je ~0,45 s</div>
+    <div class="hilfe"><span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span> Standard: 1 Tag je ~2,0 s · Bereich 1–5 s je Tag</div>
   </div>
 </div>
 
+  <div class="herkunft" id="herkunft"></div>
+
+  <div class="drehbuch" id="drehbuch">
+    <div class="dzKopf">
+      <h3>Drehbuch</h3>
+      <div class="presets" id="dzPresets"></div>
+      <label class="datei">Drehbuch laden
+        <input type="file" id="dzDatei" accept="application/json,.json">
+      </label>
+    </div>
+    <div class="drehbuchInhalt">
+      <div>
+        <p class="dzBeschreibung" id="dzBeschreibung">&mdash;</p>
+        <div class="dzParameter" id="dzParameter"></div>
+        <div class="dzFehler" id="dzFehler" hidden></div>
+      </div>
+      <div class="dzVorschau" id="dzVorschau"></div>
+    </div>
+  </div>
+</section>
+
+<section id="kinoAnsicht" hidden>
+  <div class="kinoBar">
+    <button class="knopf" id="kinoPlay">&#9654; Start</button>
+    <button class="knopf" id="kinoReset">&#8635; Reset</button>
+    <div class="seg" id="kinoTempoSeg">
+      <button data-t="0.2">0,2&times;</button><button data-t="0.25">0,25&times;</button>
+      <button data-t="0.5" class="on">0,5&times;</button><button data-t="1">1&times;</button>
+    </div>
+    <span class="chip S" title="Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.">S</span>
+    <span class="konfig" id="kinoKonfig"></span>
+    <span class="laufinfo" id="kinoTagWert">Tag 0 / 348</span>
+  </div>
+
 <main>
   <div class="buehne">
-    <h2>B&uuml;hne: 3 Ringe &mdash; Wei&szlig; / Gr&uuml;n / Braun &middot; 449 Orte &uuml;ber die ID ausgerichtet &middot; Farbe = F&uuml;llstand der Kammer</h2>
+    <h2 id="buehneTitel"></h2>
     <canvas id="ring"></canvas>
     <div class="legende">
       <span class="ring-sw r-weiss"></span><span>Wei&szlig;</span>
@@ -132,6 +243,7 @@
       <span><span class="punkt"></span> Auto</span>
       <span id="legText">&mdash;</span>
     </div>
+    <div class="herkunft-linie" id="buehneHerkunft"></div>
   </div>
 
   <div class="panel">
@@ -139,16 +251,25 @@
     <div id="karten"></div>
     <h2 style="margin-top:18px">Verlauf</h2>
     <canvas id="spark" width="348" height="120" style="width:100%;height:120px"></canvas>
+    <div class="tagesliste" id="sparkHerkunft"></div>
     <div class="tagesliste" id="tagesliste">&mdash;</div>
+    <div class="ereignisse">
+      <h3>Letzte Ereignisse</h3>
+      <div id="ereignisListe"><div class="ereignis">Noch kein Lauf gestartet.</div></div>
+    </div>
   </div>
 </main>
+</section>
 
 <footer>
-  Gemessen: <code>data/raw/glass_fill_levels_anonymized_f.csv</code> (11.701 Messungen, 449 Orte, 1.338 Kammern).
-  Abgeleitet: Raten, Rhythmus, Kalibrierungsfaktor aus <code>data/derived/orte.json</code>
-  (<code>scripts/sim_daten.py</code>). Modelliert: alles auf dieser Seite.
+  <div id="simWerte" hidden></div>
+  <div id="fussHerkunft" class="herkunft-linie"></div>
+  <div style="margin-top:8px">
+  Quelle: <code>data/raw/glass_fill_levels_anonymized_f.csv</code> ·
+  <code>data/derived/orte.json</code> (<code>scripts/sim_daten.py</code>).
   Modell: <code>docs/KINO_VERTRAG.md</code> &middot; Referenz: <code>scripts/sim_referenz.py</code> &middot;
   Engine: <code>sim/engine.js</code>. Keine Karte, keine Koordinaten, keine km, keine Euro.
+  </div>
 </footer>
 
 <script id="daten" type="application/json">__DATEN__</script>
@@ -179,9 +300,57 @@ const farbIdx = DATEN.orte.map(o => {
 
 const eng = KINO.create(DATEN);
 
+/* ---------- Herkunftsmarkierung ---------- */
+/* Alle Marker kommen aus meta.herkunft (scripts/sim_daten.py). Im HTML wird nichts
+   von Hand markiert - die Tags sind die einzige Quelle, Dokument und Seite teilen
+   sich damit dieselbe Liste. */
+const HERK = META.herkunft || { kategorien: {}, meta: {}, sonstige: {} };
+const KAT = HERK.kategorien || {};
+
+/* Marker-Chip als HTML. key ist der Name der Groesse in meta.herkunft. */
+function chip(key, text) {
+  const code = (HERK.meta && HERK.meta[key]) || (HERK.sonstige && HERK.sonstige[key]) || "S";
+  const kat = KAT[code] || { kurz: code, lang: "" };
+  const titel = kat.lang + (text ? " — " + text : "");
+  return '<span class="chip ' + code + '" title="' + titel.replace(/"/g, "&quot;") + '">' + code + "</span>";
+}
+
+/* Chip mit Klartext, z.B. "A 12,8 Stopps/Tag" */
+function chipText(key, text) {
+  return chip(key) + " " + text;
+}
+
 /* ---------- Darstellung ---------- */
 const ring = document.getElementById("ring"), rctx = ring.getContext("2d");
 const spark = document.getElementById("spark"), sctx = spark.getContext("2d");
+
+/* ---------- Render-Zustand ----------
+   Der Loop laeuft nur, wenn sich wirklich etwas aendert. Ohne diese Bremse zeichnet
+   die Seite 60 Bilder pro Sekunde, auch wenn die Simulation steht - das war die
+   Hauptlast (permanente Canvas-Renderarbeit). Jetzt:
+   - laufend: Loop laeuft, weil sich die Autos und der Tagesfortschritt bewegen
+   - Blitz laeuft noch aus: Loop laeuft, bis der Blitz abgeklungen ist
+   - sonst: Loop steht. Kein Frame, keine GPU-Last. */
+let last = 0, tageTimer = 0, progress = 0, tempo = 0.5;
+let schmutzig = true;          // etwas hat sich geaendert -> neu zeichnen
+let frameAngefordert = false;  // ein rAF ist bereits geplant
+let blitzRest = 0;             // Restlaufzeit des radialen Blitzes in ms
+let ereignisHistorie = [];
+let inKino = false;
+
+/* Nach dem Pausieren zeichnet der Loop noch, bis der Blitz abgeklungen ist. */
+const BLITZ_DAUER = 450;
+
+function fordertFrameAn() {
+  if (frameAngefordert) return;
+  frameAngefordert = true;
+  requestAnimationFrame(loop);
+}
+
+function markiereSchmutzig() {
+  schmutzig = true;
+  fordertFrameAn();
+}
 
 function farbe(f) {
   const v = Math.max(0, Math.min(100, f));
@@ -209,26 +378,75 @@ function positionAufWeg(a, progress) {
   return (a.pos + diff * f + N) % N;
 }
 
+/* ---------- Zeichen-Bündelung ----------
+   Die Bühne hat ~1350 Segmente (3 Ringe x 449 Orte).
+
+   Gemessen im Browser (dpr=3, 2001x2001 Backing Store, 40 Durchläufe):
+     - 1347 einzelne arc()+stroke()        0,150 ms
+     - 3 Pfade, je Ring ein stroke()       0,138 ms
+     - nach Farbe gruppiert (moveTo+arc)   0,227 ms   <- LANGSAMER
+     - nach Farbe gruppiert (fill)         0,320 ms   <- LANGSAMER
+   Das Gruppieren nach Farbe ist langsamer, weil jeder Pfad eine eigene
+   strokeStyle tragen muss und Skia den Pfad an der Farbgrenze trennen muss.
+
+   Schluss: Der eigentliche Gewinn liegt NICHT bei weniger Strokes, sondern
+   darin, den Renderloop anzuhalten, wenn sich nichts aendert (siehe Schleife).
+   Der Aufwand pro Frame ist mit 0,15 ms vernachlaessigbar.
+
+   Buendeln lohnt sich nur, wenn viele Elemente DIESELBE Farbe tragen - wie die
+   Verbindungslinien in der Container-Ansicht. Dort wird ein Pfad fuer alle
+   Linien gebaut und einmal gestroked. */
+
+/* Buehne-Groesse und Canvas-Aufloesung werden gecacht. `ring.width` neu zu setzen
+   loescht den Backing Store komplett aus - das ist teuer und erzwingt ein Neurastern.
+   Deshalb wird nur bei echter Groessenaenderung neu gesetzt.
+
+   Wichtig: Beim allerersten Frame ist `clientWidth` noch 0, weil das Layout noch
+   nicht steht. Dieser Wert darf NICHT gecacht werden, sonst bleibt das Canvas
+   dauerhaft auf 0 Breite. Deshalb wird bei Breite 0 gar nichts gezeichnet und
+   der Cache nicht gesetzt. */
+let buehneCache = null;
+
 function buehneBasis() {
-  const w = ring.clientWidth, h = Math.max(430, Math.min(w, 780));
+  const w = ring.clientWidth;
+  if (!w) {
+    /* Layout steht noch nicht. Nichts zeichnen, nichts cachen - der naechste
+       Frame (oder der resize-Listener) holt das nach. */
+    buehneCache = null;
+    return null;
+  }
+  const h = Math.max(430, Math.min(w, 780));
   const dpr = window.devicePixelRatio || 1;
-  ring.width = w * dpr; ring.height = h * dpr; ring.style.height = h + "px";
+  const bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+  const gleich = buehneCache && buehneCache.bw === bw && buehneCache.bh === bh;
+  if (!gleich) {
+    ring.width = bw; ring.height = bh; ring.style.height = h + "px";
+    buehneCache = { w: w, h: h, dpr: dpr, bw: bw, bh: bh };
+  }
   rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   rctx.clearRect(0, 0, w, h);
   return { w: w, h: h, cx: w / 2, cy: h / 2, seg: (Math.PI * 2) / N };
 }
 
+/* Fenstergröße geändert -> Canvas neu aufbauen. Ohne diesen Listener bleibt das
+   Canvas nach einem Resize falsch skaliert. */
+window.addEventListener("resize", function () {
+  buehneCache = null;
+  schmutzig = true;
+  fordertFrameAn();
+});
+
 function zeichneAutoUndText(progress, b, rAuto) {
+  /* Kurzer Puls direkt am Ort bei Leerung: keine Route, keine Distanz. */
   const blitz = (1 - progress) * 0.5;
   if (blitz > 0) {
     rctx.strokeStyle = "rgba(255,209,102," + blitz.toFixed(3) + ")";
-    rctx.lineWidth = 2;
+    rctx.lineWidth = 3;
     eng.letzteTage.forEach(i => {
       const ang = i * b.seg - Math.PI / 2;
       const c = Math.cos(ang), s = Math.sin(ang);
       rctx.beginPath();
-      rctx.moveTo(b.cx + 40 * c, b.cy + 40 * s);
-      rctx.lineTo(b.cx + rAuto * c, b.cy + rAuto * s);
+      rctx.arc(b.cx, b.cy, rAuto - 4, ang - b.seg * 0.22, ang + b.seg * 0.22);
       rctx.stroke();
     });
   }
@@ -249,7 +467,7 @@ function zeichneAutoUndText(progress, b, rAuto) {
   rctx.textAlign = "center";
   rctx.fillStyle = "#8b98a5";
   rctx.font = "12px -apple-system, sans-serif";
-  rctx.fillText(ansicht === "ringe" ? "449 Orte · Zuordnung über ID" : "449 Container · 3 Kammern je Ort", b.cx, b.cy - 4);
+  rctx.fillText(ansicht === "ringe" ? zahl(N) + " Orte · Zuordnung über ID" : zahl(N) + " Container · 1–3 Kammern je Ort", b.cx, b.cy - 4);
   rctx.font = "11px -apple-system, sans-serif";
   rctx.fillText("Simulation — keine Messung", b.cx, b.cy + 14);
 }
@@ -257,6 +475,7 @@ function zeichneAutoUndText(progress, b, rAuto) {
 function zeichneRing(progress) {
   if (ansicht === "container") { zeichneContainer(progress); return; }
   const b = buehneBasis();
+  if (!b) return;                    // Layout steht noch nicht
   const w = b.w, h = b.h, cx = b.cx, cy = b.cy, seg = b.seg;
   const rAussen = Math.min(w, h) / 2 - 34;
   const abstand = Math.max(22, Math.min(38, (rAussen - 60) / 2));
@@ -272,6 +491,10 @@ function zeichneRing(progress) {
   rctx.stroke();
   rctx.setLineDash([]);
 
+  /* Drei Ringe: Grundring in der Glasfarbe, Segment darüber = Füllstand.
+     Jedes Segment hat seinen eigenen Füllstand und damit seine eigene Farbe,
+     also je Segment ein stroke(). Messung: das ist schneller als das Bündeln
+     nach Farbe (siehe Kommentar bei zeichneSegmente). */
   FARBEN.forEach((ringFarbe, k) => {
     const R = radien[k];
     const lw = Math.max(2.2, (2 * Math.PI * R) / N * 0.8);
@@ -283,6 +506,7 @@ function zeichneRing(progress) {
     rctx.stroke();
     rctx.globalAlpha = 1;
 
+    const ueberGruppen = [];
     for (let i = 0; i < N; i++) {
       const j = farbIdx[i][ringFarbe.key];
       if (j === undefined) continue;
@@ -293,16 +517,23 @@ function zeichneRing(progress) {
       rctx.lineWidth = lw * 0.62;
       rctx.arc(cx, cy, R, a0 + seg * 0.1, a0 + seg * 0.9);
       rctx.stroke();
-      if (v > VOLL) {
-        rctx.beginPath();
-        rctx.strokeStyle = "#ff3b30";
-        rctx.lineWidth = lw * 0.28;
-        rctx.arc(cx, cy, R + lw * 0.5, a0 + seg * 0.1, a0 + seg * 0.9);
-        rctx.stroke();
+      if (v > VOLL) ueberGruppen.push([a0 + seg * 0.1, a0 + seg * 0.9]);
+    }
+    /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Segments */
+    if (ueberGruppen.length) {
+      rctx.beginPath();
+      for (let i = 0; i < ueberGruppen.length; i++) {
+        const a0 = ueberGruppen[i][0], a1 = ueberGruppen[i][1];
+        rctx.moveTo(cx + (R + lw * 0.5) * Math.cos(a0), cy + (R + lw * 0.5) * Math.sin(a0));
+        rctx.arc(cx, cy, R + lw * 0.5, a0, a1);
       }
+      rctx.strokeStyle = "#ff3b30";
+      rctx.lineWidth = lw * 0.28;
+      rctx.stroke();
     }
   });
 
+  /* Ringbeschriftung oben: dunkler Grund, Name in der Glasfarbe */
   rctx.textAlign = "center";
   FARBEN.forEach((ringFarbe, k) => {
     const y = cy - radien[k] + 4;
@@ -317,13 +548,14 @@ function zeichneRing(progress) {
 }
 
 /* Container-Ansicht: ein Ort = ein Container mit drei radial gestapelten Kammern
-   (außen Weiß, Mitte Grün, innen Braun), verbunden durch eine feine Linie. */
+   (außen Weiß, Mitte Grün, innen Braun). Fehlende Kammer = Lücke. */
 function zeichneContainer(progress) {
   const b = buehneBasis();
+  if (!b) return;                    // Layout steht noch nicht
   const cx = b.cx, cy = b.cy, seg = b.seg;
   const rAussen = Math.min(b.w, b.h) / 2 - 34;
   const rAuto = rAussen + 16;
-  const kammerAbstand = 9;
+  const kammerAbstand = 9;                       // kompakt: ein Container, nicht drei Ringe
   const radien = [rAussen, rAussen - kammerAbstand, rAussen - 2 * kammerAbstand];
   const fill = eng.fill;
   const lw = Math.max(2.4, (2 * Math.PI * rAussen) / N * 0.78);
@@ -336,32 +568,49 @@ function zeichneContainer(progress) {
   rctx.stroke();
   rctx.setLineDash([]);
 
+  /* Verbindungslinien: alle Orte in EINEN Pfad, ein stroke() statt 449.
+     Diese Linien haben alle dieselbe Farbe - hier lohnt das Buendeln wirklich.
+     Die Kammern selbst tragen je Füllstand eine eigene Farbe, also je Kammer
+     ein stroke() (siehe Kommentar bei zeichneSegmente). */
+  rctx.beginPath();
   for (let i = 0; i < N; i++) {
     const ang = i * seg - Math.PI / 2;
     const c = Math.cos(ang), s = Math.sin(ang);
-    rctx.beginPath();
-    rctx.strokeStyle = "rgba(139,152,165,.30)";
-    rctx.lineWidth = 1;
     rctx.moveTo(cx + (radien[2] - 5) * c, cy + (radien[2] - 5) * s);
     rctx.lineTo(cx + (radien[0] + 5) * c, cy + (radien[0] + 5) * s);
-    rctx.stroke();
+  }
+  rctx.strokeStyle = "rgba(139,152,165,.30)";
+  rctx.lineWidth = 1;
+  rctx.stroke();
+
+  const ueberGruppen = [];
+  for (let i = 0; i < N; i++) {
+    const ang = i * seg - Math.PI / 2;
+    const s0 = ang + seg * 0.12, s1 = ang + seg * 0.88;
     FARBEN.forEach((ringFarbe, k) => {
       const j = farbIdx[i][ringFarbe.key];
-      if (j === undefined) return;
+      if (j === undefined) return;                // Kammer fehlt -> Lücke
       const v = fill[i * MAXC + j];
       rctx.beginPath();
       rctx.strokeStyle = farbe(v);
       rctx.lineWidth = lw;
-      rctx.arc(cx, cy, radien[k], ang + seg * 0.12, ang + seg * 0.88);
+      rctx.arc(cx, cy, radien[k], s0, s1);
       rctx.stroke();
-      if (v > VOLL) {
-        rctx.beginPath();
-        rctx.strokeStyle = "#ff3b30";
-        rctx.lineWidth = lw * 0.35;
-        rctx.arc(cx, cy, radien[k] + lw * 0.55, ang + seg * 0.12, ang + seg * 0.88);
-        rctx.stroke();
-      }
+      if (v > VOLL) ueberGruppen.push([k, s0, s1]);
     });
+  }
+  /* Übervolle Kammern bekommen einen roten Rand ausserhalb des Segments */
+  if (ueberGruppen.length) {
+    rctx.beginPath();
+    for (let i = 0; i < ueberGruppen.length; i++) {
+      const k = ueberGruppen[i][0], a0 = ueberGruppen[i][1], a1 = ueberGruppen[i][2];
+      const R = radien[k] + lw * 0.55;
+      rctx.moveTo(cx + R * Math.cos(a0), cy + R * Math.sin(a0));
+      rctx.arc(cx, cy, R, a0, a1);
+    }
+    rctx.strokeStyle = "#ff3b30";
+    rctx.lineWidth = lw * 0.35;
+    rctx.stroke();
   }
 
   rctx.textAlign = "center";
@@ -410,40 +659,372 @@ function zahl(v, n) {
   return Number(v).toLocaleString("de-DE", { minimumFractionDigits: n || 0, maximumFractionDigits: n || 0 });
 }
 
+/* ---------- Legende und Herkunftszeilen ---------- */
+/* Die Legende wird aus meta.herkunft erzeugt. Die Beispiele sind echte Werte
+   aus dem aktuellen meta-Block, damit nichts handgeschrieben ist. */
+function zeichneLegende() {
+  const beispiele = {
+    M: zahl(META.messungen) + " Messungen · " + zahl(META.besuche) + " Besuche",
+    A: zahl(META.k0_pro_tag, 1) + " Stopps/Tag · Kalibrierungsfaktor " + zahl(META.kalibrierungsfaktor, 4),
+    S: "Abstand " + zahl(META.s0, 1) + " · Warmlauf " + META.warmlauf_tage + " Tage"
+  };
+  const reihenfolge = ["M", "A", "S"];
+  const teile = reihenfolge.map(code => {
+    const kat = KAT[code];
+    if (!kat) return "";
+    return '<span class="eintrag"><span class="chip ' + code + '" title="' +
+      kat.lang.replace(/"/g, "&quot;") + '">' + code + "</span>" +
+      '<b>' + kat.kurz + "</b>" +
+      '<span class="klartext">' + kat.lang + "</span>" +
+      '<span class="beispiel">z.B. ' + beispiele[code] + "</span></span>";
+  });
+  document.getElementById("herkunft").innerHTML =
+    '<span class="titel">Herkunft</span>' + teile.join("");
+}
+
+/* Buehne: was ist Modell, was ist Darstellung */
+function zeichneBuehneHerkunft() {
+  document.getElementById("buehneHerkunft").innerHTML =
+    chipText("rate", "Füllstand je Kammer: Median aus Folgemessungen") +
+    " &nbsp;·&nbsp; " + chipText("ring_reihenfolge", "Ringreihenfolge, Farben und Lage der Orte: reine Darstellung") +
+    " &nbsp;·&nbsp; " + chipText("s0", "Abstand " + zahl(META.s0, 1) + " ist der Ausgangswert des Ist-Laufs");
+}
+
+/* Buehnentitel: Zahl ist gemessen, die Anordnung ist gesetzt */
+function zeichneBuehneTitel() {
+  const n = zahl(META.orte);
+  document.getElementById("buehneTitel").innerHTML =
+    "Bühne: " +
+    (ansicht === "ringe"
+      ? "3 Ringe — Weiß / Grün / Braun · " + chip("orte") + " " + n +
+        " Orte über die ID ausgerichtet · Farbe = Füllstand der Kammer"
+      : "Container — " + chip("orte") + " " + n +
+        " Orte, je ein Container mit bis zu drei Kammern · Farbe = Füllstand der Kammer") +
+    " " + chip("ring_reihenfolge");
+}
+
+/* Kopfzeile: die Zahlen sind gemessen, die Anordnung ist gesetzt */
+function zeichneKopf() {
+  document.getElementById("kopfSub").innerHTML =
+    chip("orte") + " " + zahl(META.orte) + " Orte ohne Karte" +
+    " · " + chip("container") + " " + zahl(META.container) + " Kammern" +
+    " · drei Ringe nach Glasfarbe, über die ID ausgerichtet " +
+    chip("ring_reihenfolge") +
+    " · alle Abstände gleich " + chip("s0");
+}
+
+/* Fusszeile: Herkunft der Kennzahlen und der Quelle */
+function zeichneFussHerkunft() {
+  document.getElementById("fussHerkunft").innerHTML =
+    "<b>Datenbasis:</b> " +
+    chip("messungen") + " " + zahl(META.messungen) + " Messungen · " +
+    chip("orte") + " " + zahl(META.orte) + " Orte · " +
+    chip("container") + " " + zahl(META.container) + " Kammern · " +
+    chip("besuche") + " " + zahl(META.besuche) + " Besuche · " +
+    chip("tage") + " " + zahl(META.tage) + " Tage" +
+    "<br><b>Kennzahlen:</b> alle Werte dieses Laufs sind <b>gesetzt</b> (Modellrechnung). " +
+    "Die Vergleichswerte daneben stammen aus den Daten — " +
+    chip("daten_voll_bei_leerung_pct") + " gemessen, " +
+    chip("k0_pro_tag") + " abgeleitet. " +
+    "<br><b>Modell:</b> <code>docs/KINO_VERTRAG.md</code>";
+}
+
 function zeichneKarten() {
   const m = eng.metrics();
   const d = META;
+  /* Jede Karte traegt einen Marker: die Zahl selbst ist Modellrechnung (S),
+     die Vergleichszeile nennt die Herkunft des Vergleichswerts. */
   const karten = [
-    { name: "Leerungen (Stopps)", wert: zahl(m.leerungen), vergl: "gemessen: <b>" + zahl(d.besuche) + "</b> Besuche",
+    { name: "Leerungen (Stopps)", wert: zahl(m.leerungen), herk: "S",
+      vergl: chip("daten_besuche") + " gemessen: <b>" + zahl(d.besuche) + "</b> Besuche",
       klasse: m.leerungen <= d.besuche ? "gut" : "warn" },
-    { name: "Stopps pro Tag", wert: zahl(m.stopps_pro_tag, 1),
-      vergl: "Soll: <b>" + zahl(m.soll_stopps_pro_tag, 1) + "</b> · gemessen: <b>" + zahl(d.k0_pro_tag, 1) + "</b>", klasse: "" },
-    { name: "voll oder übervoll bei Leerung", wert: zahl(m.voll_bei_leerung_pct, 1) + " %",
-      vergl: "gemessen: <b>" + zahl(d.daten_voll_bei_leerung_pct, 1) + " %</b>", klasse: "" },
-    { name: "davon über 100 %", wert: zahl(m.ueber_100_bei_leerung_pct, 1) + " %",
-      vergl: "gemessen (overfull): <b>" + zahl(d.daten_overfull_bei_leerung_pct, 1) + " %</b>", klasse: "" },
-    { name: "Überlauf-Tage (Ort-Tage)", wert: zahl(m.ueberlauf_tage),
-      vergl: "modelliert — kein Messwert", klasse: m.ueberlauf_quote_pct > 10 ? "schlecht" : "" },
-    { name: "mittlere vollste Kammer", wert: zahl(m.mittel_max_bei_leerung_pct, 1) + " %",
-      vergl: "gemessen: <b>" + zahl(d.daten_mittel_max_bei_leerung_pct, 1) + " %</b>", klasse: "" },
-    { name: "Ø Füllstand aller Kammern", wert: zahl(m.fuell_mittel, 1) + " %",
-      vergl: "modelliert (ohne übervolle Kammern)", klasse: "" },
-    { name: "Auslastung der Autos", wert: zahl(m.auslastung_pct, 1) + " %",
-      vergl: "bediente / fällige Stopps", klasse: m.auslastung_pct < 50 ? "schlecht" : "" },
-    { name: "Wegeinheiten", wert: zahl(m.wegeinheiten),
-      vergl: "Abstand × Stopps — <b>keine km</b>", klasse: "" }
+    { name: "Stopps pro Tag", wert: zahl(m.stopps_pro_tag, 1), herk: "S",
+      vergl: chip("stopps_pro_tag_soll") + " Modell-Soll: <b>" + zahl(m.soll_stopps_pro_tag, 1) + "</b> · " +
+              chip("k0_pro_tag") + " aus den Daten: <b>" + zahl(d.k0_pro_tag, 1) + "</b>", klasse: "" },
+    { name: "voll oder übervoll bei Leerung", wert: zahl(m.voll_bei_leerung_pct, 1) + " %", herk: "S",
+      vergl: chip("daten_voll_bei_leerung_pct") + " gemessen: <b>" + zahl(d.daten_voll_bei_leerung_pct, 1) + " %</b>", klasse: "" },
+    { name: "davon über 100 %", wert: zahl(m.ueber_100_bei_leerung_pct, 1) + " %", herk: "S",
+      vergl: chip("daten_overfull_bei_leerung_pct") + " gemessen (overfull): <b>" + zahl(d.daten_overfull_bei_leerung_pct, 1) + " %</b>", klasse: "" },
+    { name: "Überlauf-Tage (Ort-Tage)", wert: zahl(m.ueberlauf_tage), herk: "S",
+      vergl: chip("ueberlauf_tage") + " Modellwert — die Daten kennen keinen Überlauf-Tag", klasse: m.ueberlauf_quote_pct > 10 ? "schlecht" : "" },
+    { name: "mittlere vollste Kammer", wert: zahl(m.mittel_max_bei_leerung_pct, 1) + " %", herk: "S",
+      vergl: chip("daten_mittel_max_bei_leerung_pct") + " gemessen: <b>" + zahl(d.daten_mittel_max_bei_leerung_pct, 1) + " %</b>", klasse: "" },
+    { name: "Ø Füllstand aller Kammern", wert: zahl(m.fuell_mittel, 1) + " %", herk: "S",
+      vergl: chip("fuell_mittel") + " Modellwert (übervolle Kammern nicht enthalten)", klasse: "" },
+    { name: "Auslastung der Autos", wert: zahl(m.auslastung_pct, 1) + " %", herk: "S",
+      vergl: chip("auslastung_pct") + " bediente / fällige Stopps — Modellwert", klasse: m.auslastung_pct < 50 ? "schlecht" : "" },
+    { name: "Wegeinheiten", wert: zahl(m.wegeinheiten), herk: "S",
+      vergl: chip("wegeinheiten") + " Abstand × Stopps — <b>keine km</b>", klasse: "" }
   ];
   document.getElementById("karten").innerHTML = karten.map(k =>
-    '<div class="karte ' + k.klasse + '"><div class="oben"><span class="name">' + k.name + "</span>" +
+    '<div class="karte ' + k.klasse + '"><div class="oben"><span class="name">' + k.name +
+    ' <span class="chip ' + k.herk + '" title="Von uns gesetzt: Modellrechnung dieses Laufs.">' + k.herk + "</span>" +
+    "</span>" +
     '<span class="wert">' + k.wert + '</span></div><div class="vergleich">' + k.vergl + "</div></div>").join("");
   document.getElementById("tagesliste").textContent =
-    "Letzter Tag: " + eng.letzteTage.length + " Orte geleert · Kalibrierungsfaktor " +
+    "Letzter Tag: " + eng.letzteTage.length + " Orte geleert · " +
+    chip("kalibrierungsfaktor") + " Kalibrierungsfaktor " +
     zahl(META.kalibrierungsfaktor, 4) + " (abgeleitet: damit der Ist-Rhythmus genau " +
     zahl(META.besuche) + " Besuche verlangt)";
+  document.getElementById("sparkHerkunft").innerHTML =
+    chip("ueberlauf_tage") + " Beide Kurven sind Modellrechnung dieses Laufs — keine Messung.";
   document.getElementById("legText").textContent =
     "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE + " · " +
     (eng.getParams().strategie === "ist" ? "Ist-Rhythmus" : "Schwelle " + eng.getParams().schwelle + " %");
 }
+
+function konfigurationText() {
+  const p = eng.getParams();
+  return "Abstand " + zahl(p.s, 1) + " · " + p.m + (p.m === 1 ? " Auto" : " Autos") +
+    " · " + (p.strategie === "ist" ? "Ist-Rhythmus" : "Schwelle " + p.schwelle + " %");
+}
+
+function zeigeEreignisse() {
+  const el = document.getElementById("ereignisListe");
+  if (!el) return;
+  if (!ereignisHistorie.length) {
+    el.innerHTML = '<div class="ereignis">Noch kein relevantes Ereignis.</div>';
+    return;
+  }
+  el.innerHTML = ereignisHistorie.slice(0, 5).map(e =>
+    '<div class="ereignis ' + e.klasse + '"><b>Tag ' + e.tag + '</b> · ' + e.text + '</div>'
+  ).join("");
+}
+
+function notiereEreignisse() {
+  const tag = Math.max(0, eng.tag - eng.warmlauf);
+  const ueberlauf = eng.letzteUeberlauf || [];
+  const leerungen = eng.letzteTage || [];
+  if (ueberlauf.length) {
+    ereignisHistorie.unshift({
+      tag: tag,
+      klasse: "bad",
+      text: ueberlauf.length + " Ort" + (ueberlauf.length === 1 ? " erreicht" : "e erreichen") + " Überlauf (100 %+)"
+    });
+  }
+  if (leerungen.length) {
+    ereignisHistorie.unshift({
+      tag: tag,
+      klasse: "",
+      text: leerungen.length + " Ort" + (leerungen.length === 1 ? " wird" : "e werden") + " geleert"
+    });
+  }
+  zeigeEreignisse();
+}
+
+function tempoText(w) {
+  /* Tempo ohne falsche Rundung: 1 -> "1", 0,5 -> "0,5", 0,25 -> "0,25" */
+  const hundert = w * 100;
+  const stellen = hundert % 100 === 0 ? 0 : hundert % 10 === 0 ? 1 : 2;
+  return zahl(w, stellen);
+}
+
+function setzeTempo(wert) {
+  tempo = wert;
+  ["tempoSeg", "kinoTempoSeg"].forEach(id => {
+    const seg = document.getElementById(id);
+    if (!seg) return;
+    seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", parseFloat(x.dataset.t) === wert));
+  });
+  document.getElementById("tempoHilfe").textContent = "Tempo " + tempoText(tempo) + "× · 1 Tag je ~" + zahl(1 / tempo, 1) + " s";
+}
+
+function setzeAnsicht(kino) {
+  inKino = kino;
+  document.getElementById("parameterAnsicht").hidden = kino;
+  document.getElementById("kinoAnsicht").hidden = !kino;
+  document.getElementById("navParameter").classList.toggle("active", !kino);
+  document.getElementById("navKino").classList.toggle("active", kino);
+  document.getElementById("ansichtStatus").textContent = kino ? "Simulation beobachten und Ereignisse vergleichen" : "Einstellungen prüfen und Simulation starten";
+  document.getElementById("kinoKonfig").textContent = konfigurationText();
+  if (kino) {
+    zeichneBuehneTitel();
+    markiereSchmutzig();
+  } else {
+    laufend = false;
+    document.getElementById("play").textContent = "▶ Kino starten";
+  }
+}
+
+function resetLauf() {
+  laufend = false;
+  eng.reset();
+  progress = 0;
+  tageTimer = 0;
+  ereignisHistorie = [];
+  zeigeEreignisse();
+  document.getElementById("play").textContent = inKino ? "▶ Kino starten" : "▶ Kino starten";
+  document.getElementById("kinoPlay").textContent = "▶ Start";
+  zeichneKarten(); zeichneSpark();
+  document.getElementById("kinoKonfig").textContent = konfigurationText();
+  markiereSchmutzig();
+  simSchreibe();
+}
+
+/* ---------- Drehbuch ----------
+   Ein Drehbuch ist ein Szenario als Datei: data/derived/drehbuch/*.json.
+   Der Teil "parameter" speist die Simulation ein. Der Teil "lkw" ist ein reines
+   Etikett (Platzhalter): recherchiert, ohne Wirkung auf den Lauf.
+
+   Die Presets liegen in data/derived/orte.json (scripts/sim_daten.py), damit die
+   Seite sie per Doppelklick (file://) laden kann. */
+const DREHBUCH = DATEN.drehbuch || [];
+let drehbuchAktiv = null;
+
+/* Bild nicht gefunden: stattdessen den Hinweis zeigen. */
+document.addEventListener("error", function (e) {
+  const t = e.target;
+  if (t && t.classList && t.classList.contains("dzBild")) {
+    t.classList.add("fehlt");
+    if (!t.parentNode.querySelector(".keinBild")) {
+      const d = document.createElement("div");
+      d.className = "keinBild";
+      d.textContent = "Vorschau-Bild nicht gefunden";
+      t.parentNode.insertBefore(d, t);
+    }
+  }
+}, true);
+
+/* Erlaubte Simulationsparameter. Alles andere im Drehbuch wird abgelehnt -
+   ein Etikett darf nicht ins Modell einspeisen (scripts/drehbuch_pruefen.py). */
+const DZ_ERLAUBT = ["abstand", "autos", "strategie", "schwelle"];
+
+function dzFehler(text) {
+  const el = document.getElementById("dzFehler");
+  if (!text) { el.hidden = true; el.textContent = ""; return; }
+  el.hidden = false;
+  el.textContent = text;
+}
+
+/* Prueft die Pflichtfelder, bevor etwas ins Modell geht. */
+function dzPruefe(d) {
+  if (!d || typeof d !== "object") return "Kein gültiges JSON-Objekt.";
+  if (!d.parameter || typeof d.parameter !== "object") return "„parameter“ fehlt.";
+  const extra = Object.keys(d.parameter).filter(k => DZ_ERLAUBT.indexOf(k) < 0);
+  if (extra.length) return "Unerlaubte Simulationsparameter: " + extra.join(", ") + ".";
+  for (const k of DZ_ERLAUBT) {
+    if (d.parameter[k] === undefined) return "„parameter." + k + "“ fehlt.";
+  }
+  if (d.parameter.strategie !== "ist" && d.parameter.strategie !== "fuell") {
+    return "„parameter.strategie“ muss „ist“ oder „fuell“ sein.";
+  }
+  const s = parseFloat(d.parameter.abstand), m = parseInt(d.parameter.autos, 10);
+  if (!(s >= 2.5 && s <= 20)) return "„parameter.abstand“ liegt außerhalb 2,5–20.";
+  if (!(m >= 1 && m <= 4)) return "„parameter.autos“ liegt außerhalb 1–4.";
+  return null;
+}
+
+/* Setzt die Parameterfelder und startet den Lauf neu. */
+function drehbuchAnwenden(d) {
+  const fehler = dzPruefe(d);
+  if (fehler) { dzFehler(fehler); return false; }
+  dzFehler(null);
+
+  const p = d.parameter;
+  document.getElementById("s").value = p.abstand;
+  document.getElementById("m").value = p.autos;
+  document.getElementById("schwelle").value = p.schwelle;
+
+  const ist = p.strategie === "ist";
+  document.getElementById("bIst").classList.toggle("on", ist);
+  document.getElementById("bFuell").classList.toggle("on", !ist);
+  document.getElementById("schwelle").disabled = ist;
+  document.getElementById("strHilfe").innerHTML = ist
+    ? chip("ist_rhythmus") + " Beobachteter Rhythmus, kalibriert"
+    : chip("schwelle") + " Leerung, wenn die vollste Kammer die Schwelle erreicht";
+
+  drehbuchAktiv = d;
+  wertSetzen();
+  drehbuchAnzeigen(d);
+  return true;
+}
+
+/* Zeigt Beschreibung, Parameter und Vorschau-Bild des aktiven Drehbuchs. */
+function drehbuchAnzeigen(d) {
+  document.getElementById("dzBeschreibung").textContent =
+    d.beschreibung || d.name || "—";
+
+  const h = d.herkunft || {};
+  const p = d.parameter;
+  const eintraege = [
+    ["Abstand", zahl(parseFloat(p.abstand), 1), h.abstand || "S"],
+    ["LKWs", String(p.autos), h.autos || "S"],
+    ["Strategie", p.strategie === "ist" ? "Ist-Rhythmus" : "nach Füllstand", h.strategie || "S"],
+    ["Schwelle", p.schwelle + " %", h.schwelle || "S"]
+  ];
+  document.getElementById("dzParameter").innerHTML = eintraege.map(e =>
+    '<span>' + chip(e[2]) + " " + e[0] + ": <b>" + e[1] + "</b></span>").join("");
+
+  /* Vorschau: das LKW-Objekt. Platzhalter — ohne Wirkung auf den Lauf. */
+  const lkw = d.lkw || {};
+  const vorschau = document.getElementById("dzVorschau");
+  let bild;
+  if (lkw.vorschau_bild) {
+    /* Der Pfad im Drehbuch ist relativ zum Repo-Wurzelverzeichnis; diese Seite
+       liegt in sim/. Der Prefix "../" gilt fuer file:// und fuer HTTP gleich. */
+    const pfad = "../" + String(lkw.vorschau_bild).replace(/^\\.\\//, "");
+    bild = '<img class="dzBild" src="' + pfad + '" alt="Vorschau: ' +
+           (lkw.name || "LKW") + '">';
+  } else {
+    bild = '<div class="keinBild">Kein Vorschau-Bild hinterlegt</div>';
+  }
+  vorschau.innerHTML = bild +
+    '<div class="dzName">' + (lkw.name || "—") + "</div>" +
+    '<div class="dzMeta">' +
+      (lkw.volumen_m3 !== undefined ? "Ladevolumen " + zahl(lkw.volumen_m3, 1) + " m³" : "") +
+      (lkw.quelle ? "<br>Quelle: " + lkw.quelle : "") +
+    "</div>" +
+    '<div class="dzPlatzhalter"><b>Platzhalter.</b> ' +
+      (lkw.wirkung || "Noch keine Wirkung auf die Simulation") +
+      " Die Ladekapazität steckt nicht im Modell — die Daten zeigen einen Besuch je Ort." +
+    "</div>";
+}
+
+/* Preset-Buttons aus den eingebetteten Szenarien. */
+function drehbuchPresetsZeichnen() {
+  const box = document.getElementById("dzPresets");
+  if (!DREHBUCH.length) {
+    box.innerHTML = '<span style="font-size:12px;color:var(--muted)">' +
+      "Keine Drehbuch-Dateien eingebettet — python scripts/sim_daten.py</span>";
+    return;
+  }
+  box.innerHTML = DREHBUCH.map((d, i) =>
+    '<button data-i="' + i + '">' + (d.name || d.datei) + "</button>").join("");
+  box.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    const d = DREHBUCH[parseInt(b.dataset.i, 10)];
+    if (drehbuchAnwenden(d)) {
+      box.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+      b.classList.add("on");
+    }
+  }));
+  /* Das erste Drehbuch ist der Startzustand. */
+  const erste = DREHBUCH[0];
+  if (erste) {
+    drehbuchAnwenden(erste);
+    box.querySelector("button").classList.add("on");
+  }
+}
+
+/* Eigene Drehbuch-Datei laden. */
+document.getElementById("dzDatei").addEventListener("change", function (e) {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const leser = new FileReader();
+  leser.onload = function () {
+    let d;
+    try {
+      d = JSON.parse(leser.result);
+    } catch (err) {
+      dzFehler("JSON konnte nicht gelesen werden: " + err.message);
+      return;
+    }
+    document.getElementById("dzPresets").querySelectorAll("button")
+      .forEach(x => x.classList.remove("on"));
+    if (drehbuchAnwenden(d)) dzFehler(null);
+  };
+  leser.onerror = function () { dzFehler("Datei konnte nicht gelesen werden."); };
+  leser.readAsText(f);
+});
 
 /* ---------- Steuerung ---------- */
 function wertSetzen() {
@@ -455,10 +1036,15 @@ function wertSetzen() {
   document.getElementById("sWert").textContent = zahl(s, 1);
   document.getElementById("mWert").textContent = String(m);
   document.getElementById("schwelleWert").textContent = schwelle + " %";
-  const soll = (m * 12.8 * 5.0 / s);
-  document.getElementById("sHilfe").textContent = "Soll: " + zahl(soll, 1) + " Stopps/Tag";
-  document.getElementById("mHilfe").textContent = zahl(soll, 1) + " Stopps/Tag";
+  /* Soll-Durchsatz aus den gemessenen Daten: M Autos × K0 Stopps/Tag je Auto bei
+     Abstand s0, skaliert mit dem Abstand. Keine hartkodierten Zahlen. */
+  const soll = (m * META.k0_pro_tag * META.s0 / s);
+  document.getElementById("mHilfe").innerHTML = chip("k0_pro_tag") + " " + zahl(soll, 1) + " Stopps/Tag";
+  document.getElementById("sHilfe").innerHTML =
+    "Abstandseinheiten je Sprung · " + chip("warmlauf_tage") + " Warmlauf " + META.warmlauf_tage + " Tage";
   zeichneKarten(); zeichneSpark();
+  markiereSchmutzig();
+  simSchreibe();
 }
 
 ["s", "m", "schwelle"].forEach(id =>
@@ -469,74 +1055,164 @@ document.getElementById("bIst").addEventListener("click", () => {
   document.getElementById("bIst").classList.add("on");
   document.getElementById("bFuell").classList.remove("on");
   document.getElementById("schwelle").disabled = true;
-  document.getElementById("strHilfe").textContent = "Beobachteter Rhythmus, kalibriert";
+  document.getElementById("strHilfe").innerHTML =
+    chip("ist_rhythmus") + " Beobachteter Rhythmus, kalibriert";
   zeichneKarten();
+  document.getElementById("kinoKonfig").textContent = konfigurationText();
+  markiereSchmutzig();
+  simSchreibe();
 });
 document.getElementById("bFuell").addEventListener("click", () => {
   eng.setParams({ strategie: "fuell" }); eng.reset();
   document.getElementById("bFuell").classList.add("on");
   document.getElementById("bIst").classList.remove("on");
   document.getElementById("schwelle").disabled = false;
-  document.getElementById("strHilfe").textContent = "Leerung, wenn die vollste Kammer die Schwelle erreicht";
+  document.getElementById("strHilfe").innerHTML =
+    chip("schwelle") + " Leerung, wenn die vollste Kammer die Schwelle erreicht";
   zeichneKarten();
+  document.getElementById("kinoKonfig").textContent = konfigurationText();
+  markiereSchmutzig();
+  simSchreibe();
 });
 document.getElementById("bRinge").addEventListener("click", () => {
   ansicht = "ringe";
   document.getElementById("bRinge").classList.add("on");
   document.getElementById("bContainer").classList.remove("on");
-  document.getElementById("ansichtHilfe").textContent = "Farben getrennt";
+  document.getElementById("ansichtHilfe").innerHTML =
+    chip("ring_reihenfolge") + " Farben getrennt";
+  zeichneBuehneTitel();
+  markiereSchmutzig();
 });
 document.getElementById("bContainer").addEventListener("click", () => {
   ansicht = "container";
   document.getElementById("bContainer").classList.add("on");
   document.getElementById("bRinge").classList.remove("on");
-  document.getElementById("ansichtHilfe").textContent = "Ein Ort = ein Container";
+  document.getElementById("ansichtHilfe").innerHTML =
+    chip("ring_reihenfolge") + " Ein Ort = ein Container";
+  zeichneBuehneTitel();
+  markiereSchmutzig();
 });
 document.getElementById("tempoSeg").querySelectorAll("button").forEach(b =>
   b.addEventListener("click", () => {
-    document.getElementById("tempoSeg").querySelectorAll("button").forEach(x => x.classList.remove("on"));
-    b.classList.add("on");
-    tempo = parseFloat(b.dataset.t);
-    document.getElementById("tempoHilfe").textContent = "Tempo " + zahl(tempo, 1) + "×";
+    setzeTempo(parseFloat(b.dataset.t));
+    markiereSchmutzig();
   }));
-document.getElementById("reset").addEventListener("click", () => { eng.reset(); zeichneKarten(); zeichneSpark(); });
+document.getElementById("reset").addEventListener("click", () => {
+  resetLauf();
+});
 
 let laufend = false;
 document.getElementById("play").addEventListener("click", () => {
+  if (!inKino) {
+    setzeAnsicht(true);
+    laufend = true;
+    document.getElementById("kinoPlay").textContent = "❚❚ Pause";
+    markiereSchmutzig();
+    return;
+  }
   laufend = !laufend;
-  document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Start";
+  document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Kino starten";
+  document.getElementById("kinoPlay").textContent = laufend ? "❚❚ Pause" : "▶ Start";
+  if (!laufend) {
+    /* Beim Pausieren laeuft der Blitz noch aus - so lange zeichnen wir weiter. */
+    blitzRest = BLITZ_DAUER;
+  }
+  markiereSchmutzig();
 });
 
+document.getElementById("kinoPlay").addEventListener("click", () => {
+  laufend = !laufend;
+  document.getElementById("kinoPlay").textContent = laufend ? "❚❚ Pause" : "▶ Start";
+  document.getElementById("play").textContent = laufend ? "❚❚ Pause" : "▶ Kino starten";
+  if (!laufend) blitzRest = BLITZ_DAUER;
+  markiereSchmutzig();
+});
+document.getElementById("kinoReset").addEventListener("click", resetLauf);
+document.getElementById("kinoTempoSeg").querySelectorAll("button").forEach(b =>
+  b.addEventListener("click", () => { setzeTempo(parseFloat(b.dataset.t)); markiereSchmutzig(); }));
+document.getElementById("navKino").addEventListener("click", () => setzeAnsicht(true));
+document.getElementById("navParameter").addEventListener("click", () => setzeAnsicht(false));
+
 /* ---------- Schleife ---------- */
-let last = 0, tageTimer = 0, progress = 0, tempo = 1;
 function loop(ts) {
+  frameAngefordert = false;
   if (!last) last = ts;
   const dt = ts - last; last = ts;
+
+  let bewegt = false;
   if (laufend) {
-    const dauer = 450 / tempo;
+    const dauer = 1000 / tempo;
     tageTimer += dt;
     while (tageTimer >= dauer) {
       tageTimer -= dauer;
-      if (eng.tag < eng.warmlauf + TAGE) { eng.stepDay(); progress = 0; }
-      else { laufend = false; document.getElementById("play").textContent = "▶ Start"; }
+      if (eng.tag < eng.warmlauf + TAGE) { eng.stepDay(); notiereEreignisse(); progress = 0; }
+      else {
+        laufend = false;
+        document.getElementById("play").textContent = "▶ Kino starten";
+        document.getElementById("kinoPlay").textContent = "▶ Start";
+      }
     }
-    progress = Math.min(1, tageTimer / dauer);
+    const neu = Math.min(1, tageTimer / dauer);
+    if (neu !== progress) { progress = neu; bewegt = true; }
+    bewegt = true;                     // Autos fahren, der Blitz verblasst
+  } else if (blitzRest > 0) {
+    blitzRest -= dt;
+    if (blitzRest <= 0) blitzRest = 0;
+    bewegt = true;                     // Blitz klingt aus
+    progress = Math.max(0, progress - dt / BLITZ_DAUER);
   }
+
+  /* Nur zeichnen, wenn sich etwas geaendert hat. */
+  if (!bewegt && !schmutzig) return;    // Loop beendet, kein weiterer Frame geplant
+
+  schmutzig = false;
   zeichneRing(progress);
-  document.getElementById("tagWert").textContent = "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE;
+  const tagText = "Tag " + Math.max(0, eng.tag - eng.warmlauf) + " / " + TAGE;
+  document.getElementById("tagWert").textContent = tagText;
+  document.getElementById("kinoTagWert").textContent = tagText;
   zeichneKarten();
   zeichneSpark();
-  requestAnimationFrame(loop);
+  simSchreibe();
+
+  /* Layout steht noch nicht (Canvas war 0 breit) -> nochmal versuchen. */
+  if (!buehneCache) { schmutzig = true; fordertFrameAn(); return; }
+
+  if (bewegt) fordertFrameAn();         // naechsten Frame planen
 }
 
 /* ---------- Testbarkeit ---------- */
+/* Die Werte werden zusaetzlich ins DOM geschrieben, damit sie auch aus einer
+   isolierten Browser-Welt (z.B. Extension-Konsole) lesbar sind. */
 window.simSet = function (p) { eng.setParams(p); eng.reset(); return true; };
 window.simFinish = function () { const m = eng.runToEnd(); zeichneKarten(); zeichneSpark(); return m; };
 window.simMetrics = function () { return eng.metrics(); };
 window.simReady = true;
+function simSchreibe() {
+  const el = document.getElementById("simWerte");
+  if (!el) return;
+  el.textContent = JSON.stringify({
+    ready: true,
+    params: eng.getParams(),
+    metrics: eng.metrics()
+  });
+}
 
 wertSetzen();
-requestAnimationFrame(loop);
+zeichneKopf();
+zeichneLegende();
+zeichneBuehneHerkunft();
+zeichneBuehneTitel();
+zeichneFussHerkunft();
+document.getElementById("strHilfe").innerHTML =
+  chip("ist_rhythmus") + " Beobachteter Rhythmus, kalibriert";
+document.getElementById("ansichtHilfe").innerHTML =
+  chip("ring_reihenfolge") + " Farben getrennt";
+drehbuchPresetsZeichnen();
+setzeTempo(0.5);
+zeigeEreignisse();
+setzeAnsicht(false);
+simSchreibe();
+fordertFrameAn();
 </script>
 </body>
 </html>
