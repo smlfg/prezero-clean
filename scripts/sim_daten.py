@@ -15,9 +15,6 @@ Konventionen von scripts/fakten.py:
   (Besuch = Location_id + date), null bei nur einem Besuch.
 - Container ohne verwertbare Rate bekommen rate = null und werden in
   meta.container_ohne_rate gezaehlt.
-- drehbuch: die Szenario-Dateien aus data/derived/drehbuch/*.json werden eingebettet,
-  damit das Kino sie ohne Server laden kann. Das LKW darin ist ein PLATZHALTER
-  (recherchiert, wirkt nicht auf den Lauf).
 
 Aufruf: .venv/bin/python scripts/sim_daten.py [pfad_zur_csv]
 """
@@ -31,7 +28,6 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 CSV = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "data" / "raw" / "glass_fill_levels_anonymized_f.csv"
 OUT = ROOT / "data" / "derived" / "orte.json"
-DREHBUCH_DIR = ROOT / "data" / "derived" / "drehbuch"
 S0 = 5.0
 WARMLAUF = 90  # Tage ohne Zaehlung, gesetzt (siehe docs/KINO_VERTRAG.md)
 
@@ -115,8 +111,6 @@ HERKUNFT_SONSTIGE = {
     # Vorher/Nachher-Karte: beide Werte sind Modellrechnung gegen den Ist-Lauf.
     "kino_delta_ueberlauf": "S",
     "kino_ist_vergleich": "S",
-    "lkw_objekt": "R",
-    "lkw_volumen_m3": "R",
     "container_volumen_m3": "R",
 }
 
@@ -197,28 +191,9 @@ def kalibrierungsfaktor(gaps, besuche, tage):
     return round(float((1.0 / g).sum()) / (besuche / tage), 4)
 
 
-def lade_drehbuch() -> list:
-    """Die Szenario-Dateien einlesen und einbetten.
-
-    Das LKW je Szenario ist ein PLATZHALTER: recherchiert (V-5), ohne Wirkung auf
-    den Lauf. Der Vorschau-Bildpfad bleibt RELATIV zum Repo-Wurzelverzeichnis.
-    Die Seite (sim/kino.html) rechnet ihn selbst um - so funktioniert der Pfad
-    per Doppelklick (file://) genauso wie ueber einen HTTP-Server.
-    """
-    szenarien = []
-    if not DREHBUCH_DIR.exists():
-        return szenarien
-    for p in sorted(DREHBUCH_DIR.glob("*.json")):
-        d = json.loads(p.read_text(encoding="utf-8"))
-        d["datei"] = p.name
-        szenarien.append(d)
-    return szenarien
-
-
 def baue(d):
     med, n_messungen = raten(d)
     gaps = orts_gaps(d)
-    drehbuch = lade_drehbuch()
 
     orte = []
     for lid in sorted(d.Location_id.unique()):
@@ -277,10 +252,8 @@ def baue(d):
             "meta": HERKUNFT_META,
             "sonstige": HERKUNFT_SONSTIGE,
         },
-        # Drehbuch-Szenarien (Platzhalter-LKW, recherchiert, ohne Wirkung auf den Lauf)
-        "drehbuch_anzahl": len(drehbuch),
     }
-    return {"meta": meta, "orte": orte, "drehbuch": drehbuch}
+    return {"meta": meta, "orte": orte}
 
 
 def main():
@@ -307,7 +280,6 @@ def main():
         raten_liste.quantile(0.9),
     ))
     print(f"orte_ohne_gap (nur ein Besuch): {ohne_gap}")
-    print(f"drehbuch: {meta['drehbuch_anzahl']} Szenarien eingebettet (LKW = Platzhalter)")
     print(f"geschrieben: {OUT.relative_to(ROOT)} ({groesse} Bytes)")
 
 

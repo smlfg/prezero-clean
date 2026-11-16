@@ -36,44 +36,6 @@
   .herkunft .beispiel{color:#6e7b8b;white-space:nowrap}
   .herkunft-linie{font-size:12px;color:var(--muted);margin-top:9px;line-height:1.5}
   .herkunft-linie b{color:#c9d1d9;font-weight:600}
-  /* ---- Drehbuch: eingeklappt, damit es die Parameter nicht dominiert ---- */
-  .drehbuch{padding:0;border-bottom:1px solid var(--line);background:var(--panel)}
-  .drehbuch .dzSummary{display:flex;align-items:baseline;gap:12px;cursor:pointer;
-                       padding:14px 26px;list-style:none}
-  .drehbuch .dzSummary::-webkit-details-marker{display:none}
-  .drehbuch .dzSummary::before{content:"\25B8";color:var(--muted);font-size:12px;transition:transform .12s}
-  .drehbuch[open] .dzSummary::before{transform:rotate(90deg)}
-  .drehbuch[open] .dzSummary{border-bottom:1px solid var(--line)}
-  .drehbuch .dzTitel{font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--text)}
-  .drehbuch .dzKurz{font-size:13px;color:var(--accent)}
-  .drehbuch .dzHinweis{font-size:11.5px;color:var(--muted);margin-left:auto}
-  .drehbuch .dzKopf, .drehbuch .drehbuchInhalt{padding:14px 26px}
-  .drehbuch .dzKopf{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
-                     justify-content:space-between;margin-bottom:12px}
-  .drehbuch h3{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
-  .drehbuch .presets{display:flex;flex-wrap:wrap;gap:8px}
-  .drehbuch .presets button{background:var(--panel2);border:1px solid var(--line);color:var(--muted);
-                            border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px}
-  .drehbuch .presets button:hover{border-color:var(--accent);color:var(--text)}
-  .drehbuch .presets button.on{background:var(--accent);color:#07131f;font-weight:600;border-color:var(--accent)}
-  .drehbuch .datei{font-size:11.5px;color:var(--muted)}
-  .drehbuch .datei input{font-size:11.5px;color:var(--muted);background:var(--panel2);
-                          border:1px solid var(--line);border-radius:6px;padding:4px 8px}
-  .drehbuchInhalt{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
-  .dzBeschreibung{font-size:13px;color:var(--text);margin:0 0 10px;line-height:1.5}
-  .dzParameter{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--muted)}
-  .dzParameter span b{color:#c9d1d9;font-weight:600}
-  .dzVorschau{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
-  .dzVorschau img{width:100%;height:auto;display:block;border-radius:6px;background:#fff}
-  .dzVorschau img.fehlt{display:none}
-  .dzVorschau .keinBild{padding:22px 10px;text-align:center;font-size:12px;color:var(--muted)}
-  .dzVorschau .dzName{font-size:13.5px;font-weight:600;margin:9px 0 3px}
-  .dzVorschau .dzMeta{font-size:11.5px;color:var(--muted);line-height:1.55}
-  .dzPlatzhalter{margin-top:9px;padding:7px 9px;border-radius:7px;font-size:11.5px;line-height:1.45;
-                 background:rgba(210,153,34,.10);border:1px solid rgba(210,153,34,.4);color:#f0c674}
-  .dzPlatzhalter b{color:#ffd58a}
-  .dzFehler{margin-top:10px;padding:9px 11px;border-radius:7px;font-size:12px;
-            background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.45);color:#ff8b85}
   /* ---- Parameter-Ansicht: drei Zonen (Lauf, Modell, Darstellung) ---- */
   .laufLeiste{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;
               padding:16px 26px;border-bottom:1px solid var(--line);background:var(--panel)}
@@ -151,14 +113,8 @@
   /* ---- Bilanz: A gegen B (eigener Tab, Stakeholder-Sicht) ---- */
   .bilanzKopfzeile{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;
                    padding:12px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
-  .bilanzKopfzeile .lab{font-size:11.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .bilanzKopfzeile .laufinfo{margin-left:auto;font-size:12px;color:var(--muted);text-align:right}
   .bilanzKopfzeile .laufinfo b{color:var(--text);font-variant-numeric:tabular-nums}
-  .bilanzWahl{display:flex;flex-wrap:wrap;gap:8px}
-  .bilanzWahl button{background:var(--panel);border:1px solid var(--line);color:var(--muted);
-                     border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px}
-  .bilanzWahl button:hover{border-color:var(--accent);color:var(--text)}
-  .bilanzWahl button.on{background:var(--accent);color:#07131f;font-weight:600;border-color:var(--accent)}
   .bilanzPaar{display:flex;flex-direction:column;gap:4px;padding:12px 26px;
               border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.6}
   .bilanzPaar b{color:#c9d1d9;font-weight:600}
@@ -289,28 +245,6 @@
   </div>
 
   <div class="herkunft" id="herkunft"></div>
-
-  <details class="drehbuch" id="drehbuch">
-    <summary class="dzSummary">
-      <span class="dzTitel">Drehbuch</span>
-      <span class="dzKurz" id="dzKurz"></span>
-      <span class="dzHinweis">optional &middot; setzt die Parameter oben</span>
-    </summary>
-    <div class="dzKopf">
-      <div class="presets" id="dzPresets"></div>
-      <label class="datei">Drehbuch laden
-        <input type="file" id="dzDatei" accept="application/json,.json">
-      </label>
-    </div>
-    <div class="drehbuchInhalt">
-      <div>
-        <p class="dzBeschreibung" id="dzBeschreibung">&mdash;</p>
-        <div class="dzParameter" id="dzParameter"></div>
-        <div class="dzFehler" id="dzFehler" hidden></div>
-      </div>
-      <div class="dzVorschau" id="dzVorschau"></div>
-    </div>
-  </details>
 </section>
 
 <section id="kinoAnsicht" hidden>
@@ -362,10 +296,6 @@
 
 <section id="bilanzAnsicht" hidden>
   <div class="bilanzKopfzeile">
-    <div>
-      <div class="lab">B wählen &mdash; A bleibt der Ist-Lauf</div>
-      <div class="bilanzWahl" id="bilanzWahl"></div>
-    </div>
     <button class="knopf" id="bilanzNeu">&#8635; Neu rechnen</button>
     <span class="laufinfo" id="bilanzTag"></span>
   </div>
@@ -1198,7 +1128,6 @@ function setzeBilanzAnsicht() {
     "Zwei Szenarien gegenüberstellen — Modellrechnung, keine Messung";
   document.getElementById("play").textContent = "▶ Kino starten";
   document.getElementById("kinoPlay").textContent = "▶ Start";
-  bilanzWahlZeichnen();
   bilanzStart();
 }
 
@@ -1217,176 +1146,9 @@ function resetLauf() {
   simSchreibe();
 }
 
-/* ---------- Drehbuch ----------
-   Ein Drehbuch ist ein Szenario als Datei: data/derived/drehbuch/*.json.
-   Der Teil "parameter" speist die Simulation ein. Der Teil "lkw" ist ein reines
-   Etikett (Platzhalter): recherchiert, ohne Wirkung auf den Lauf.
-
-   Die Presets liegen in data/derived/orte.json (scripts/sim_daten.py), damit die
-   Seite sie per Doppelklick (file://) laden kann. */
-const DREHBUCH = DATEN.drehbuch || [];
-let drehbuchAktiv = null;
-
-/* Bild nicht gefunden: stattdessen den Hinweis zeigen. */
-document.addEventListener("error", function (e) {
-  const t = e.target;
-  if (t && t.classList && t.classList.contains("dzBild")) {
-    t.classList.add("fehlt");
-    if (!t.parentNode.querySelector(".keinBild")) {
-      const d = document.createElement("div");
-      d.className = "keinBild";
-      d.textContent = "Vorschau-Bild nicht gefunden";
-      t.parentNode.insertBefore(d, t);
-    }
-  }
-}, true);
-
-/* Erlaubte Simulationsparameter. Alles andere im Drehbuch wird abgelehnt -
-   ein Etikett darf nicht ins Modell einspeisen (scripts/drehbuch_pruefen.py). */
-const DZ_ERLAUBT = ["abstand", "autos", "strategie", "schwelle"];
-
-function dzFehler(text) {
-  const el = document.getElementById("dzFehler");
-  if (!text) { el.hidden = true; el.textContent = ""; return; }
-  el.hidden = false;
-  el.textContent = text;
-}
-
-/* Prueft die Pflichtfelder, bevor etwas ins Modell geht. */
-function dzPruefe(d) {
-  if (!d || typeof d !== "object") return "Kein gültiges JSON-Objekt.";
-  if (!d.parameter || typeof d.parameter !== "object") return "„parameter“ fehlt.";
-  const extra = Object.keys(d.parameter).filter(k => DZ_ERLAUBT.indexOf(k) < 0);
-  if (extra.length) return "Unerlaubte Simulationsparameter: " + extra.join(", ") + ".";
-  for (const k of DZ_ERLAUBT) {
-    if (d.parameter[k] === undefined) return "„parameter." + k + "“ fehlt.";
-  }
-  if (d.parameter.strategie !== "ist" && d.parameter.strategie !== "fuell") {
-    return "„parameter.strategie“ muss „ist“ oder „fuell“ sein.";
-  }
-  const s = parseFloat(d.parameter.abstand), m = parseInt(d.parameter.autos, 10);
-  if (!(s >= 2.5 && s <= 20)) return "„parameter.abstand“ liegt außerhalb 2,5–20.";
-  if (!(m >= 1 && m <= 4)) return "„parameter.autos“ liegt außerhalb 1–4.";
-  return null;
-}
-
-/* Setzt die Parameterfelder und startet den Lauf neu. */
-function drehbuchAnwenden(d) {
-  const fehler = dzPruefe(d);
-  if (fehler) { dzFehler(fehler); return false; }
-  dzFehler(null);
-
-  const p = d.parameter;
-  document.getElementById("s").value = p.abstand;
-  document.getElementById("m").value = p.autos;
-  document.getElementById("schwelle").value = p.schwelle;
-
-  const ist = p.strategie === "ist";
-  document.getElementById("bIst").classList.toggle("on", ist);
-  document.getElementById("bFuell").classList.toggle("on", !ist);
-  document.getElementById("schwelle").disabled = ist;
-  document.getElementById("strHilfe").innerHTML = ist
-    ? chip("ist_rhythmus") + " Beobachteter Rhythmus, kalibriert"
-    : chip("schwelle") + " Leerung, wenn die vollste Kammer die Schwelle erreicht";
-
-  drehbuchAktiv = d;
-  wertSetzen();
-  drehbuchAnzeigen(d);
-  return true;
-}
-
-/* Zeigt Beschreibung, Parameter und Vorschau-Bild des aktiven Drehbuchs. */
-function drehbuchAnzeigen(d) {
-  document.getElementById("dzBeschreibung").textContent =
-    d.beschreibung || d.name || "—";
-  const dzKurz = document.getElementById("dzKurz");
-  if (dzKurz) dzKurz.textContent = d.name || "";
-
-  const h = d.herkunft || {};
-  const p = d.parameter;
-  const eintraege = [
-    ["Abstand", zahl(parseFloat(p.abstand), 1), h.abstand || "S"],
-    ["LKWs", String(p.autos), h.autos || "S"],
-    ["Strategie", p.strategie === "ist" ? "Ist-Rhythmus" : "nach Füllstand", h.strategie || "S"],
-    ["Schwelle", p.schwelle + " %", h.schwelle || "S"]
-  ];
-  document.getElementById("dzParameter").innerHTML = eintraege.map(e =>
-    '<span>' + chip(e[2]) + " " + e[0] + ": <b>" + e[1] + "</b></span>").join("");
-
-  /* Vorschau: das LKW-Objekt. Platzhalter — ohne Wirkung auf den Lauf. */
-  const lkw = d.lkw || {};
-  const vorschau = document.getElementById("dzVorschau");
-  let bild;
-  if (lkw.vorschau_bild) {
-    /* Der Pfad im Drehbuch ist relativ zum Repo-Wurzelverzeichnis; diese Seite
-       liegt in sim/. Der Prefix "../" gilt fuer file:// und fuer HTTP gleich. */
-    const pfad = "../" + String(lkw.vorschau_bild).replace(/^\.\//, "");
-    bild = '<img class="dzBild" src="' + pfad + '" alt="Vorschau: ' +
-           (lkw.name || "LKW") + '">';
-  } else {
-    bild = '<div class="keinBild">Kein Vorschau-Bild hinterlegt</div>';
-  }
-  vorschau.innerHTML = bild +
-    '<div class="dzName">' + (lkw.name || "—") + "</div>" +
-    '<div class="dzMeta">' +
-      (lkw.volumen_m3 !== undefined ? "Ladevolumen " + zahl(lkw.volumen_m3, 1) + " m³" : "") +
-      (lkw.quelle ? "<br>Quelle: " + lkw.quelle : "") +
-    "</div>" +
-    '<div class="dzPlatzhalter"><b>Platzhalter.</b> ' +
-      (lkw.wirkung || "Noch keine Wirkung auf die Simulation") +
-      " Die Ladekapazität steckt nicht im Modell — die Daten zeigen einen Besuch je Ort." +
-    "</div>";
-}
-
-/* Preset-Buttons aus den eingebetteten Szenarien. */
-function drehbuchPresetsZeichnen() {
-  const box = document.getElementById("dzPresets");
-  if (!DREHBUCH.length) {
-    box.innerHTML = '<span style="font-size:12px;color:var(--muted)">' +
-      "Keine Drehbuch-Dateien eingebettet — python scripts/sim_daten.py</span>";
-    return;
-  }
-  box.innerHTML = DREHBUCH.map((d, i) =>
-    '<button data-i="' + i + '">' + (d.name || d.datei) + "</button>").join("");
-  box.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
-    const d = DREHBUCH[parseInt(b.dataset.i, 10)];
-    if (drehbuchAnwenden(d)) {
-      box.querySelectorAll("button").forEach(x => x.classList.remove("on"));
-      b.classList.add("on");
-    }
-  }));
-  /* Das erste Drehbuch ist der Startzustand. */
-  const erste = DREHBUCH[0];
-  if (erste) {
-    drehbuchAnwenden(erste);
-    box.querySelector("button").classList.add("on");
-  }
-}
-
-/* Eigene Drehbuch-Datei laden. */
-document.getElementById("dzDatei").addEventListener("change", function (e) {
-  const f = e.target.files && e.target.files[0];
-  if (!f) return;
-  const leser = new FileReader();
-  leser.onload = function () {
-    let d;
-    try {
-      d = JSON.parse(leser.result);
-    } catch (err) {
-      dzFehler("JSON konnte nicht gelesen werden: " + err.message);
-      return;
-    }
-    document.getElementById("dzPresets").querySelectorAll("button")
-      .forEach(x => x.classList.remove("on"));
-    if (drehbuchAnwenden(d)) dzFehler(null);
-  };
-  leser.onerror = function () { dzFehler("Datei konnte nicht gelesen werden."); };
-  leser.readAsText(f);
-});
-
 /* ---------- Bilanz: A gegen B ----------
    Eigener Tab für Stakeholder. A ist immer der Ist-Lauf (Abstand s0, 1 Auto,
-   Strategie "ist"). B ist der aktuell eingestellte Lauf oder ein Drehbuch.
+   Strategie "ist"). B ist der aktuell eingestellte Lauf.
 
    Alle Zahlen entstehen hier aus derselben Engine wie die Bühne (KINO.create) -
    kein Wert steht im HTML, keine zweite Modelllogik. Die vielen Läufe der
@@ -1394,7 +1156,6 @@ document.getElementById("dzDatei").addEventListener("change", function (e) {
    Oberfläche bedienbar bleibt. Die Loop-Bremse (frameAngefordert in loop())
    bleibt unberührt: im Stand entstehen weiterhin keine Frames. */
 const bilanzEng = KINO.create(DATEN);
-let bilanzQuelle = null;   /* null = aktueller Lauf, sonst Index in DREHBUCH */
 let bilanzJob = null;
 
 function bilanzIstParams() {
@@ -1404,20 +1165,12 @@ function bilanzIstParams() {
   };
 }
 
-/* Drehbuch-Parameter auf die Engine-Namen abbilden (abstand -> s, autos -> m). */
-function bilanzDzParams(d) {
-  const p = d.parameter;
-  return { s: +p.abstand, m: +p.autos, strategie: p.strategie, schwelle: +p.schwelle };
-}
-
 function bilanzBParams() {
-  const d = bilanzQuelle === null ? null : DREHBUCH[bilanzQuelle];
-  return d ? bilanzDzParams(d) : eng.getParams();
+  return eng.getParams();
 }
 
 function bilanzBName() {
-  const d = bilanzQuelle === null ? null : DREHBUCH[bilanzQuelle];
-  return d ? (d.name || d.datei) : "aktueller Lauf";
+  return "aktueller Lauf";
 }
 
 function bilanzLauf(p) {
@@ -1538,23 +1291,6 @@ function bilanzSweeps(b) {
         schwelleAktiv && v === b.schwelle))
     }
   ];
-}
-
-function bilanzWahlZeichnen() {
-  const box = document.getElementById("bilanzWahl");
-  if (!box) return;
-  let html = '<button data-q="-" class="' + (bilanzQuelle === null ? "on" : "") +
-    '">aktueller Lauf</button>';
-  DREHBUCH.forEach((d, i) => {
-    html += '<button data-q="' + i + '" class="' + (bilanzQuelle === i ? "on" : "") + '">' +
-      (d.name || d.datei) + "</button>";
-  });
-  box.innerHTML = html;
-  box.querySelectorAll("button").forEach(btn => btn.addEventListener("click", function () {
-    bilanzQuelle = btn.dataset.q === "-" ? null : parseInt(btn.dataset.q, 10);
-    bilanzWahlZeichnen();
-    bilanzStart();
-  }));
 }
 
 function bilanzStart() {
@@ -1713,8 +1449,8 @@ function wertSetzen() {
   const m = parseInt(document.getElementById("m").value, 10);
   const schwelle = parseInt(document.getElementById("schwelle").value, 10);
   /* Die Strategie folgt dem aktiven Knopf. wertSetzen() ist der einzige Weg in die
-     Engine; ohne diese Zeile blieb die Strategie beim Anwenden eines Drehbuchs auf
-     dem alten Wert, während die Knöpfe schon umsprangen. */
+     Engine; ohne diese Zeile blieb die Strategie beim Umschalten auf
+     dem alten Wert, waehrend die Knoepfe schon umsprangen. */
   const strategie = document.getElementById("bFuell").classList.contains("on") ? "fuell" : "ist";
   eng.setParams({ s: s, m: m, schwelle: schwelle, strategie: strategie });
   eng.reset();
@@ -1926,7 +1662,6 @@ document.getElementById("strHilfe").innerHTML =
 document.querySelectorAll("[data-herk]").forEach(function (el) {
   el.innerHTML = chip(el.dataset.herk);
 });
-drehbuchPresetsZeichnen();
 setzeTempo(0.5);
 zeigeEreignisse();
 setzeAnsicht(false);

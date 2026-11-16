@@ -167,7 +167,7 @@ Regeln für den Export:
 - **Fußzeile:** „Simulation — keine Messung. Raten und Rhythmus aus den Daten, alles andere Annahme."
 - **Tab „Bilanz" (eigene Ansicht, nach dem Kino):** stellt zwei Szenarien gegenüber.
   **A** ist immer der Ist-Lauf (`s = s0`, `M = 1`, `ist`), **B** ist der aktuell eingestellte
-  Lauf oder ein Drehbuch. Drei Größen, immer beide Seiten und das Delta: **Leerungen**
+  Lauf. Drei Größen, immer beide Seiten und das Delta: **Leerungen**
   (Zielzahl), **Überlaufquote** (Wächter), **Wegeinheiten = s × Stopps** (Aufwand). Ein
   Delta ist nur dann als Erfolg markiert, wenn die Leerungen sinken **und** die
   Überlaufquote nicht steigt; sonst steht im Klartext, dass die Ersparnis nicht gilt.
