@@ -949,24 +949,12 @@ function zeichneKarten() {
     { name: "Leerungen (Stopps)", wert: zahl(m.leerungen), herk: "S",
       vergl: chip("daten_besuche") + " gemessen: <b>" + zahl(d.besuche) + "</b> Besuche",
       klasse: m.leerungen <= d.besuche ? "gut" : "warn" },
-    /* soll_stopps_pro_tag ist eine Kapazitaet (Obergrenze aus Abstand x Autos),
-       kein Ziel: liegt sie unter dem Bedarf, bindet der Abstand; liegt sie darueber,
-       bindet der Faelligkeitsrhythmus und s aendert die Stopps nicht. */
-    { name: "Stopps pro Tag", wert: zahl(m.stopps_pro_tag, 1), herk: "S",
-      vergl: chip("stopps_pro_tag_soll") + " Kapazität/Tag (Obergrenze): <b>" + zahl(m.soll_stopps_pro_tag, 1) + "</b> · " +
-              chip("k0_pro_tag") + " aus den Daten: <b>" + zahl(d.k0_pro_tag, 1) + "</b>", klasse: "" },
     { name: "voll oder übervoll bei Leerung", wert: zahl(m.voll_bei_leerung_pct, 1) + " %", herk: "S",
       vergl: chip("daten_voll_bei_leerung_pct") + " gemessen: <b>" + zahl(d.daten_voll_bei_leerung_pct, 1) + " %</b>", klasse: "" },
     { name: "davon über 100 %", wert: zahl(m.ueber_100_bei_leerung_pct, 1) + " %", herk: "S",
       vergl: chip("daten_overfull_bei_leerung_pct") + " gemessen (overfull): <b>" + zahl(d.daten_overfull_bei_leerung_pct, 1) + " %</b>", klasse: "" },
     { name: "Überlauf-Tage (Ort-Tage)", wert: zahl(m.ueberlauf_tage), herk: "S",
       vergl: chip("ueberlauf_tage") + " Modellwert — die Daten kennen keinen Überlauf-Tag", klasse: m.ueberlauf_quote_pct > 10 ? "schlecht" : "" },
-    { name: "mittlere vollste Kammer", wert: zahl(m.mittel_max_bei_leerung_pct, 1) + " %", herk: "S",
-      vergl: chip("daten_mittel_max_bei_leerung_pct") + " gemessen: <b>" + zahl(d.daten_mittel_max_bei_leerung_pct, 1) + " %</b>", klasse: "" },
-    { name: "Ø Füllstand aller Kammern", wert: zahl(m.fuell_mittel, 1) + " %", herk: "S",
-      vergl: chip("fuell_mittel") + " Modellwert (übervolle Kammern nicht enthalten)", klasse: "" },
-    { name: "Auslastung der Autos", wert: zahl(m.auslastung_pct, 1) + " %", herk: "S",
-      vergl: chip("auslastung_pct") + " bediente / fällige Stopps — Modellwert", klasse: m.auslastung_pct < 50 ? "schlecht" : "" },
     { name: "Wegeinheiten", wert: zahl(m.wegeinheiten), herk: "S",
       vergl: chip("wegeinheiten") + " Abstand × Stopps — <b>keine km</b>", klasse: "" }
   ];

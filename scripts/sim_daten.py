@@ -33,11 +33,10 @@ WARMLAUF = 90  # Tage ohne Zaehlung, gesetzt (siehe docs/KINO_VERTRAG.md)
 
 SPALTEN = ["Location_id", "material_type", "date", "fill_level_perc"]
 
-# Herkunftsmarkierung fuer das Kino. Vier Kategorien, mehr nicht.
+# Herkunftsmarkierung fuer das Kino. Drei Kategorien, mehr nicht.
 #   M = gemessen   -> steht so in der CSV
 #   A = abgeleitet -> aus Messwerten berechnet, keine Annahme
 #   S = gesetzt    -> Annahme, Modellgroesse, Startwert, Darstellung
-#   R = recherchiert -> externe Quelle mit Wert und Abrufdatum, wirkt nicht auf den Lauf
 KATEGORIEN = {
     "M": {
         "code": "M",
@@ -54,11 +53,6 @@ KATEGORIEN = {
         "kurz": "gesetzt",
         "lang": "Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung.",
     },
-    "R": {
-        "code": "R",
-        "kurz": "recherchiert",
-        "lang": "Aus einer externen Quelle mit Abrufdatum. Wirkt nicht auf die Simulation.",
-    },
 }
 
 # Welche Groesse des meta-Blocks welche Herkunft hat. Eine Liste, ein Ort:
@@ -72,7 +66,6 @@ HERKUNFT_META = {
     "daten_besuche": "M",
     "daten_voll_bei_leerung_pct": "M",
     "daten_overfull_bei_leerung_pct": "M",
-    "daten_mittel_max_bei_leerung_pct": "M",
     "daten_ueberlauf_messungen_pct": "M",
     "k0_pro_tag": "A",
     "kalibrierungsfaktor": "A",
@@ -92,26 +85,14 @@ HERKUNFT_SONSTIGE = {
     "gap": "A",
     "container_ohne_rate": "M",
     "warmlauf_tage": "S",
-    # Kapazitaet enthaelt das gesetzte s0 und den gesetzten Abstand s —
-    # Modellgroesse, nicht Ableitung aus Messwerten.
-    "stopps_pro_tag_soll": "S",
     "wegeinheiten": "S",
-    "auslastung_pct": "S",
     "ueberlauf_tage": "S",
-    "fuell_mittel": "S",
     "ist_rhythmus": "A",
     "schwelle": "S",
     "ring_reihenfolge": "S",
-    "kalender": "S",
-    # Hover je Kalendertag: Modellwerte des Laufs, keine Messung.
-    "tages_stopps": "S",
-    "tages_wegeinheiten": "S",
-    "tages_glas_pp": "S",
-    "tages_soll": "S",
     # Vorher/Nachher-Karte: beide Werte sind Modellrechnung gegen den Ist-Lauf.
     "kino_delta_ueberlauf": "S",
     "kino_ist_vergleich": "S",
-    "container_volumen_m3": "R",
 }
 
 

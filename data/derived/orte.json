@@ -1,6 +1,6 @@
 {
  "meta": {
-  "erzeugt": "2026-11-16T20:13:10+01:00",
+  "erzeugt": "2026-11-16T20:21:25+01:00",
   "quelle": "data/raw/glass_fill_levels_anonymized_f.csv",
   "skript": "scripts/sim_daten.py",
   "orte": 449,
@@ -39,11 +39,6 @@
      "code": "S",
      "kurz": "gesetzt",
      "lang": "Von uns gesetzt: Annahme, Modellgröße, Startwert oder Darstellung."
-    },
-    "R": {
-     "code": "R",
-     "kurz": "recherchiert",
-     "lang": "Aus einer externen Quelle mit Abrufdatum. Wirkt nicht auf die Simulation."
     }
    },
    "meta": {
@@ -55,7 +50,6 @@
     "daten_besuche": "M",
     "daten_voll_bei_leerung_pct": "M",
     "daten_overfull_bei_leerung_pct": "M",
-    "daten_mittel_max_bei_leerung_pct": "M",
     "daten_ueberlauf_messungen_pct": "M",
     "k0_pro_tag": "A",
     "kalibrierungsfaktor": "A",
@@ -71,22 +65,13 @@
     "gap": "A",
     "container_ohne_rate": "M",
     "warmlauf_tage": "S",
-    "stopps_pro_tag_soll": "S",
     "wegeinheiten": "S",
-    "auslastung_pct": "S",
     "ueberlauf_tage": "S",
-    "fuell_mittel": "S",
     "ist_rhythmus": "A",
     "schwelle": "S",
     "ring_reihenfolge": "S",
-    "kalender": "S",
-    "tages_stopps": "S",
-    "tages_wegeinheiten": "S",
-    "tages_glas_pp": "S",
-    "tages_soll": "S",
     "kino_delta_ueberlauf": "S",
-    "kino_ist_vergleich": "S",
-    "container_volumen_m3": "R"
+    "kino_ist_vergleich": "S"
    }
   }
  },
