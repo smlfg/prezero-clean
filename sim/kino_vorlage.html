@@ -102,11 +102,6 @@
   .kinoBar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
   .kinoBar .laufinfo{font-weight:600;font-variant-numeric:tabular-nums;margin-left:auto}
   .kinoBar .konfig{color:var(--muted);font-size:12px}
-  .ereignisse{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-  .ereignisse h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
-  .ereignis{padding:7px 8px;margin-top:6px;border-left:3px solid var(--accent);background:rgba(88,166,255,.07);font-size:12px;color:var(--text)}
-  .ereignis.warn{border-color:var(--warn);background:rgba(210,153,34,.08)}
-  .ereignis.bad{border-color:var(--bad);background:rgba(248,81,73,.08)}
   /* ---- Bilanz: A gegen B (eigener Tab, Stakeholder-Sicht) ---- */
   .bilanzKopfzeile{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;
                    padding:12px 26px;border-bottom:1px solid var(--line);background:var(--panel2)}
@@ -271,10 +266,6 @@
     <canvas id="sparkUeber" class="spark"></canvas>
     <div class="tagesliste" id="sparkHerkunft"></div>
     <div class="tagesliste" id="tagesliste">&mdash;</div>
-    <div class="ereignisse">
-      <h3>Letzte Ereignisse</h3>
-      <div id="ereignisListe"><div class="ereignis">Noch kein Lauf gestartet.</div></div>
-    </div>
   </div>
 </main>
 </section>
@@ -374,7 +365,6 @@ let schmutzig = true;          // etwas hat sich geaendert -> neu zeichnen
 let domSchmutzig = true;       // Kennzahlen/Verlauf sind veraltet -> einmal neu schreiben
 let frameAngefordert = false;  // ein rAF ist bereits geplant
 let blitzRest = 0;             // Restlaufzeit des radialen Blitzes in ms
-let ereignisHistorie = [];
 let inKino = false;
 
 /* Nach dem Pausieren zeichnet der Loop noch, bis der Blitz abgeklungen ist. */
@@ -1006,39 +996,6 @@ function konfigurationText() {
     " · " + (p.strategie === "ist" ? "Ist-Rhythmus" : "Schwelle " + p.schwelle + " %");
 }
 
-function zeigeEreignisse() {
-  const el = document.getElementById("ereignisListe");
-  if (!el) return;
-  if (!ereignisHistorie.length) {
-    el.innerHTML = '<div class="ereignis">Noch kein relevantes Ereignis.</div>';
-    return;
-  }
-  el.innerHTML = ereignisHistorie.slice(0, 5).map(e =>
-    '<div class="ereignis ' + e.klasse + '"><b>Tag ' + e.tag + '</b> · ' + e.text + '</div>'
-  ).join("");
-}
-
-function notiereEreignisse() {
-  const tag = Math.max(0, eng.tag - eng.warmlauf);
-  const ueberlauf = eng.letzteUeberlauf || [];
-  const leerungen = eng.letzteTage || [];
-  if (ueberlauf.length) {
-    ereignisHistorie.unshift({
-      tag: tag,
-      klasse: "bad",
-      text: ueberlauf.length + " Ort" + (ueberlauf.length === 1 ? " erreicht" : "e erreichen") + " Überlauf (100 %+)"
-    });
-  }
-  if (leerungen.length) {
-    ereignisHistorie.unshift({
-      tag: tag,
-      klasse: "",
-      text: leerungen.length + " Ort" + (leerungen.length === 1 ? " wird" : "e werden") + " geleert"
-    });
-  }
-  zeigeEreignisse();
-}
-
 /* Ein fertiger Lauf: jeder Klick auf Start muss ihn erst zuruecksetzen. */
 function istFertig() {
   return eng.tag >= eng.warmlauf + TAGE;
@@ -1068,7 +1025,7 @@ function setzeAnsicht(kino) {
   document.getElementById("navParameter").classList.toggle("active", !kino);
   document.getElementById("navKino").classList.toggle("active", kino);
   document.getElementById("navBilanz").classList.remove("active");
-  document.getElementById("ansichtStatus").textContent = kino ? "Simulation beobachten und Ereignisse vergleichen" : "Einstellungen prüfen und Simulation starten";
+  document.getElementById("ansichtStatus").textContent = kino ? "Simulation beobachten" : "Einstellungen prüfen und Simulation starten";
   document.getElementById("kinoKonfig").textContent = konfigurationText();
   if (kino) {
     zeichneBuehneTitel();
@@ -1104,8 +1061,6 @@ function resetLauf() {
   eng.reset();
   progress = 0;
   tageTimer = 0;
-  ereignisHistorie = [];
-  zeigeEreignisse();
   document.getElementById("play").textContent = inKino ? "▶ Kino starten" : "▶ Kino starten";
   document.getElementById("kinoPlay").textContent = "▶ Start";
   zeichneKarten(); zeichneSpark();
@@ -1526,7 +1481,6 @@ function loop(ts) {
       tageTimer -= dauer;
       if (eng.tag < eng.warmlauf + TAGE) {
         eng.stepDay();
-        notiereEreignisse();
         progress = 0;
         neuerTag = true;
       } else {
@@ -1623,7 +1577,6 @@ document.getElementById("strHilfe").innerHTML =
 document.querySelectorAll("[data-herk]").forEach(function (el) {
   el.innerHTML = chip(el.dataset.herk);
 });
-zeigeEreignisse();
 setzeAnsicht(false);
 simSchreibe();
 fordertFrameAn();
